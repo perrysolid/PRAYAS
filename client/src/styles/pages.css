@@ -147,7 +147,7 @@
 .ukmap__lifted { pointer-events: none; transform: translateY(-7px); filter: url(#ukmap-lift); animation: lift .2s ease-out; }
 @keyframes lift { from { transform: translateY(0); } }
 
-.ukmap__label { font-family: var(--font-display); font-size: 13px; font-weight: 600; fill: var(--navy-deep); pointer-events: none; paint-order: stroke; stroke: rgba(255,255,255,.75); stroke-width: 3px; opacity: 0; transition: opacity .4s ease calc(var(--i) * 60ms); }
+.ukmap__label { font-family: var(--font-display); font-size: 13px; font-weight: 600; fill: #0a2650; pointer-events: none; paint-order: stroke; stroke: rgba(255,255,255,.75); stroke-width: 3px; opacity: 0; transition: opacity .4s ease calc(var(--i) * 60ms); }
 .ukmap--ready .ukmap__label { opacity: 1; }
 .ukmap__label.is-dark { fill: #fff; stroke: rgba(6, 22, 48, .6); }
 .ukmap__value { font-size: 15px; font-weight: 700; }
@@ -473,3 +473,15 @@ details summary { cursor: pointer; font-weight: 700; color: var(--link); padding
 /* ---------- Aipan: Kumaoni folk art border (geru red with white rice-paste motifs) ---------- */
 .aipan { height: 30px; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='30'%3E%3Crect width='48' height='30' fill='%239B2F1F'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='1.5'%3E%3Cpath d='M24 5l10 10-10 10-10-10z'/%3E%3Cpath d='M24 10l5 5-5 5-5-5z'/%3E%3Cpath d='M0 9q4 6 0 12M48 9q-4 6 0 12'/%3E%3C/g%3E%3Cg fill='%23fff'%3E%3Ccircle cx='24' cy='15' r='1.6'/%3E%3Ccircle cx='4' cy='2.5' r='1.1'/%3E%3Ccircle cx='12' cy='2.5' r='1.1'/%3E%3Ccircle cx='20' cy='2.5' r='1.1'/%3E%3Ccircle cx='28' cy='2.5' r='1.1'/%3E%3Ccircle cx='36' cy='2.5' r='1.1'/%3E%3Ccircle cx='44' cy='2.5' r='1.1'/%3E%3Ccircle cx='4' cy='27.5' r='1.1'/%3E%3Ccircle cx='12' cy='27.5' r='1.1'/%3E%3Ccircle cx='20' cy='27.5' r='1.1'/%3E%3Ccircle cx='28' cy='27.5' r='1.1'/%3E%3Ccircle cx='36' cy='27.5' r='1.1'/%3E%3Ccircle cx='44' cy='27.5' r='1.1'/%3E%3Ccircle cx='9' cy='15' r='1.1'/%3E%3Ccircle cx='39' cy='15' r='1.1'/%3E%3C/g%3E%3C/svg%3E") repeat-x center / auto 30px; }
 :root[data-contrast="high"] .aipan { display: none; }
+
+/* ---------- Formal wording assistant ---------- */
+.formal { margin: calc(-1 * var(--s3)) 0 var(--s5); }
+.formal__bar { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.formal__btn { border-color: #7a5bd0; color: var(--ai-ink); }
+.formal__btn svg { color: #7a5bd0; }
+.formal__note { margin: var(--s3) 0 0; font-size: var(--fs-sm); color: var(--muted); }
+.formal__card { margin-top: var(--s3); padding: var(--s4) var(--s5); border-radius: var(--radius-lg); background: linear-gradient(180deg, var(--ai-tint), var(--paper)); border: 1.5px solid var(--ai-line); box-shadow: var(--shadow-sm); animation: rise .3s ease-out; }
+.formal__label { margin: 0 0 var(--s2); font-size: var(--fs-xs); font-weight: 700; color: var(--ai-ink); }
+.formal__subject { margin: 0 0 var(--s2); font-family: var(--font-display); font-weight: 600; color: var(--ink); }
+.formal__text { margin: 0 0 var(--s3); line-height: 1.65; }
+.formal__hint { font-size: var(--fs-xs); color: var(--muted); margin: 0 0 var(--s3); }

@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Crosshair, Download, Mic, MicOff, Sparkles, Users } from "lucide-react";
 import { ErrorSummary, Field, Input, Select, TextArea, describedBy } from "../components/Form";
 import { DeptIcon } from "../components/DeptIcon";
+import { FormalDraft } from "../components/FormalDraft";
 import { Ladder } from "../components/Ladder";
 import { PhotoInput } from "../components/PhotoInput";
 import { ReadAloud } from "../components/ReadAloud";
@@ -327,6 +328,10 @@ export function Register() {
                     </span>
                   </div>
                 </Field>
+                <FormalDraft
+                  text={draft.description}
+                  onUse={(f) => setDraft((d) => ({ ...d, description: f.description, subject: f.subject || d.subject }))}
+                />
                 <button className="btn" type="submit" disabled={busy}>
                   {busy ? t("Finding the right department…", "सही विभाग खोजा जा रहा है…") : t("Continue", "आगे बढ़ें")}
                 </button>

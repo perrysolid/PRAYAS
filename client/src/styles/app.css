@@ -271,11 +271,9 @@ main:focus { outline: none; }
 .idbar__lang select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 /* Automatic translation notice */
-.mt-banner { background: #fff4e0; color: #4a2a00; border-bottom: 1px solid #f2d3a6; font-size: var(--fs-sm); }
+.mt-banner { background: var(--note-bg); color: var(--note-ink); border-bottom: 1px solid var(--note-line); font-size: var(--fs-sm); }
 .mt-banner__inner { display: flex; align-items: center; gap: var(--s3); padding-top: 8px; padding-bottom: 8px; flex-wrap: wrap; }
-.mt-banner__btn { margin-left: auto; font: inherit; font-weight: 600; color: #4a2a00; background: #fff; border: 1.5px solid #c98a2b; border-radius: 999px; padding: 4px 14px; cursor: pointer; }
-:root[data-theme="dark"] .mt-banner { background: #3a2a10; color: #ffe1b3; border-color: #5a4320; }
-:root[data-theme="dark"] .mt-banner__btn { background: transparent; color: #ffe1b3; }
+.mt-banner__btn { margin-left: auto; font: inherit; font-weight: 600; color: var(--note-ink); background: transparent; border: 1.5px solid #c98a2b; border-radius: 999px; padding: 4px 14px; cursor: pointer; }
 
 /* Dark theme details that tokens alone don't cover */
 :root[data-theme="dark"] body { background: var(--surface); }
