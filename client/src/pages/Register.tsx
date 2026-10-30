@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { Crosshair, Download, Mic, MicOff, Sparkles, Users } from "lucide-react";
+import { Crosshair, Download, MessageCircle, Mic, MicOff, Sparkles, Users } from "lucide-react";
 import { ErrorSummary, Field, Input, Select, TextArea, describedBy } from "../components/Form";
 import { DeptIcon } from "../components/DeptIcon";
 import { FormalDraft } from "../components/FormalDraft";
@@ -37,12 +37,13 @@ type Draft = {
   subject: string;
   triage: Triage | null;
   photo: Photo | null;
+  whatsapp: boolean;
 };
 
-const emptyDraft: Draft = { description: "", departmentId: "", categoryId: "", districtId: "", block: "", village: "", name: "", type: "complaint", subject: "", triage: null, photo: null };
+const emptyDraft: Draft = { description: "", departmentId: "", categoryId: "", districtId: "", block: "", village: "", name: "", type: "complaint", subject: "", triage: null, photo: null, whatsapp: true };
 
 export function Register() {
-  const { t, pick, lang } = useI18n();
+  const { t, pick, lang, locale } = useI18n();
   const { meta, department, district } = useMeta();
   const { session } = useAuth();
   const location = useLocation();
@@ -209,6 +210,8 @@ export function Register() {
         village: draft.village.trim() || undefined,
         triage: draft.triage ? { source: draft.triage.source, confidence: draft.triage.confidence, urgency: draft.triage.urgency } : undefined,
         photo: draft.photo ?? undefined,
+        whatsapp: draft.whatsapp !== false,
+        lang: locale,
       });
       clearDraft();
       setCreated(g);
@@ -518,6 +521,14 @@ export function Register() {
                 <Field id="subject" label={t("Short title", "छोटा शीर्षक")} hint={t("We filled this in from your description. Change it if you like.", "हमने इसे आपके विवरण से भरा है। चाहें तो बदलें।")} error={errors.subject}>
                   <Input id="subject" value={draft.subject} onChange={(e) => update("subject", e.target.value)} maxLength={120} invalid={Boolean(errors.subject)} aria-describedby={describedBy("subject", true, errors.subject)} />
                 </Field>
+                <label className="wa-optin">
+                  <input type="checkbox" checked={draft.whatsapp !== false} onChange={(e) => update("whatsapp", e.target.checked)} />
+                  <span className="wa-optin__icon" aria-hidden="true"><MessageCircle size={18} /></span>
+                  <span>
+                    <strong>{t("Send me every update on WhatsApp", "हर अद्यतन मुझे व्हाट्सऐप पर भेजें")}</strong>
+                    {t("On the mobile you verify with: who has it, escalations, the officer's notes and the photo when it's fixed. Reply on WhatsApp to rate or reopen.", "सत्यापित मोबाइल पर: किसके पास है, ऊपर भेजा जाना, अधिकारी की टिप्पणी और समाधान की फ़ोटो। रेटिंग या पुनः खोलने हेतु व्हाट्सऐप पर ही जवाब दें।")}
+                  </span>
+                </label>
                 <button className="btn" type="submit">{t("Continue", "आगे बढ़ें")}</button>
               </form>
             )}
