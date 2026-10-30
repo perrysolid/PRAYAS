@@ -1,0 +1,100 @@
+:root {
+  /* Palette: Himalayan blue for authority, saffron and green from the national flag as accents. */
+  --navy: #123e7c;        /* Brand blue: header bar, headings, primary buttons */
+  --navy-deep: #0a2650;   /* Identifier bar, footer */
+  --brand-tint: #eaf0fa;
+  --pine: #0e7a45;        /* Resolved, success */
+  --pine-deep: #095c33;
+  --saffron: #f28c1b;     /* Accent rules, active nav, call-to-action */
+  --saffron-deep: #c96a00;
+  --saffron-ink: #8f4a00; /* Saffron for text on white (7:1) */
+  --india-green: #138808;
+  --focus: #ffd23f;       /* Keyboard focus, as on GOV.UK */
+  --ink: #142033;         /* Body text */
+  --muted: #4a5870;       /* Secondary text, 7:1 on white */
+  --line: #d3dbe7;
+  --line-soft: #e7ecf3;
+  --surface: #f4f6fa;
+  --paper: #ffffff;
+  --link: #1450a8;
+  --link-visited: #5b3b8c;
+
+  /* Status: each colour means one thing everywhere */
+  --st-registered: #1450a8;
+  --st-registered-bg: #e8f0fb;
+  --st-progress: #8a5300;
+  --st-progress-bg: #fff3dc;
+  --st-resolved: #0e7a45;
+  --st-resolved-bg: #e3f4ea;
+  --st-overdue: #b42318;
+  --st-overdue-bg: #fdecea;
+
+  /* Map scale (light to heavy pending load) */
+  --map-0: #e3ecf8;
+  --map-1: #b9cdeb;
+  --map-2: #7fa3d8;
+  --map-3: #3f6fb8;
+  --map-4: #123e7c;
+
+  /* Type: Poppins (Indian Type Foundry, Latin + Devanagari) for display, Noto Sans for reading. */
+  --font-sans: "Noto Sans", "Noto Sans Devanagari", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Poppins", "Noto Sans Devanagari", "Noto Sans", system-ui, sans-serif;
+  --font-serif: var(--font-display);
+  --text-scale: 1;
+  --fs-xs: calc(0.8125rem * var(--text-scale));
+  --fs-sm: calc(0.875rem * var(--text-scale));
+  --fs-base: calc(1.0625rem * var(--text-scale));
+  --fs-lg: calc(1.25rem * var(--text-scale));
+  --fs-xl: calc(1.5rem * var(--text-scale));
+  --fs-2xl: calc(2rem * var(--text-scale));
+  --fs-3xl: calc(2.75rem * var(--text-scale));
+
+  /* Space and shape */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 2px rgba(16, 32, 64, .06), 0 1px 3px rgba(16, 32, 64, .08);
+  --shadow: 0 6px 24px rgba(16, 32, 64, .10), 0 2px 6px rgba(16, 32, 64, .06);
+  --shadow-lg: 0 18px 48px rgba(10, 38, 80, .22);
+  --container: 1200px;
+  --measure: 68ch;
+}
+
+:root[data-lang="hi"] {
+  /* Devanagari needs taller lines to keep matras clear. */
+  --font-sans: "Noto Sans Devanagari", "Noto Sans", system-ui, sans-serif;
+  --font-display: "Poppins", "Noto Sans Devanagari", system-ui, sans-serif;
+}
+
+:root[data-contrast="high"] {
+  --navy: #000000;
+  --navy-deep: #000000;
+  --brand-tint: #ffffff;
+  --pine: #000000;
+  --pine-deep: #000000;
+  --ink: #000000;
+  --muted: #000000;
+  --line: #000000;
+  --line-soft: #000000;
+  --surface: #ffffff;
+  --link: #0000ee;
+  --link-visited: #551a8b;
+  --saffron: #000000;
+  --saffron-deep: #000000;
+  --saffron-ink: #000000;
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-lg: none;
+  --map-0: #ffffff;
+  --map-1: #cccccc;
+  --map-2: #888888;
+  --map-3: #444444;
+  --map-4: #000000;
+}
