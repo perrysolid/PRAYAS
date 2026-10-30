@@ -232,7 +232,7 @@ main:focus { outline: none; }
 
 /* ---------- Footer ---------- */
 .footer { background: var(--navy-deep); color: #d6dfec; padding: var(--s7) 0 var(--s5); font-size: var(--fs-sm); position: relative; }
-.footer::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, #ff9933 0 33.3%, #fff 33.3% 66.6%, var(--india-green) 66.6%); }
+.footer::before { content: ""; position: absolute; inset: auto 0 0; height: 4px; background: linear-gradient(90deg, #ff9933 0 33.3%, #fff 33.3% 66.6%, var(--india-green) 66.6%); }
 .footer a { color: #fff; }
 .footer a:visited { color: #fff; }
 .footer h2 { color: #fff; font-size: var(--fs-base); font-family: var(--font-display); margin-bottom: var(--s3); }
@@ -254,3 +254,11 @@ main:focus { outline: none; }
   .brand__seal { width: 40px; height: 40px; }
   .brand__sub { display: none; }
 }
+
+/* Himalayan ridge leading into the footer */
+.ridge { display: block; width: 100%; height: clamp(60px, 9vw, 140px); margin-top: var(--s7); margin-bottom: -1px; }
+.ridge__far { fill: #c9d8ee; }
+.ridge__snow { fill: #fff; }
+.ridge__mid { fill: #4f77b6; }
+.ridge__near { fill: var(--navy-deep); }
+:root[data-contrast="high"] .ridge { display: none; }

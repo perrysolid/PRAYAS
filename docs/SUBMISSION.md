@@ -37,12 +37,12 @@ Every page of the current portal is kept (Home, About, Services/Departments, Gov
 ## Key Features & Emerging Technologies
 
 - **AI grievance triage:** Claude classifies free text into department, category and urgency, using structured output. A built-in bilingual keyword classifier runs when AI is off, so the service never depends on it.
-- **Sahayak voice and chat assistant:** Conversational complaint intake and status lookup, with speech-to-text and text-to-speech in Hindi and Indian English. It never registers anything without the citizen's review.
+- **Sahayak voice and chat assistant:** Conversational complaint intake and status lookup, with speech-to-text and text-to-speech in Hindi and Indian English. It never registers anything without the citizen's review. Sahayak has a friendly illustrated face, a woman in a teal-and-gold saree greeting with namaste, who blinks and moves her lips while replies are read aloud, so first-time and elderly users feel they are talking to a helper, not a form.
 - **Voice in and out:** Speak a complaint instead of typing, and press “Listen” to hear its status read aloud.
 - **Photo evidence with GPS:** Photos are compressed in the browser (about 150 KB, for 2G/3G hill networks) and geo-tagged. “Use my location” finds the district on the device using Census 2011 district boundaries.
 - **Proof of resolution:** Resolving requires an “after” photo. Citizens see an accessible before/after slider.
 - **Collective complaints:** Duplicate detection by department, category, district and block. “I face this too” adds a supporter instead of a new record, and supporters can track it with their own mobile.
-- **Live district map and department scorecard:** A keyboard-accessible map of the 13 districts and A–D grades per department from on-time resolution, share resolved and citizen rating.
+- **Live district map and department scorecard:** An animated, raised 3D map that tells the state's structure as it appears (one state → Garhwal and Kumaon divisions → 13 districts), then becomes a keyboard-accessible map of the 13 districts with hover tooltips and A–D grades per department from on-time resolution, share resolved and citizen rating.
 - **QR acknowledgement:** A printable or PDF acknowledgement slip with the emblem, deadline and a QR code to the status page. The QR never contains the mobile number.
 - **Installable app (PWA):** Add to home screen, with an offline fallback. Complaint status is never served stale from cache.
 - **Bilingual by design:** Every screen is in Hindi and English, set in Poppins (Indian Type Foundry) and Noto Sans with Devanagari, with the correct `lang` so screen readers switch voice.

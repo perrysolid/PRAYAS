@@ -129,6 +129,13 @@ function Header() {
 function Footer() {
   const { t } = useI18n();
   return (
+    <>
+    <svg className="ridge" viewBox="0 0 1440 140" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path className="ridge__far" d="M0 140V90l80-20 80 15 100-45 80 35 80-20 100-35 80 40 100-15 90 25 90-40 80 35 100-15 90-35 90 45 100-15 100 25v70z" />
+      <path className="ridge__snow" d="M505 28l15-8 16 10-10-2-6 4-8-4zM1135 23l15-8 16 11-9-2-7 5-7-4zM865 38l15-8 15 10-9-2-6 4-7-3zM245 48l15-8 15 10-9-2-6 4-7-3z" />
+      <path className="ridge__mid" d="M0 140v-30l120-30 100 25 110-35 120 30 110-35 120 33 120-23 120 29 120-34 120 30 120-22 160 22v40z" />
+      <path className="ridge__near" d="M0 140v-15l150-20 150 23 160-20 160 22 160-20 160 18 160-22 160 20 180-14v28z" />
+    </svg>
     <footer className="footer">
       <div className="container">
         <div className="footer__brand">
@@ -191,6 +198,7 @@ function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
 

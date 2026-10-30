@@ -1,18 +1,21 @@
-import { useState, type FormEvent } from "react";
+import { useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowRight, BadgeCheck, Camera, Clock, Eye, Languages, MessageCircle, Mic, MicOff, PenLine, Phone, Search, Smartphone, Users, BarChart3, Bot, Volume2,
+  ArrowRight, BadgeCheck, Camera, Sparkles, Star, Building2, Clock, Eye, Languages, MessageCircle, Mic, MicOff, PenLine, Phone, Search, Smartphone, Users, BarChart3, Bot, Volume2,
 } from "lucide-react";
+import { CountUp } from "../components/CountUp";
 import { DeptIcon } from "../components/DeptIcon";
 import { HeroCarousel } from "../components/HeroCarousel";
 import { Ladder } from "../components/Ladder";
 import { Ticker } from "../components/Ticker";
+import { SahayakAvatar } from "../components/SahayakAvatar";
 import { TrackForm } from "../components/TrackForm";
 import { UkMap } from "../components/UkMap";
 import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
 import { useAsync } from "../hooks/useAsync";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useInView } from "../hooks/useInView";
 import { useSpeechInput } from "../hooks/useSpeechInput";
 import { api } from "../lib/api";
 import { formatDateTime, formatNumber } from "../lib/format";
@@ -120,7 +123,7 @@ function ServiceTiles() {
               </Link>
             ) : (
               <button type="button" className="tile" onClick={action}>
-                <span className="tile__icon tile__icon--accent"><Icon size={24} aria-hidden="true" /></span>
+                <span className="tile__icon tile__icon--avatar"><SahayakAvatar size={50} /></span>
                 <span className="tile__body"><strong>{title}</strong><span>{text}</span></span>
               </button>
             )}
@@ -181,6 +184,61 @@ function LiveMap() {
         </p>
       </div>
     </div>
+  );
+}
+
+/** The four things that happen to every complaint, shown as a journey across the page. */
+function Journey() {
+  const { t } = useI18n();
+  const [ref, inView] = useInView<HTMLOListElement>(0.25);
+  const steps = [
+    { Icon: Mic, title: t("You describe it", "आप बताते हैं"), text: t("In your words, typed or spoken, Hindi or English. A photo helps.", "अपने शब्दों में, लिखकर या बोलकर। फ़ोटो से मदद मिलती है।"), chip: t("“No water in Khirsu for 10 days”", "“खिर्सू में 10 दिन से पानी नहीं”") },
+    { Icon: Sparkles, title: t("It is routed in seconds", "सेकंडों में सही विभाग"), text: t("AI suggests the department and urgency. You confirm it.", "AI विभाग और प्राथमिकता सुझाता है। पुष्टि आप करते हैं।"), chip: t("Drinking Water · Jal Sansthan", "पेयजल · जल संस्थान") },
+    { Icon: Building2, title: t("The officer acts, with proof", "अधिकारी कार्यवाही करते हैं, प्रमाण सहित"), text: t("15 days at the first level, then it moves up on its own. Resolving needs a photo.", "प्रथम स्तर पर 15 दिन, फिर स्वतः ऊपर। निस्तारण के लिए फ़ोटो ज़रूरी।"), chip: t("Photo proof attached", "फ़ोटो प्रमाण संलग्न") },
+    { Icon: Star, title: t("You rate it", "आप रेटिंग देते हैं"), text: t("Not fixed? Reopen within 30 days and it goes higher.", "हल नहीं हुआ? 30 दिन में पुनः खोलें, उच्च अधिकारी तक जाएगी।"), chip: "★★★★★" },
+  ];
+  return (
+    <ol ref={ref} className={`journey${inView ? " is-in" : ""}`}>
+      {steps.map(({ Icon, title, text, chip }, i) => (
+        <li key={title} className="journey__step" style={{ "--i": i } as CSSProperties}>
+          <span className="journey__icon"><Icon size={26} aria-hidden="true" /><span className="journey__num" aria-hidden="true">{i + 1}</span></span>
+          <h3>{title}</h3>
+          <p>{text}</p>
+          <span className="journey__chip" aria-hidden="true">{chip}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Headline figures over a photograph of the state, counting up as they come into view. */
+function ImpactBand() {
+  const { t } = useI18n();
+  const { data } = useAsync((signal) => api.stats(signal), []);
+  const [ref, inView] = useInView<HTMLElement>(0.3);
+  const figures = data
+    ? [
+        { value: data.total, label: t(`complaints registered in ${data.year}`, `${data.year} में दर्ज शिकायतें`) },
+        { value: data.resolved, label: t("resolved, with the officer named", "निस्तारित, अधिकारी के नाम सहित") },
+        { value: data.citizensHeard, label: t("citizens heard, including those who joined a neighbour's complaint", "सुने गए नागरिक, पड़ोसी की शिकायत से जुड़ने वालों सहित") },
+        { value: data.satisfactionPct ?? 0, suffix: "%", label: t("of citizens who rated were satisfied", "रेटिंग देने वाले नागरिक संतुष्ट") },
+      ]
+    : [];
+  return (
+    <section ref={ref} className="impact" aria-labelledby="impact-title">
+      <div className="container">
+        <h2 id="impact-title" className="impact__title">{t("Every complaint counted, in public", "हर शिकायत की गिनती, सबके सामने")}</h2>
+        <dl className="impact__grid">
+          {figures.map((f) => (
+            <div key={f.label} className="impact__fig">
+              <dt>{f.label}</dt>
+              <dd><CountUp value={f.value} start={inView} suffix={f.suffix} /></dd>
+            </div>
+          ))}
+        </dl>
+        <p className="impact__credit">{t("Valley of Flowers National Park, Chamoli", "फूलों की घाटी राष्ट्रीय उद्यान, चमोली")}</p>
+      </div>
+    </section>
   );
 }
 
@@ -271,6 +329,18 @@ export function Home() {
         </div>
       </section>
 
+      <section className="section section--journey" aria-labelledby="journey-title">
+        <div className="container">
+          <div className="section__head">
+            <div>
+              <span className="kicker">{t("How it works", "यह कैसे काम करता है")}</span>
+              <h2 id="journey-title">{t("From your words to a fixed problem", "आपके शब्दों से समाधान तक")}</h2>
+            </div>
+          </div>
+          <Journey />
+        </div>
+      </section>
+
       <section className="section section--tint" aria-labelledby="map-title">
         <div className="container">
           <div className="section__head">
@@ -282,6 +352,8 @@ export function Home() {
           <LiveMap />
         </div>
       </section>
+
+      <ImpactBand />
 
       <section className="section" aria-labelledby="commit-title">
         <div className="container">
@@ -295,6 +367,7 @@ export function Home() {
         </div>
       </section>
 
+      <div className="aipan" aria-hidden="true" />
       <section className="cm-band" aria-labelledby="cm-title">
         <div className="container cm-band__inner">
           <img className="cm-band__photo" src="/img/cm-dhami.webp" width="180" height="240" alt={t("Shri Pushkar Singh Dhami, Chief Minister of Uttarakhand", "श्री पुष्कर सिंह धामी, मुख्यमंत्री, उत्तराखंड")} loading="lazy" />
