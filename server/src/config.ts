@@ -22,6 +22,14 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || "dev-only-secret",
   corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:5173").split(",").map((o) => o.trim()),
   anthropicEnabled: Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
+  /** Language model used for formal drafting, the assistant, translation and speech. Keys stay on the server. */
+  ai: {
+    key: process.env.AI_API_KEY ?? "",
+    endpoint: process.env.AI_ENDPOINT || "https://generativelanguage.googleapis.com/v1beta",
+    model: process.env.AI_MODEL ?? "",
+    draftModel: process.env.AI_DRAFT_MODEL || process.env.AI_MODEL || "",
+    ttsModel: process.env.AI_TTS_MODEL ?? "",
+  },
   /** Return the OTP in the API response. Never enable with a real SMS gateway. */
   showDemoOtp: !isProd || process.env.SHOW_DEMO_OTP === "true",
   otpTtlMs: 5 * 60 * 1000,
