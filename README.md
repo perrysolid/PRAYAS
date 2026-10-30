@@ -1,0 +1,100 @@
+# CM Helpline 1905 – citizen-first redesign (hackathon prototype)
+
+A working redesign of [cmhelpline.uk.gov.in](https://cmhelpline.uk.gov.in/), Uttarakhand's grievance portal. Same service, same rules and back-office flow, rebuilt around one idea: **describe it once, then always know who has it and by when.**
+
+- `docs/SUBMISSION.md` – answers for the hackathon form (problem, solution, features, link)
+- `docs/AUDIT.md` – line-by-line audit of the live portal, with evidence
+- `docs/DESIGN.md` – design system, references and decisions
+
+## Run it
+
+Requires Node 20+.
+
+```bash
+npm install
+npm run dev          # API on :4000, web on http://localhost:5173
+```
+
+Production (one process serves API + built site):
+
+```bash
+npm run build
+cd server && NODE_ENV=production JWT_SECRET=<long-random> npm start   # http://localhost:4000
+```
+
+For a hosted demo with no SMS gateway, also set `SHOW_DEMO_OTP=true` so the OTP appears on screen.
+
+### Demo walkthrough
+
+| Try | How |
+|---|---|
+| Register a complaint | Home → type or speak “पौड़ी में 6 दिन से बिजली नहीं है” → Continue. The OTP is shown on screen in dev. |
+| Track without signing in | `/track` with **CMH-2026-004512** and **9876543210** |
+| Citizen actions | Sign in with **9876543210** → My complaints → send a reminder, rate CMH-2026-004498, reopen |
+| Officer desk | Sign in → Officer tab → `je.jal.khirsu` / `Demo@1905` (also `sdo.upcl.srinagar`, `ee.pwd.pauri`) |
+| “I face this too” | Register → “No water in Khirsu ward 4…” → district Pauri, block Khirsu → join CMH-2026-004512 instead of filing a duplicate |
+| Photo proof | Register with a photo → sign in as `ee.pwd.pauri` (for a road complaint) → resolve with an “after” photo → citizen sees the before/after slider |
+| Sahayak | “Ask Sahayak” (bottom right) → type `CMH-2026-004512`, then `9876543210`; or describe a problem by voice |
+| Acknowledgement | After registering → “Download acknowledgement” (print or save as PDF, with QR) |
+| Live map | Home → “Complaints across Uttarakhand”, or `/dashboard` for the scorecard |
+| Hindi / accessibility | हिंदी, A−/A/A+ and High contrast in the top bar |
+
+Delete `server/data.json` to reset the demo data.
+
+### AI triage (optional)
+
+By default a built-in bilingual keyword classifier (English, Hindi, Hinglish) routes complaints, with no network calls. Set `ANTHROPIC_API_KEY` in `server/.env` to use Claude (`claude-opus-5-5`, structured output, low effort) instead. It falls back to the keyword classifier on any error or refusal. The Claude path is typechecked but was not exercised against the live API while this prototype was built.
+
+## Architecture
+
+```
+client/ (React 18 + Vite + TypeScript + React Router 6)
+  src/pages/        Route screens: Home, Register (wizard), Track, MyComplaints, ComplaintDetail,
+                    Receipt, Officer, Departments, Dashboard, Orders, Info pages, Credits, Proposal
+  src/components/   Layout (id bar, header, nav, footer), Form (Field, ErrorSummary), Ladder,
+                    Timeline, OtpSignIn, TrackForm, StatusTag, PageHead
+  src/context/      I18n (en/hi + <html lang>), A11y (text size, contrast), Auth, Meta
+  src/components/   HeroCarousel, Ticker, UkMap, Sahayak, PhotoInput, BeforeAfter, ReadAloud, DeptIcon
+  src/data/ukMap.ts District outlines (Census 2011, simplified) + point-in-district lookup
+  src/hooks/        useAsync, useDraft, useSpeechInput, useSpeak, useCountdown, useDocumentTitle
+  src/lib/api.ts    Typed API client
+
+server/ (Express + TypeScript + Zod)
+  routes/ → controllers/ → services/ → data/store
+  routes:      auth, grievances, officer, public (meta, stats, orders, contact)
+  services:    grievance (lifecycle, rules), triage (rules + Claude), auth (OTP, officers), stats
+  middleware:  session cookie, role guards, Zod validation with field errors, rate limits, errors
+  data:        catalog (departments, 13 districts + blocks, L1–L4, GOs), JSON-file store
+```
+
+### API
+
+| Method | Path | Who | What |
+|---|---|---|---|
+| POST | `/api/auth/otp/send`, `/otp/verify` | public | Mobile OTP sign-in (rate-limited, hashed, 5 attempts) |
+| POST | `/api/auth/officer/login` | public | Officer sign-in (demo; production uses Jan Parichay) |
+| GET | `/api/auth/me` · POST `/api/auth/logout` | any | Session |
+| POST | `/api/grievances/triage` | public | Suggest department, category, urgency, CPGRAMS flag |
+| GET | `/api/grievances/track?id&mobile` | public | Masked status view; both fields required |
+| GET/POST | `/api/grievances` | citizen | List mine / register (max 10 open, per GO) |
+| GET | `/api/grievances/:id` | owner | Full record + allowed actions |
+| GET | `/api/grievances/similar?departmentId&districtId&categoryId&block` | public | Open complaints about the same thing nearby |
+| POST | `/api/grievances/:id/support` | citizen | “I face this too” (not on your own complaint) |
+| POST | `/api/grievances/:id/reminder` · `/feedback` · `/reopen` | owner | Lifecycle actions, enforced server-side |
+| GET | `/api/officer/grievances` · POST `/:id/actions` | officer | Queue (overdue, urgent, widely shared first) / update, or resolve with a photo |
+| GET | `/api/meta` · `/api/stats` · `/api/orders` | public | Catalogue, dashboard, government orders |
+
+### Business rules
+
+- L1 has 15 days (per GO raising it from 7). L2 7, L3 7, L4 10 days are prototype defaults in `server/src/data/catalog.ts`.
+- Escalation is automatic once a level's deadline passes; it is applied on read.
+- Reminders open 7 days after registering, then every 72 hours while the complaint is open.
+- Feedback is allowed once, after resolution; a rating of 3 or more closes the complaint.
+- A complaint can be reopened within 30 days of resolution, and goes up one level.
+- At most 10 unresolved complaints per mobile number (per GO).
+- Resolving needs an “after” photo (proof of resolution). Photos are resized in the browser and stored inline in the prototype; production would use object storage.
+- Public tracking accepts the owner's mobile or a supporter's mobile.
+
+### Images and data
+
+Photos are from Wikimedia Commons (CC BY / CC BY-SA / CC0), the state emblem and the Chief Minister's portrait are government works; full credits are at `/credits`. District boundaries are Census 2011 via DataMeet / india-maps-data. Swap in official ITDA photography before any real deployment.
