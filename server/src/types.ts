@@ -59,6 +59,25 @@ export type Grievance = {
   photos?: { before?: Photo; after?: Photo };
   /** Mobiles of other citizens who said "I face this too" instead of filing a duplicate. */
   supporters?: string[];
+  /** Citizen agreed to updates on WhatsApp at the registered mobile. */
+  whatsapp?: boolean;
+  /** Language the citizen used, for update messages. */
+  lang?: string;
+  /** Timeline entries already sent as WhatsApp updates. */
+  notifiedUpTo?: number;
+};
+
+export type WhatsAppMessage = {
+  id: string;
+  mobile: string;
+  dir: "in" | "out";
+  text: string;
+  at: string;
+  grievanceId?: string;
+  /** Photo sent with the message, e.g. proof of resolution. */
+  image?: string;
+  /** "simulated" when no WhatsApp Business account is connected. */
+  status: "simulated" | "sent" | "failed" | "received";
 };
 
 export type GovernmentOrder = {
