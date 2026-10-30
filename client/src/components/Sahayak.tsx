@@ -7,11 +7,13 @@ import { useSpeak } from "../hooks/useSpeak";
 import { useSpeechInput } from "../hooks/useSpeechInput";
 import { SahayakAvatar } from "./SahayakAvatar";
 import { statusLabels } from "../i18n/strings";
+import { aiStatus } from "../lib/ai";
 import { api, ApiError } from "../lib/api";
 import { daysUntil, formatDate } from "../lib/format";
 
 type Action = { label: string; run: () => void };
-type Message = { id: number; from: "bot" | "me"; text: string; actions?: Action[] };
+/** `native` replies are already in the citizen's language, so the page translator leaves them alone. */
+type Message = { id: number; from: "bot" | "me"; text: string; actions?: Action[]; native?: boolean };
 
 const ID_PATTERN = /CMH[-\s]?(\d{4})[-\s]?(\d{1,6})/i;
 const MOBILE_PATTERN = /(?:\+?91[-\s]?)?([6-9]\d{9})\b/;
@@ -33,7 +35,7 @@ const intents: { id: string; words: RegExp }[] = [
  * It never registers anything on its own: it hands over to the same reviewed form.
  */
 export function Sahayak() {
-  const { t, pick, lang } = useI18n();
+  const { t, pick, lang, locale } = useI18n();
   const { department } = useMeta();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -46,7 +48,7 @@ export function Sahayak() {
   const inputRef = useRef<HTMLInputElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
   const nextId = useRef(1);
-  const voice = useSpeak(lang === "hi" ? "hi-IN" : "en-IN");
+  const voice = useSpeak(locale);
   const speech = useSpeechInput(lang === "hi" ? "hi-IN" : "en-IN", (heard) => setText((prev) => (prev ? `${prev} ${heard}` : heard)));
 
   // Lips move while a reply is read aloud, or briefly as each reply appears.
@@ -68,7 +70,7 @@ export function Sahayak() {
     setMouthing(true);
     window.clearTimeout(mouthTimer.current);
     mouthTimer.current = window.setTimeout(() => setMouthing(false), Math.min(2600, 600 + msg.text.length * 12));
-    if (voiceReplies) voice.speak(msg.text);
+    if (voiceReplies) voice.speak(msg.text, { english: !msg.native });
   };
 
   const starters: Action[] = [
@@ -148,6 +150,28 @@ export function Sahayak() {
       return say({ text: t("That doesn't look like a 10-digit mobile number. Please type it again.", "यह 10 अंकों का मोबाइल नंबर नहीं लगता। कृपया फिर से लिखें।") });
     }
 
+    // With a language model available, Sahayak answers in the citizen's own language, within strict limits.
+    if (!forced && (await aiStatus()).enabled) {
+      setBusy(true);
+      try {
+        const history = [...messages, { from: "me" as const, text: input }].slice(-8).map((m) => ({ from: m.from, text: m.text }));
+        const out = await api.assistant(history, locale);
+        if (out.kind === "complaint") {
+          setBusy(false);
+          return triageAndOffer(input);
+        }
+        const actions: Action[] = [];
+        if (out.kind === "emergency") actions.push({ label: t("Call 112", "112 पर कॉल करें"), run: () => (window.location.href = "tel:112") });
+        if (out.route && out.route !== "none") actions.push({ label: t("Open page", "पेज खोलें"), run: () => { navigate(out.route!); close(); } });
+        if (out.kind === "refuse") actions.push(...starters.slice(0, 2));
+        return say({ text: out.reply, actions, native: true });
+      } catch {
+        // Fall through to the built-in answers.
+      } finally {
+        setBusy(false);
+      }
+    }
+
     const intent = forced ?? intents.find((i) => i.words.test(input))?.id;
     const isShortQuestion = input.length < 60 || /\?$/.test(input);
 
@@ -177,6 +201,10 @@ export function Sahayak() {
       return say({ text: t("Tell me a little more: what is wrong, where, and since when?", "थोड़ा और बताइए: क्या समस्या है, कहाँ और कब से?"), actions: starters });
     }
 
+    return triageAndOffer(input);
+  }
+
+  async function triageAndOffer(input: string) {
     setBusy(true);
     try {
       const triage = await api.triage(input);
@@ -241,7 +269,7 @@ export function Sahayak() {
           </header>
           <div className="sahayak__log" ref={logRef} role="log" aria-live="polite" aria-relevant="additions">
             {messages.map((m) => (
-              <div key={m.id} className={`bubble bubble--${m.from}`}>
+              <div key={m.id} className={`bubble bubble--${m.from}`} data-no-translate={m.native || m.from === "me" ? "" : undefined}>
                 {m.from === "bot" && <span className="bubble__face"><SahayakAvatar size={26} /></span>}
                 <span className="visually-hidden">{m.from === "bot" ? t("Sahayak says:", "सहायक:") : t("You said:", "आपने कहा:")} </span>
                 <p>{m.text}</p>
