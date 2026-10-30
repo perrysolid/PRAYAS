@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type FormEvent } from "react";
+import { Fragment, useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight, BadgeCheck, Camera, Sparkles, Star, Building2, Clock, Eye, Languages, MessageCircle, Mic, MicOff, PenLine, Phone, Search, Smartphone, Users, BarChart3, Bot, Volume2,
@@ -30,6 +30,34 @@ const quickStarts = [
   { dept: "health", en: "Hospital or doctor", hi: "अस्पताल या डॉक्टर" },
   { dept: "revenue", en: "Certificate delayed", hi: "प्रमाण पत्र में देरी" },
 ];
+
+/** The hero headline rises in word by word on load; the words stay ordinary text for screen readers. */
+function RisingTitle({ id, text }: { id: string; text: string }) {
+  return (
+    <h1 id={id} className="hero__title rising" key={text}>
+      {text.split(" ").map((w, i) => (
+        <Fragment key={i}>
+          <span className="rising__word" style={{ "--i": i } as CSSProperties}>{w}</span>{" "}
+        </Fragment>
+      ))}
+    </h1>
+  );
+}
+
+/** A small live indicator drawn from the same public figures as the dashboard. */
+function LivePulse() {
+  const { t, lang } = useI18n();
+  const { data } = useAsync((signal) => api.stats(signal), []);
+  if (!data) return <p className="live-pulse live-pulse--empty" aria-hidden="true" />;
+  return (
+    <p className="live-pulse">
+      <span className="live-pulse__dot" aria-hidden="true" />
+      <span>
+        <strong>{t("Live", "लाइव")}</strong> · {t(`${formatNumber(data.resolved, lang)} of ${formatNumber(data.total, lang)} complaints resolved in ${data.year}`, `${data.year} में ${formatNumber(data.total, lang)} में से ${formatNumber(data.resolved, lang)} शिकायतें निस्तारित`)}
+      </span>
+    </p>
+  );
+}
 
 /** Open the assistant from anywhere on the page. */
 const openSahayak = () => (document.querySelector(".sahayak-launcher") as HTMLButtonElement | null)?.click();
@@ -275,8 +303,9 @@ export function Home() {
         <HeroCarousel />
         <div className="container hero__grid">
           <div className="hero__main">
+            <LivePulse />
             <p className="hero__eyebrow">{t("CM Helpline 1905 · Government of Uttarakhand", "मुख्यमंत्री हेल्पलाइन 1905 · उत्तराखंड सरकार")}</p>
-            <h1 id="hero-title" className="hero__title">{t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")}</h1>
+            <RisingTitle id="hero-title" text={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")} />
             <DescribeBox />
           </div>
           <aside className="hero__call" aria-labelledby="call-title">
