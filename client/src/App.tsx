@@ -1,3 +1,4 @@
+import { WhatsApp } from "./pages/WhatsApp";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { A11yProvider } from "./context/A11yContext";
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: "/my-complaints/:id/receipt", element: <Receipt /> },
       { path: "/login", element: <Login /> },
       { path: "/officer", element: <Officer /> },
+      { path: "/whatsapp", element: <WhatsApp /> },
       { path: "/departments", element: <Departments /> },
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/orders", element: <Orders /> },
