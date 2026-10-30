@@ -12,7 +12,12 @@ type A11y = {
   reset: () => void;
   highContrast: boolean;
   toggleContrast: () => void;
+  /** "system" follows the device setting. */
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 };
+
+export type Theme = "system" | "light" | "dark";
 
 const A11yContext = createContext<A11y | null>(null);
 
@@ -22,6 +27,16 @@ export function A11yProvider({ children }: { children: ReactNode }) {
     return Number.isInteger(saved) && saved >= 0 && saved < SCALES.length ? saved : 1;
   });
   const [highContrast, setHighContrast] = useState(() => readPref("contrast") === "high");
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = readPref("theme");
+    return saved === "light" || saved === "dark" ? saved : "system";
+  });
+
+  useEffect(() => {
+    if (theme === "system") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    writePref("theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--text-scale", String(SCALES[scaleIndex]));
@@ -44,8 +59,10 @@ export function A11yProvider({ children }: { children: ReactNode }) {
       reset: () => setScaleIndex(1),
       highContrast,
       toggleContrast: () => setHighContrast((v) => !v),
+      theme,
+      setTheme,
     }),
-    [scaleIndex, highContrast],
+    [scaleIndex, highContrast, theme],
   );
 
   return <A11yContext.Provider value={value}>{children}</A11yContext.Provider>;

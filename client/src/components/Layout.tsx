@@ -1,14 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, FileText, HelpCircle, LayoutList, Menu, PenLine, Phone, Search, ShieldCheck, X } from "lucide-react";
+import { BarChart3, Building2, FileText, Globe, HelpCircle, LayoutList, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
+import { languages, type Locale } from "../lib/languages";
+import { PageTranslator } from "./PageTranslator";
 import { Sahayak } from "./Sahayak";
 import { StateSeal } from "./Seal";
 
+function ThemeToggle() {
+  const { t } = useI18n();
+  const { theme, setTheme } = useA11y();
+  const systemDark = typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
+  const dark = theme === "dark" || (theme === "system" && systemDark);
+  return (
+    <button type="button" onClick={() => setTheme(dark ? "light" : "dark")} aria-pressed={dark} className="idbar__theme">
+      {dark ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}
+      {t("Dark mode", "डार्क मोड")}
+    </button>
+  );
+}
+
 function IdentifierBar() {
-  const { t, lang, setLang } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const a11y = useA11y();
   return (
     <div className="idbar">
@@ -27,11 +42,17 @@ function IdentifierBar() {
             {t("High contrast", "उच्च कंट्रास्ट")}
           </button>
           <span className="idbar__sep" aria-hidden="true" />
-          {lang === "en" ? (
-            <button type="button" onClick={() => setLang("hi")} lang="hi">हिंदी</button>
-          ) : (
-            <button type="button" onClick={() => setLang("en")} lang="en">English</button>
-          )}
+          <ThemeToggle />
+          <span className="idbar__sep" aria-hidden="true" />
+          <label className="idbar__lang">
+            <Globe size={16} aria-hidden="true" />
+            <span className="visually-hidden">{t("Language", "भाषा")}</span>
+            <select value={locale} onChange={(e) => setLocale(e.target.value as Locale)} data-no-translate>
+              {languages.map((l) => (
+                <option key={l.code} value={l.code} lang={l.code}>{l.native}{l.code !== "en" && l.code !== "hi" ? " · AI" : ""}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
     </div>
@@ -229,6 +250,7 @@ export function Layout() {
       <div className="tricolour" aria-hidden="true"><span /><span /><span /></div>
       <IdentifierBar />
       <Header />
+      <PageTranslator />
       <main id="main" ref={mainRef} tabIndex={-1}>
         <Outlet />
       </main>

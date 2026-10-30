@@ -3,6 +3,9 @@
   --navy: #123e7c;        /* Brand blue: header bar, headings, primary buttons */
   --navy-deep: #0a2650;   /* Identifier bar, footer */
   --brand-tint: #eaf0fa;
+  --brand: #123e7c;       /* Fills: header nav, buttons, bands (stays dark in both themes) */
+  --brand-deep: #0a2650;
+  color-scheme: light;
   --pine: #0e7a45;        /* Resolved, success */
   --pine-deep: #095c33;
   --saffron: #f28c1b;     /* Accent rules, active nav, call-to-action */
@@ -76,6 +79,8 @@
 :root[data-contrast="high"] {
   --navy: #000000;
   --navy-deep: #000000;
+  --brand: #000000;
+  --brand-deep: #000000;
   --brand-tint: #ffffff;
   --pine: #000000;
   --pine-deep: #000000;
@@ -97,4 +102,66 @@
   --map-2: #888888;
   --map-3: #444444;
   --map-4: #000000;
+}
+
+/* Dark theme: follows the device unless the citizen picks one. High contrast always wins. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]):not([data-contrast="high"]) {
+  color-scheme: dark;
+  --navy: #9cc3ff;
+  --navy-deep: #d6e5ff;
+  --brand: #1d4f99;
+  --brand-deep: #0b1c38;
+  --brand-tint: #1b2b47;
+  --pine: #5fd39a;
+  --saffron-ink: #ffb466;
+  --ink: #e7edf6;
+  --muted: #a8b5c9;
+  --line: #34445f;
+  --line-soft: #26344d;
+  --surface: #0d1524;
+  --paper: #152036;
+  --link: #9cc3ff;
+  --link-visited: #c9b1ff;
+  --st-registered: #9cc3ff;
+  --st-registered-bg: #182c4d;
+  --st-progress: #ffc46b;
+  --st-progress-bg: #3a2a10;
+  --st-resolved: #6fe0a6;
+  --st-resolved-bg: #12352a;
+  --st-overdue: #ff8a7a;
+  --st-overdue-bg: #3d1a17;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow: 0 6px 24px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, .6);
+  }
+}
+:root[data-theme="dark"]:not([data-contrast="high"]) {
+  color-scheme: dark;
+  --navy: #9cc3ff;
+  --navy-deep: #d6e5ff;
+  --brand: #1d4f99;
+  --brand-deep: #0b1c38;
+  --brand-tint: #1b2b47;
+  --pine: #5fd39a;
+  --saffron-ink: #ffb466;
+  --ink: #e7edf6;
+  --muted: #a8b5c9;
+  --line: #34445f;
+  --line-soft: #26344d;
+  --surface: #0d1524;
+  --paper: #152036;
+  --link: #9cc3ff;
+  --link-visited: #c9b1ff;
+  --st-registered: #9cc3ff;
+  --st-registered-bg: #182c4d;
+  --st-progress: #ffc46b;
+  --st-progress-bg: #3a2a10;
+  --st-resolved: #6fe0a6;
+  --st-resolved-bg: #12352a;
+  --st-overdue: #ff8a7a;
+  --st-overdue-bg: #3d1a17;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow: 0 6px 24px rgba(0, 0, 0, .45);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, .6);
 }
