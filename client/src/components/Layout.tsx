@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, FileText, Globe, HelpCircle, LayoutList, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, X } from "lucide-react";
+import { BarChart3, Building2, FileText, Globe, MessageCircle, HelpCircle, LayoutList, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -70,10 +70,13 @@ function Header() {
   const links = [
     { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
-    { to: "/my-complaints", label: t("My complaints", "मेरी शिकायतें"), Icon: LayoutList },
+    session?.role === "officer"
+      ? { to: "/officer", label: t("Officer console", "अधिकारी कंसोल"), Icon: ShieldCheck }
+      : { to: "/my-complaints", label: t("My complaints", "मेरी शिकायतें"), Icon: LayoutList },
+    { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
     { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
-    { to: "/orders", label: t("Government orders", "शासनादेश"), Icon: FileText },
+    { to: "/orders", label: t("Orders", "शासनादेश"), Icon: FileText },
     { to: "/help", label: t("Help", "सहायता"), Icon: HelpCircle },
   ];
 
@@ -133,14 +136,6 @@ function Header() {
               </NavLink>
             </li>
           ))}
-          {session?.role === "officer" && (
-            <li>
-              <NavLink to="/officer">
-                <ShieldCheck size={17} aria-hidden="true" />
-                {t("Officer desk", "अधिकारी डेस्क")}
-              </NavLink>
-            </li>
-          )}
         </ul>
       </nav>
     </header>
