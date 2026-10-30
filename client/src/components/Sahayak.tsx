@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Mic, MicOff, Send, Volume2, VolumeX, X } from "lucide-react";
+import { Mic, MicOff, Send, Volume2, VolumeX, X } from "lucide-react";
 import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
 import { useSpeak } from "../hooks/useSpeak";
 import { useSpeechInput } from "../hooks/useSpeechInput";
+import { SahayakAvatar } from "./SahayakAvatar";
 import { statusLabels } from "../i18n/strings";
 import { api, ApiError } from "../lib/api";
 import { daysUntil, formatDate } from "../lib/format";
@@ -48,8 +49,25 @@ export function Sahayak() {
   const voice = useSpeak(lang === "hi" ? "hi-IN" : "en-IN");
   const speech = useSpeechInput(lang === "hi" ? "hi-IN" : "en-IN", (heard) => setText((prev) => (prev ? `${prev} ${heard}` : heard)));
 
+  // Lips move while a reply is read aloud, or briefly as each reply appears.
+  const [mouthing, setMouthing] = useState(false);
+  const mouthTimer = useRef<number>();
+  const [greet, setGreet] = useState(false);
+
+  useEffect(() => {
+    const seen = (() => { try { return sessionStorage.getItem("sahayak-greeted"); } catch { return "1"; } })();
+    if (seen) return;
+    const show = window.setTimeout(() => setGreet(true), 2500);
+    const hide = window.setTimeout(() => setGreet(false), 11000);
+    try { sessionStorage.setItem("sahayak-greeted", "1"); } catch { /* private mode */ }
+    return () => { window.clearTimeout(show); window.clearTimeout(hide); };
+  }, []);
+
   const say = (msg: Omit<Message, "id" | "from">) => {
     setMessages((m) => [...m, { id: nextId.current++, from: "bot", ...msg }]);
+    setMouthing(true);
+    window.clearTimeout(mouthTimer.current);
+    mouthTimer.current = window.setTimeout(() => setMouthing(false), Math.min(2600, 600 + msg.text.length * 12));
     if (voiceReplies) voice.speak(msg.text);
   };
 
@@ -65,7 +83,7 @@ export function Sahayak() {
       say({
         text: t(
           "Namaste! I am Sahayak. Tell me your problem in your own words, in Hindi or English, and I will find the right department. I can also check a complaint's status.",
-          "नमस्ते! मैं सहायक हूँ। अपनी समस्या अपने शब्दों में, हिंदी या अंग्रेज़ी में बताइए, मैं सही विभाग खोज दूँगा। मैं शिकायत की स्थिति भी बता सकता हूँ।",
+          "नमस्ते! मैं सहायक हूँ। अपनी समस्या अपने शब्दों में, हिंदी या अंग्रेज़ी में बताइए, मैं सही विभाग खोज दूँगी। मैं शिकायत की स्थिति भी बता सकती हूँ।",
         ),
         actions: starters,
       });
@@ -166,9 +184,9 @@ export function Sahayak() {
       const cat = dept?.categories.find((c) => c.id === triage.categoryId);
       const parts = [
         t(`This looks like a matter for ${dept ? dept.name.en : "the department"}${cat ? ` (${cat.name.en})` : ""}.`, `यह ${dept ? dept.name.hi : "विभाग"}${cat ? ` (${cat.name.hi})` : ""} का विषय लगता है।`),
-        triage.urgency === "high" ? t("I have marked it urgent. If anyone is in danger now, call 112.", "मैंने इसे अत्यावश्यक चिह्नित किया है। यदि कोई अभी खतरे में है, तो 112 पर कॉल करें।") : "",
+        triage.urgency === "high" ? t("I have marked it urgent. If anyone is in danger now, call 112.", "मैंने इसे अत्यावश्यक चिह्नित कर दिया है। यदि कोई अभी खतरे में है, तो 112 पर कॉल करें।") : "",
         triage.centralMatter ? t("Note: it may be a central government matter, which goes to CPGRAMS.", "ध्यान दें: यह केंद्र सरकार का विषय हो सकता है, जिसकी शिकायत CPGRAMS पर होती है।") : "",
-        t("Shall I open the form with this filled in? You will check everything before it is registered.", "क्या मैं यह भरकर फ़ॉर्म खोलूँ? दर्ज होने से पहले आप सब कुछ जाँच सकेंगे।"),
+        t("Shall I open the form with this filled in? You will check everything before it is registered.", "क्या मैं यह भरकर फ़ॉर्म खोल दूँ? दर्ज होने से पहले आप सब कुछ जाँच सकेंगे।"),
       ].filter(Boolean);
       say({
         text: parts.join(" "),
@@ -192,8 +210,13 @@ export function Sahayak() {
 
   return (
     <>
-      <button ref={launcherRef} type="button" className="sahayak-launcher" aria-expanded={open} aria-controls="sahayak" onClick={() => (open ? close() : setOpen(true))} hidden={open}>
-        <span className="sahayak-launcher__icon"><Bot size={22} aria-hidden="true" /></span>
+      {greet && !open && (
+        <p className="sahayak-greet" aria-hidden="true">
+          {t("Namaste! Tell me your problem, I'll find the right department.", "नमस्ते! अपनी समस्या बताइए, मैं सही विभाग खोज दूँगी।")}
+        </p>
+      )}
+      <button ref={launcherRef} type="button" className="sahayak-launcher" aria-expanded={open} aria-controls="sahayak" onClick={() => { setGreet(false); open ? close() : setOpen(true); }} hidden={open}>
+        <span className="sahayak-launcher__icon"><SahayakAvatar size={52} /></span>
         <span className="sahayak-launcher__text">
           <strong>{t("Ask Sahayak", "सहायक से पूछें")}</strong>
           <span>{t("Speak or type, Hindi or English", "बोलें या लिखें, हिंदी या अंग्रेज़ी")}</span>
@@ -202,10 +225,10 @@ export function Sahayak() {
       {open && (
         <section id="sahayak" className="sahayak" role="dialog" aria-modal="false" aria-labelledby="sahayak-title" onKeyDown={(e) => e.key === "Escape" && close()}>
           <header className="sahayak__head">
-            <span className="sahayak__avatar"><Bot size={20} aria-hidden="true" /></span>
+            <span className="sahayak__avatar"><SahayakAvatar size={50} speaking={voice.speaking || mouthing} /></span>
             <span className="sahayak__titles">
               <h2 id="sahayak-title">{t("Sahayak", "सहायक")}</h2>
-              <span>{t("CM Helpline assistant", "मुख्यमंत्री हेल्पलाइन सहायक")}</span>
+              <span>{voice.speaking ? t("Speaking…", "बोल रही हैं…") : t("CM Helpline assistant · online", "मुख्यमंत्री हेल्पलाइन सहायक · ऑनलाइन")}</span>
             </span>
             {voice.supported && (
               <button type="button" className="sahayak__icon-btn" aria-pressed={voiceReplies} onClick={() => { setVoiceReplies((v) => !v); voice.stop(); }} aria-label={t("Read replies aloud", "उत्तर बोलकर सुनाएँ")}>
@@ -219,6 +242,7 @@ export function Sahayak() {
           <div className="sahayak__log" ref={logRef} role="log" aria-live="polite" aria-relevant="additions">
             {messages.map((m) => (
               <div key={m.id} className={`bubble bubble--${m.from}`}>
+                {m.from === "bot" && <span className="bubble__face"><SahayakAvatar size={26} /></span>}
                 <span className="visually-hidden">{m.from === "bot" ? t("Sahayak says:", "सहायक:") : t("You said:", "आपने कहा:")} </span>
                 <p>{m.text}</p>
                 {m.actions && (
@@ -230,7 +254,7 @@ export function Sahayak() {
                 )}
               </div>
             ))}
-            {busy && <div className="bubble bubble--bot bubble--typing" aria-label={t("Sahayak is typing", "सहायक लिख रहा है")}><i /><i /><i /></div>}
+            {busy && <div className="bubble bubble--bot bubble--typing" aria-label={t("Sahayak is typing", "सहायक लिख रही हैं")}><i /><i /><i /></div>}
           </div>
           <form className="sahayak__form" onSubmit={submit}>
             <label htmlFor="sahayak-input" className="visually-hidden">{t("Message", "संदेश")}</label>
