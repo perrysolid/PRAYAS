@@ -15,7 +15,8 @@ export function createApp() {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
-  app.use(helmet());
+  // Spoken replies are played from in-memory blobs.
+  app.use(helmet({ contentSecurityPolicy: { directives: { "media-src": ["'self'", "blob:"] } } }));
   app.use(compression());
   app.use(cors({ origin: config.corsOrigins, credentials: true }));
   // Room for one browser-compressed photo per request.

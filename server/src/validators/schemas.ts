@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { departments, districts } from "../data/catalog.js";
+import { languageCodes } from "../services/ai.service.js";
 
 const mobile = z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a 10-digit mobile number starting with 6, 7, 8 or 9");
 const grievanceId = z.string().trim().toUpperCase().regex(/^CMH-\d{4}-\d{6}$/, "Complaint numbers look like CMH-2026-004512");
@@ -53,3 +54,13 @@ export const contactSchema = z.object({
   email: z.email("Enter a valid email address"),
   message: z.string().trim().min(10, "Write at least 10 characters").max(2000),
 });
+
+// ---------- AI helpers ----------
+const langCode = z.enum(languageCodes);
+export const draftSchema = z.object({ text: z.string().trim().min(10, "Write at least 10 characters").max(2000), lang: langCode });
+export const assistantSchema = z.object({
+  lang: langCode,
+  messages: z.array(z.object({ from: z.enum(["me", "bot"]), text: z.string().trim().min(1).max(1000) })).min(1).max(12),
+});
+export const translateSchema = z.object({ lang: langCode, strings: z.array(z.string().max(600)).min(1).max(200) });
+export const speakSchema = z.object({ lang: langCode, text: z.string().trim().min(1).max(700) });
