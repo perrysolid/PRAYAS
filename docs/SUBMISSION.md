@@ -60,6 +60,10 @@ Design references: the GOV.UK Design System (one thing per page, error summary, 
 - **Natural voice:** Status and Sahayak replies are read aloud in a natural voice in every supported language.
 - **Dark mode:** Follows the device setting, with a switch in the top bar, and works alongside high contrast and text resizing.
 
+- **WhatsApp, end to end:** Every update reaches the citizen on WhatsApp, including the officer's photo proof. Citizens can register a complaint just by chatting (AI writes it formally, routes it and asks for the district) and reply STATUS, REMIND, 1–5 or REOPEN. The number is verified by WhatsApp itself, so no OTP is needed.
+- **Officer console:** KPIs, a district map of the officer's complaints, a deadline radar, issue breakdown, a searchable priority queue, and "Polish with AI" to turn rough notes into a clear action-taken report.
+- **Supabase (Postgres) backend:** Row-level-secured tables with generated columns for dashboards; the API writes every change through.
+
 ## Prototype / Pitch Deck Link
 
 GitHub: `https://github.com/<your-account>/Team_Name`. It includes the working prototype, `docs/AUDIT.md` and the run instructions in `README.md`.

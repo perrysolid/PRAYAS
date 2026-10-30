@@ -57,6 +57,28 @@ Set `AI_API_KEY`, `AI_MODEL`, `AI_DRAFT_MODEL` and `AI_TTS_MODEL` in `server/.en
 
 All AI endpoints (`/api/ai/*`) are validated and rate-limited, and every feature degrades gracefully when the model is unavailable.
 
+### WhatsApp updates
+
+Every change to a complaint (registration, officer note, automatic escalation, resolution with photo, reminder, reopening, neighbours joining) is sent to the citizen on WhatsApp, and to citizens who joined it. Citizens can reply:
+
+| Reply | What happens |
+|---|---|
+| Any description of a problem | AI writes it formally, routes it, asks for the district, and registers it after **YES** |
+| `STATUS` | Their complaints with level and deadline |
+| `REMIND` | Sends a reminder on the latest open complaint (rules apply) |
+| `1`–`5` | Rates the latest resolved complaint |
+| `REOPEN` | Reopens it one level higher |
+
+Without a WhatsApp Business account, messages are **simulated** and shown in the demo phone at `/whatsapp` (demo number 98765 43210, or your own number once signed in). To send real messages, set `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_VERIFY_TOKEN` and `WHATSAPP_APP_SECRET`, and point the Meta webhook at `/api/whatsapp/webhook` (signature-checked). Messages started by the business outside the 24-hour window need approved templates in production.
+
+### Officer console
+
+`/officer` (demo: `ee.pwd.pauri`, `sdo.upcl.srinagar` or `je.jal.khirsu`, password `Demo@1905`): KPIs, a district map of the officer's own complaints, a deadline radar, issues breakdown, a searchable priority queue and a workspace with "Polish with AI" for action-taken reports. Resolving needs a photo, which reaches the citizen on WhatsApp.
+
+### Supabase
+
+Apply `supabase/migrations/20261031000000_init.sql` to a Supabase project, then set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `server/.env`. On start the API loads from Supabase (filling an empty database from the seed) and writes every change through. Row level security is on with no public policies, so only the server's service role can read data. Without these variables the API uses `server/data.json`.
+
 ### Dark mode
 
 Follows the device setting by default; the "Dark mode" switch in the top bar overrides it. High contrast always wins.
