@@ -11,24 +11,26 @@ create table if not exists public.grievances (
   status text generated always as (data->>'status') stored,
   level int generated always as ((data->>'level')::int) stored,
   citizen_mobile text generated always as (data->>'citizenMobile') stored,
-  submitted_at timestamptz generated always as ((data->>'submittedAt')::timestamptz) stored,
+  submitted_at timestamptz not null,
   updated_at timestamptz not null default now()
 );
 create index if not exists grievances_dept_status on public.grievances (department_id, status);
 create index if not exists grievances_district on public.grievances (district_id);
 create index if not exists grievances_mobile on public.grievances (citizen_mobile);
+create index if not exists grievances_submitted on public.grievances (submitted_at desc);
 
 create table if not exists public.whatsapp_messages (
   id uuid primary key,
   mobile text not null,
   dir text not null check (dir in ('in', 'out')),
   body text not null,
-  grievance_id text references public.grievances (id) on delete set null,
+  grievance_id text,
   image text,
   status text not null,
   at timestamptz not null
 );
 create index if not exists whatsapp_messages_mobile_at on public.whatsapp_messages (mobile, at);
+create index if not exists whatsapp_messages_grievance on public.whatsapp_messages (grievance_id);
 
 create table if not exists public.app_state (
   key text primary key,

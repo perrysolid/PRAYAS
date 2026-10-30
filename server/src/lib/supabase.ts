@@ -28,7 +28,7 @@ export function supabaseStore(): RemoteStore {
     },
     async saveGrievances(rows) {
       for (let i = 0; i < rows.length; i += 200) {
-        check(await db.from("grievances").upsert(rows.slice(i, i + 200).map((g) => ({ id: g.id, data: g, updated_at: new Date().toISOString() }))));
+        check(await db.from("grievances").upsert(rows.slice(i, i + 200).map((g) => ({ id: g.id, data: g, submitted_at: g.submittedAt, updated_at: new Date().toISOString() }))));
       }
     },
     async saveMessages(rows) {
