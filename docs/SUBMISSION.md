@@ -54,6 +54,12 @@ Every page of the current portal is kept (Home, About, Services/Departments, Gov
 
 Design references: the GOV.UK Design System (one thing per page, error summary, focus style), USA.gov and Canada.ca (photo-led home page with the main task on top, task tiles), India's UX4G and GIGW 3.0, Singapore's LifeSG plain language, the US Web Design System's official-site banner, and Indian state-portal conventions (emblem, Chief Minister's portrait, tricolour, “What's new” strip).
 
+- **Write it formally:** One click turns informal Hinglish, Garhwali or Kumaoni into a clear, formal complaint in Hindi or English that a block officer can act on. Every fact is kept and nothing is added, and the citizen chooses which version to send.
+- **Guard-railed assistant:** Sahayak answers only within CM Helpline 1905 and Uttarakhand government services. It refuses unrelated requests (general knowledge, politics, coding), sends emergencies to 112, never asks for OTPs or bank details, and treats citizen text as data so instructions inside it are ignored.
+- **14 languages:** Hand-written Hindi and English plus automatic translation of the whole site into Garhwali, Kumaoni, Nepali, Punjabi, Urdu (right to left), Bengali, Marathi, Gujarati, Tamil, Telugu, Kannada and Malayalam. The official record stays in Hindi or English.
+- **Natural voice:** Status and Sahayak replies are read aloud in a natural voice in every supported language.
+- **Dark mode:** Follows the device setting, with a switch in the top bar, and works alongside high contrast and text resizing.
+
 ## Prototype / Pitch Deck Link
 
 GitHub: `https://github.com/<your-account>/Team_Name`. It includes the working prototype, `docs/AUDIT.md` and the run instructions in `README.md`.

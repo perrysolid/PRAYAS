@@ -45,6 +45,22 @@ Delete `server/data.json` to reset the demo data.
 
 By default a built-in bilingual keyword classifier (English, Hindi, Hinglish) routes complaints, with no network calls. Set `ANTHROPIC_API_KEY` in `server/.env` to use Claude (`claude-opus-5-5`, structured output, low effort) instead. It falls back to the keyword classifier on any error or refusal. The Claude path is typechecked but was not exercised against the live API while this prototype was built.
 
+### Language model features (optional)
+
+Set `AI_API_KEY`, `AI_MODEL`, `AI_DRAFT_MODEL` and `AI_TTS_MODEL` in `server/.env` (see `server/.env.example`). The key never leaves the server. This turns on:
+
+- **Write it formally**: rewrites the citizen's words into a formal complaint in Hindi or English, keeping every fact and adding none. The citizen picks their version or the formal one.
+- **Guarded Sahayak**: answers only about CM Helpline 1905 and Uttarakhand government services, refuses everything else (general knowledge, politics, coding), flags emergencies with 112, and never claims to register or change anything. Citizen text is always sent as data, never as instructions.
+- **14 languages**: English and Hindi are hand-written; Garhwali, Kumaoni, Nepali, Punjabi, Urdu (right to left), Bengali, Marathi, Gujarati, Tamil, Telugu, Kannada and Malayalam are translated automatically in place, with a notice and a one-click way back to English.
+- **Natural voice** for Listen and Sahayak in every language, falling back to the browser's voice.
+- **Model triage**, ahead of the keyword classifier, which stays as the fallback.
+
+All AI endpoints (`/api/ai/*`) are validated and rate-limited, and every feature degrades gracefully when the model is unavailable.
+
+### Dark mode
+
+Follows the device setting by default; the "Dark mode" switch in the top bar overrides it. High contrast always wins.
+
 ## Architecture
 
 ```
