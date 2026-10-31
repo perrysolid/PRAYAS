@@ -14,7 +14,8 @@ import { api } from "./routes/index.js";
 export function createApp() {
   const app = express();
   app.disable("x-powered-by");
-  app.set("trust proxy", 1);
+  // Hops in front of the API: 1 behind a host proxy, 2 when the website host also forwards /api (Vercel → Render).
+  app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
   // Spoken replies are played from in-memory blobs.
   app.use(helmet({ contentSecurityPolicy: { directives: { "media-src": ["'self'", "blob:"] } } }));
   app.use(compression());
