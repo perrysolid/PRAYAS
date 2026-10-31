@@ -59,6 +59,7 @@ function toPublic(g: Grievance) {
     timeline: g.timeline.map(({ at, event, level }) => ({ at, event, level })),
     supportCount: supportCount(g),
     hasProof: Boolean(g.photos?.after),
+    photos: g.photos?.after ? { before: g.photos.before, after: g.photos.after } : undefined,
   };
 }
 

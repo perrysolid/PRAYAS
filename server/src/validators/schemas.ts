@@ -57,6 +57,12 @@ export const contactSchema = z.object({
   message: z.string().trim().min(10, "Write at least 10 characters").max(2000),
 });
 
+// ---------- Guided demo ----------
+const demoMobile = z.enum(["9876543210", "9876500001"]);
+export const demoResetSchema = z.object({ mobile: demoMobile });
+export const demoPolishSchema = z.object({ text: z.string().trim().min(5).max(600), lang: z.enum(["en", "hi"]) });
+export const demoResolveSchema = z.object({ id: grievanceId, note: z.string().trim().min(10).max(2000), before: photoSchema.optional(), after: photoSchema });
+
 // ---------- AI helpers ----------
 const langCode = z.enum(languageCodes);
 export const draftSchema = z.object({ text: z.string().trim().min(10, "Write at least 10 characters").max(2000), lang: langCode });

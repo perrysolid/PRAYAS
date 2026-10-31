@@ -117,7 +117,7 @@ function onGrievanceChange(g: Grievance) {
   const entries = g.timeline.slice(from);
   g.notifiedUpTo = g.timeline.length;
   if (g.whatsapp === false) return;
-  const hi = g.lang === "hi" || ["gbm", "kfy"].includes(g.lang ?? "");
+  const hi = g.lang === "hi" || ["gbm", "kfy", "jns"].includes(g.lang ?? "");
   void (async () => {
     for (const e of entries) {
       const msg = compose(g, e, hi);
@@ -185,6 +185,11 @@ async function reply(mobile: string, text: string) {
 function errorText(err: unknown, hi: boolean) {
   if (err instanceof HttpError) return err.message;
   return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 1905 पर कॉल करें।" : "That didn't work right now. Please try again, or call 1905.";
+}
+
+/** Forget a conversation in progress, so a guided demo always starts clean. */
+export function resetConversation(mobile: string) {
+  conversations.delete(mobile);
 }
 
 export async function handleInbound(mobile: string, raw: string, profileName?: string) {

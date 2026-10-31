@@ -55,6 +55,12 @@ const officers: Officer[] = [
 
 export const demoOfficerUsernames = officers.map((o) => o.username);
 
+/** The officer who acts in the guided demo: a demo account of that department, or a generic first-level officer. */
+export function demoOfficerFor(departmentId: string): OfficerSession {
+  const o = officers.find((x) => x.departmentId === departmentId);
+  return o ? { role: "officer", username: o.username, name: o.name, departmentId: o.departmentId, level: o.level } : { role: "officer", username: "demo.officer", name: "Block Officer", departmentId, level: 1 };
+}
+
 export function officerLogin(username: string, password: string): OfficerSession {
   const officer = officers.find((o) => o.username === username);
   const candidate = scryptSync(password, officer?.salt ?? "x".repeat(32), 32);
