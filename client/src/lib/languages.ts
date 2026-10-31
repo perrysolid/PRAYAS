@@ -5,8 +5,9 @@
 export const languages = [
   { code: "en", native: "English", name: "English", speech: "en-IN" },
   { code: "hi", native: "हिन्दी", name: "Hindi", speech: "hi-IN" },
-  { code: "gbm", native: "गढ़वळि", name: "Garhwali", speech: "hi-IN" },
-  { code: "kfy", native: "कुमाऊँनी", name: "Kumaoni", speech: "hi-IN" },
+  { code: "gbm", native: "गढ़वळि", name: "Garhwali", speech: "hi-IN", local: true },
+  { code: "kfy", native: "कुमाऊँनी", name: "Kumaoni", speech: "hi-IN", local: true },
+  { code: "jns", native: "जौनसारी", name: "Jaunsari", speech: "hi-IN", local: true },
   { code: "ne", native: "नेपाली", name: "Nepali", speech: "ne-NP" },
   { code: "pa", native: "ਪੰਜਾਬੀ", name: "Punjabi", speech: "pa-IN" },
   { code: "ur", native: "اردو", name: "Urdu", speech: "ur-IN", rtl: true },
@@ -21,4 +22,6 @@ export const languages = [
 
 export type Locale = (typeof languages)[number]["code"];
 export const isLocale = (v: unknown): v is Locale => languages.some((l) => l.code === v);
+/** Languages of Uttarakhand itself, offered first. */
+export const localLanguages = languages.filter((l) => "local" in l && l.local);
 export const languageOf = (code: Locale) => languages.find((l) => l.code === code)!;

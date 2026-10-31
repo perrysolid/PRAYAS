@@ -5,7 +5,7 @@ import { aiStatus } from "../lib/ai";
 import { api } from "../lib/api";
 
 /** Officers read complaints in Hindi or English, so drafts are written in one of those. */
-const devanagari = new Set(["hi", "gbm", "kfy", "ne", "mr"]);
+const devanagari = new Set(["hi", "gbm", "kfy", "jns", "ne", "mr"]);
 
 /**
  * "Write it formally": turns the citizen's own words into a clear, respectful complaint an officer can act on.

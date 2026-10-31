@@ -8,8 +8,9 @@ import { aiEnabled, generateJson, synthesize, ttsEnabled } from "../lib/llm.js";
 export const languages = [
   { code: "en", name: "English", native: "English" },
   { code: "hi", name: "Hindi", native: "हिन्दी" },
-  { code: "gbm", name: "Garhwali", native: "गढ़वळि" },
-  { code: "kfy", name: "Kumaoni", native: "कुमाऊँनी" },
+  { code: "gbm", name: "Garhwali (Garhwal region of Uttarakhand, Devanagari script)", native: "गढ़वळि" },
+  { code: "kfy", name: "Kumaoni (Kumaon region of Uttarakhand, Devanagari script)", native: "कुमाऊँनी" },
+  { code: "jns", name: "Jaunsari (Jaunsar-Bawar, Dehradun district of Uttarakhand, Devanagari script)", native: "जौनसारी" },
   { code: "ne", name: "Nepali", native: "नेपाली" },
   { code: "pa", name: "Punjabi", native: "ਪੰਜਾਬੀ" },
   { code: "ur", name: "Urdu", native: "اردو", rtl: true },
