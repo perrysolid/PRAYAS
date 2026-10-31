@@ -37,7 +37,7 @@ const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.
  * Choropleth of Uttarakhand's 13 districts. Each district is a keyboard-focusable button;
  * the same figures are always available in the table beside it.
  */
-export function UkMap({ rows, metric, selected, onSelect }: { rows: Row[]; metric: MapMetric; selected?: string; onSelect: (id: string) => void }) {
+export function UkMap({ rows, metric, selected, onSelect, pulses = [] }: { rows: Row[]; metric: MapMetric; selected?: string; onSelect: (id: string) => void; pulses?: { id: string; key: number }[] }) {
   const { t, pick } = useI18n();
   const wrapRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
@@ -178,7 +178,26 @@ export function UkMap({ rows, metric, selected, onSelect }: { rows: Row[]; metri
         })}
         {/* Redraw the hovered or selected district on top so its raised edge is not hidden by neighbours. */}
         {ready && (tip?.id ?? selected) && <use href={`#ukd-${tip?.id ?? selected}`} className="ukmap__lifted" aria-hidden="true" />}
+        {/* A new complaint ripples out from its district and drops a pin. */}
+        {pulses.map((p) => {
+          const s = districtShapes.find((d) => d.id === p.id);
+          if (!s) return null;
+          return (
+            <g key={p.key} className="ukmap__pulse" transform={`translate(${s.cx} ${s.cy})`} aria-hidden="true">
+              <circle r="10" className="ukmap__ring" />
+              <circle r="10" className="ukmap__ring ukmap__ring--2" />
+              <circle r="10" className="ukmap__ring ukmap__ring--3" />
+              <g className="ukmap__pin">
+                <path d="M0 0c-8-11-14-17-14-25a14 14 0 0 1 28 0c0 8-6 14-14 25z" />
+                <circle cy="-25" r="5" />
+              </g>
+            </g>
+          );
+        })}
       </svg>
+      <div className="visually-hidden" aria-live="polite">
+        {pulses.length > 0 && t("New complaint received in ", "नई शिकायत प्राप्त: ") + pulses.map((p) => { const r = byId.get(p.id); return r ? pick(r.name) : ""; }).join(", ")}
+      </div>
       {tip && tipRow && (
         <div className="ukmap__tip" style={{ left: tip.x, top: tip.y }} aria-hidden="true">
           <strong>{pick(tipRow.name)}</strong>

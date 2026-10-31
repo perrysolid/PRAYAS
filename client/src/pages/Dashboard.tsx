@@ -6,14 +6,13 @@ import { LoadError, Loading } from "../components/States";
 import { UkMap, type MapMetric } from "../components/UkMap";
 import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
-import { useAsync } from "../hooks/useAsync";
-import { api } from "../lib/api";
+import { useLiveStats } from "../hooks/useLiveStats";
 import { formatDateTime, formatNumber } from "../lib/format";
 
 export function Dashboard() {
   const { t, pick, lang } = useI18n();
   const { meta, department, district } = useMeta();
-  const { data, error, loading, reload } = useAsync((signal) => api.stats(signal), []);
+  const { data, error, loading, reload, pulses } = useLiveStats();
   const [metric, setMetric] = useState<MapMetric>("pending");
   const [selected, setSelected] = useState("pauri");
 
@@ -59,7 +58,7 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="dash-map">
-                <div className="card"><UkMap rows={data.byDistrict} metric={metric} selected={selected} onSelect={setSelected} /></div>
+                <div className="card"><UkMap rows={data.byDistrict} metric={metric} selected={selected} onSelect={setSelected} pulses={pulses} /></div>
                 <div>
                   {sel && (
                     <div className="district-card card" aria-live="polite" style={{ marginBottom: "var(--s4)" }}>
