@@ -1,555 +1,605 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { Link } from "react-router-dom";
-import { BadgeCheck, CheckCheck, CheckCircle2, Clock3, MapPin, MessageCircle, Play, RotateCcw, ShieldCheck, Sparkles, Volume2, VolumeX, X } from "lucide-react";
-import { BeforeAfter } from "../components/BeforeAfter";
-import { DeptIcon } from "../components/DeptIcon";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, BadgeCheck, Camera, CheckCheck, CheckCircle2, Globe, Home as HomeIcon, Mic, MessageCircle, Pause, Play, RotateCcw, ShieldCheck, SkipForward, Sparkles, X } from "lucide-react";
 import { SahayakAvatar } from "../components/SahayakAvatar";
 import { StateSeal } from "../components/Seal";
-import { UkMap } from "../components/UkMap";
 import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
-import { api, type WhatsAppMessage } from "../lib/api";
+import { api } from "../lib/api";
 import { demoScene } from "../lib/demoScene";
-import type { Stats } from "../lib/types";
+import type { Level } from "../lib/types";
 import { rich } from "./WhatsApp";
 import "../styles/demo.css";
 
-/** The demo number; the server only runs the guided demo for its demo numbers. */
-const MOBILE = "9876500001";
-const COMPLAINT = "Namaste. Khirsu–Chaubatia motor road par 4 din se landslide ka malba pada hai. School bus aur ambulance nahi aa pa rahi, bachche 5 km paidal ja rahe hain";
-const DISTRICT_REPLY = "Pauri";
-const YES = "haan";
-const OFFICER_NOTES = "JCB lagwa ke malba hataya, road dono taraf se khol di. 2 ghante laga, drain bhi saaf kiya";
+/* ------------------------------------------------------------------ */
+/* Script                                                              */
+/* ------------------------------------------------------------------ */
 
-type Phase = "ready" | "running" | "done" | "error";
-type Case = { id: string; subject: string; districtId: string; departmentId: string; officer: string; at: string };
+type Group = "start" | "whatsapp" | "website" | "officer" | "citizen" | "end";
+type Scene = { id: string; group: Group; min: number; en: string; hi: string };
 
-const chapters = [
-  { en: ["A citizen writes on WhatsApp", "In Hinglish, the way he speaks. No app, no form, no office visit."], hi: ["नागरिक व्हाट्सऐप पर लिखते हैं", "अपनी बोली में, हिंग्लिश में। न ऐप, न फ़ॉर्म, न कार्यालय के चक्कर।"] },
-  { en: ["AI understands and routes it", "It identifies the department and asks only for what is missing."], hi: ["AI समझकर सही विभाग चुनता है", "विभाग पहचानता है और केवल छूटी जानकारी पूछता है।"] },
-  { en: ["Written formally, confirmed by the citizen", "Nothing is filed until the citizen says yes. The receipt comes by WhatsApp, and is read aloud."], hi: ["औपचारिक भाषा में, नागरिक की पुष्टि से", "नागरिक की हाँ के बिना कुछ दर्ज नहीं होता। पावती व्हाट्सऐप पर, आवाज़ में भी।"] },
-  { en: ["It reaches the right officer at once", "The district lights up on the state map and the complaint tops the officer's queue, with its deadline."], hi: ["तुरंत सही अधिकारी तक", "मानचित्र पर जनपद चिह्नित होता है और शिकायत समय सीमा सहित अधिकारी की कतार में सबसे ऊपर।"] },
-  { en: ["The officer acts; AI writes the report", "Rough notes become a clear action-taken report. Resolving needs geo-tagged photo proof."], hi: ["अधिकारी कार्यवाही करते हैं; रिपोर्ट AI लिखता है", "कच्चे नोट्स से स्पष्ट कार्यवाही रिपोर्ट। निस्तारण हेतु स्थान-अंकित फ़ोटो प्रमाण अनिवार्य।"] },
-  { en: ["Proof reaches the citizen, who rates it", "The photo arrives on WhatsApp. One reply rates it, or reopens it one level higher."], hi: ["प्रमाण नागरिक तक, वे रेटिंग देते हैं", "फ़ोटो व्हाट्सऐप पर आती है। एक जवाब से रेटिंग, या उच्च स्तर पर पुनः खोलना।"] },
+const scenes: Scene[] = [
+  { id: "intro", group: "start", min: 7000, en: "Here's how a citizen's problem gets solved on CM Helpline 1905. There are two simple ways to report it: WhatsApp, or the website.", hi: "देखिए, सीएम हेल्पलाइन 1905 पर नागरिक की समस्या कैसे हल होती है। समस्या बताने के दो आसान तरीके हैं: व्हाट्सऐप, या वेबसाइट।" },
+  { id: "wa-send", group: "whatsapp", min: 7000, en: "First, WhatsApp. Ramesh from Pauri types his problem in his own words. A landslide has blocked his village road.", hi: "पहला, व्हाट्सऐप। पौड़ी के रमेश अपने शब्दों में समस्या लिखते हैं। भूस्खलन से गाँव की सड़क बंद है।" },
+  { id: "wa-ai", group: "whatsapp", min: 7000, en: "The AI understands it, picks the right department, Public Works, and asks only for the district.", hi: "AI इसे समझता है, सही विभाग, लोक निर्माण विभाग, चुनता है, और केवल जनपद पूछता है।" },
+  { id: "wa-done", group: "whatsapp", min: 7500, en: "It writes the complaint formally. Ramesh replies yes, and gets his complaint number right away.", hi: "वह शिकायत औपचारिक भाषा में लिखता है। रमेश हाँ कहते हैं, और उन्हें तुरंत शिकायत संख्या मिल जाती है।" },
+  { id: "web-speak", group: "website", min: 7500, en: "Now the website. Kamla Devi from Almora has had no water for ten days. She just speaks her problem in Hindi.", hi: "अब वेबसाइट। अल्मोड़ा की कमला देवी के घर दस दिन से पानी नहीं आया। वे बस हिंदी में बोलकर समस्या बताती हैं।" },
+  { id: "web-submit", group: "website", min: 7500, en: "The site suggests Jal Sansthan. She adds a photo, verifies her mobile, and chooses updates on WhatsApp. Done.", hi: "साइट जल संस्थान सुझाती है। वे फ़ोटो जोड़ती हैं, मोबाइल सत्यापित करती हैं, और व्हाट्सऐप पर अद्यतन चुनती हैं। हो गया।" },
+  { id: "flow", group: "officer", min: 7000, en: "Both complaints land in one system and go straight to the officer responsible, in the right district.", hi: "दोनों शिकायतें एक ही प्रणाली में आती हैं और सीधे सही जनपद के ज़िम्मेदार अधिकारी तक पहुँचती हैं।" },
+  { id: "queue", group: "officer", min: 6500, en: "The officer sees them at the top of the queue, with the deadline for each one.", hi: "अधिकारी उन्हें अपनी कतार में सबसे ऊपर देखते हैं, हर एक की समय सीमा के साथ।" },
+  { id: "escalate", group: "officer", min: 7000, en: "If nothing happens in fifteen days, the complaint moves up to a senior officer automatically.", hi: "अगर पंद्रह दिन में कार्यवाही नहीं होती, तो शिकायत अपने आप वरिष्ठ अधिकारी तक चली जाती है।" },
+  { id: "resolve", group: "officer", min: 9000, en: "The officer writes quick notes. AI turns them into a proper report, and a photo of the fix is required to close it.", hi: "अधिकारी छोटे नोट्स लिखते हैं। AI उन्हें सही रिपोर्ट बनाता है, और बंद करने के लिए समाधान की फ़ोटो ज़रूरी है।" },
+  { id: "citizen", group: "citizen", min: 7500, en: "Ramesh gets the photo on WhatsApp and rates the work. If it isn't fixed, he can reopen it.", hi: "रमेश को फ़ोटो व्हाट्सऐप पर मिलती है और वे काम को रेटिंग देते हैं। समस्या बनी रहे तो वे इसे फिर खोल सकते हैं।" },
+  { id: "end", group: "end", min: 7000, en: "That's CM Helpline 1905. Simple for citizens, accountable for officers. Taking you back to the home page.", hi: "यह है सीएम हेल्पलाइन 1905। नागरिकों के लिए आसान, अधिकारियों के लिए जवाबदेह। अब आपको होम पेज पर ले चलते हैं।" },
 ];
 
-const sleepFor = (ms: number, signal: AbortSignal) =>
-  new Promise<void>((resolve, reject) => {
-    if (signal.aborted) return reject(new DOMException("Stopped", "AbortError"));
-    const id = window.setTimeout(resolve, ms);
-    signal.addEventListener("abort", () => {
-      window.clearTimeout(id);
-      reject(new DOMException("Stopped", "AbortError"));
-    }, { once: true });
-  });
+const voices = [
+  { code: "en", label: "English" },
+  { code: "hi", label: "हिन्दी" },
+  { code: "gbm", label: "गढ़वळि" },
+  { code: "kfy", label: "कुमाऊँनी" },
+  { code: "jns", label: "जौनसारी" },
+] as const;
+type Voice = (typeof voices)[number]["code"];
 
-const clock = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
-const time = (iso: string) => new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" });
+const WA = "CMH-2026-004701";
+const WEB = "CMH-2026-004702";
+const SILENCE = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 
-export function Demo() {
-  const { t, pick } = useI18n();
-  const { department, district } = useMeta();
-  useDocumentTitle("Watch it work", "देखें यह कैसे काम करता है");
+/* ------------------------------------------------------------------ */
+/* Timing helpers: every visual is a pure function of the scene clock  */
+/* ------------------------------------------------------------------ */
 
-  const [phase, setPhase] = useState<Phase>("ready");
-  const [chapter, setChapter] = useState(0);
-  const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
-  const [draft, setDraft] = useState("");
-  const [botTyping, setBotTyping] = useState(false);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [pulses, setPulses] = useState<{ id: string; key: number }[]>([]);
-  const [lit, setLit] = useState<string | undefined>();
-  const [kase, setKase] = useState<Case | null>(null);
-  const [rowIn, setRowIn] = useState(false);
-  const [note, setNote] = useState("");
-  const [polishing, setPolishing] = useState(false);
-  const [report, setReport] = useState("");
-  const [photos, setPhotos] = useState<{ before: string; after: string } | null>(null);
-  const [pressed, setPressed] = useState<"polish" | "resolve" | null>(null);
-  const [resolved, setResolved] = useState(false);
-  const [stars, setStars] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const [sound, setSound] = useState(true);
-  const [error, setError] = useState("");
+const clamp = (x: number) => Math.max(0, Math.min(1, x));
+const ease = (x: number) => 1 - Math.pow(1 - x, 3);
+const p = (t: number, start: number, dur = 600) => ease(clamp((t - start) / dur));
+const show = (t: number, start: number, dur = 600, y = 18): CSSProperties => {
+  const k = p(t, start, dur);
+  return { opacity: k, transform: `translateY(${(1 - k) * y}px) scale(${0.97 + 0.03 * k})` };
+};
+const typed = (text: string, t: number, start: number, cps = 32) => text.slice(0, Math.max(0, Math.min(text.length, Math.floor(((t - start) / 1000) * cps))));
+const pressed = (t: number, at: number) => t >= at && t < at + 220;
 
-  const ctrl = useRef<AbortController | null>(null);
-  const startedAt = useRef(0);
-  const soundRef = useRef(sound);
-  soundRef.current = sound;
-  const audio = useRef<AudioContext | null>(null);
-  const seen = useRef(0);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const logRef = useRef<HTMLDivElement>(null);
-  const wsRef = useRef<HTMLDivElement>(null);
-  const flyRef = useRef<HTMLDivElement>(null);
-  const slotRef = useRef<HTMLLIElement>(null);
+/* ------------------------------------------------------------------ */
+/* Building blocks                                                     */
+/* ------------------------------------------------------------------ */
 
+type Msg = { from: "me" | "bot"; text: string; scene: number; at: number; image?: string };
+
+function Phone({ msgs, scene, t, draft, typing }: { msgs: Msg[]; scene: number; t: number; draft?: { text: string; start: number; sent: number; cps?: number }; typing?: [number, number] }) {
+  const { t: tr } = useI18n();
+  const visible = msgs.filter((m) => m.scene < scene || (m.scene === scene && t >= m.at));
+  const log = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    api.stats().then(setStats, () => undefined);
-    return () => ctrl.current?.abort();
-  }, []);
-
-  // Keep the newest message and the officer's latest step in view.
-  useEffect(() => {
-    logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages.length, botTyping, draft]);
-  useEffect(() => {
-    wsRef.current?.scrollTo({ top: wsRef.current.scrollHeight, behavior: "smooth" });
-  }, [note, report, photos, resolved]);
-
-  useEffect(() => {
-    if (phase !== "running") return;
-    const id = window.setInterval(() => setElapsed(Date.now() - startedAt.current), 200);
-    return () => window.clearInterval(id);
-  }, [phase]);
-
-  /** A soft two-note chime for each incoming WhatsApp message. */
-  const chime = useCallback(() => {
-    const ac = audio.current;
-    if (!ac || !soundRef.current) return;
-    const now = ac.currentTime;
-    [880, 1320].forEach((f, i) => {
-      const o = ac.createOscillator();
-      const g = ac.createGain();
-      o.type = "sine";
-      o.frequency.value = f;
-      g.gain.setValueAtTime(0.0001, now + i * 0.09);
-      g.gain.exponentialRampToValueAtTime(0.08, now + i * 0.09 + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.09 + 0.25);
-      o.connect(g).connect(ac.destination);
-      o.start(now + i * 0.09);
-      o.stop(now + i * 0.09 + 0.3);
-    });
-  }, []);
-
-  const say = useCallback((text: string) => {
-    if (!soundRef.current) return;
-    api.speak(text, "hi").then((blob) => {
-      const a = new Audio(URL.createObjectURL(blob));
-      a.volume = 0.9;
-      void a.play().catch(() => undefined);
-    }, () => undefined);
-  }, []);
-
-  /** Fly a small complaint card from one element to a point, then to another element. */
-  const fly = useCallback(async (from: Element | null, via: Element | null, to: Element | null) => {
-    const stage = stageRef.current?.getBoundingClientRect();
-    const card = flyRef.current;
-    if (!stage || !card || !from || !via || !to || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const centre = (el: Element) => {
-      const r = el.getBoundingClientRect();
-      return [r.left + r.width / 2 - stage.left, r.top + r.height / 2 - stage.top];
-    };
-    const [x0, y0] = centre(from);
-    const [x1, y1] = centre(via);
-    const [x2, y2] = centre(to);
-    const w = card.offsetWidth / 2;
-    const h = card.offsetHeight / 2;
-    const at = (x: number, y: number, s: number, r = 0) => `translate(${x - w}px, ${y - h}px) scale(${s}) rotate(${r}deg)`;
-    card.style.visibility = "visible";
-    await card.animate(
-      [
-        { transform: at(x0, y0, 0.6), opacity: 0 },
-        { transform: at(x0, y0 - 30, 1, -4), opacity: 1, offset: 0.12 },
-        { transform: at((x0 + x1) / 2, Math.min(y0, y1) - 120, 1.05, 3), opacity: 1, offset: 0.38 },
-        { transform: at(x1, y1 - 34, 0.9), opacity: 1, offset: 0.55 },
-        { transform: at(x1, y1 - 34, 0.9), opacity: 1, offset: 0.66 },
-        { transform: at((x1 + x2) / 2, Math.min(y1, y2) - 90, 1.05, -3), opacity: 1, offset: 0.84 },
-        { transform: at(x2, y2, 1), opacity: 0 },
-      ],
-      { duration: 2600, easing: "cubic-bezier(.45,.05,.25,1)", fill: "forwards" },
-    ).finished;
-    card.style.visibility = "hidden";
-  }, []);
-
-  const run = useCallback(async () => {
-    ctrl.current?.abort();
-    const c = new AbortController();
-    ctrl.current = c;
-    const { signal } = c;
-    const sleep = (ms: number) => sleepFor(ms, signal);
-    const since = new Date(Date.now() - 1000).toISOString();
-
-    // Reset the stage
-    setMessages([]);
-    setDraft("");
-    setKase(null);
-    setRowIn(false);
-    setNote("");
-    setReport("");
-    setPhotos(null);
-    setResolved(false);
-    setStars(false);
-    setLit(undefined);
-    setError("");
-    setChapter(0);
-    seen.current = 0;
-    startedAt.current = Date.now();
-    setElapsed(0);
-    setPhase("running");
-    if (!audio.current) {
-      try {
-        audio.current = new AudioContext();
-      } catch {
-        // No sound effects on this browser.
-      }
-    }
-    void audio.current?.resume();
-
-    const outs = (list: WhatsAppMessage[]) => list.filter((m) => m.dir === "out");
-    const pull = async () => {
-      const list = (await api.waThread(MOBILE)).filter((m) => m.at >= since);
-      setMessages(list);
-      const n = outs(list).length;
-      if (n > seen.current) chime();
-      seen.current = Math.max(seen.current, n);
-      return list;
-    };
-    /** Wait for the helpline's reply that matches, polling the live thread. */
-    const waitFor = async (after: number, test: (m: WhatsAppMessage) => boolean, ms = 40000) => {
-      setBotTyping(true);
-      const until = Date.now() + ms;
-      while (Date.now() < until) {
-        const list = await pull();
-        const hit = outs(list).slice(after).find(test);
-        if (hit) {
-          setBotTyping(false);
-          return hit;
-        }
-        await sleep(650);
-      }
-      throw new Error("timeout");
-    };
-    const typeAndSend = async (text: string, cps = 38) => {
-      for (let i = 1; i <= text.length; i++) {
-        setDraft(text.slice(0, i));
-        await sleep(1000 / cps + (text[i - 1] === " " ? 25 : 0));
-      }
-      await sleep(350);
-      setDraft("");
-      const before = outs(await pull()).length;
-      await api.waSend(MOBILE, text);
-      await pull();
-      return before;
-    };
-
-    try {
-      await api.demoReset(MOBILE);
-      await sleep(900);
-
-      // 1. The citizen writes
-      let after = await typeAndSend(COMPLAINT);
-      setChapter(1);
-      const first = await waitFor(after, (m) => /district|जनपद|\*YES\*|\*हाँ\*/i.test(m.text));
-
-      // 2. AI routes it and asks for the district
-      await sleep(1600);
-      let confirm = first;
-      if (!/\*YES\*|\*हाँ\*/i.test(first.text)) {
-        after = await typeAndSend(DISTRICT_REPLY, 14);
-        confirm = await waitFor(after, (m) => /\*YES\*|\*हाँ\*/i.test(m.text));
-      }
-      setChapter(2);
-      const subject = /\*([^*\n]{6,})\*/.exec(confirm.text)?.[1] ?? "Motor road blocked by landslide debris";
-
-      // 3. Confirmed, registered, receipt read aloud
-      await sleep(2600);
-      after = await typeAndSend(YES, 10);
-      const receipt = await waitFor(after, (m) => /CMH-\d{4}-\d{6}/.test(m.text));
-      const id = /CMH-\d{4}-\d{6}/.exec(receipt.text)![0];
-      const g = await api.track(id, MOBILE);
-      const dept = department(g.departmentId);
-      setKase({ id, subject, districtId: g.districtId, departmentId: g.departmentId, officer: pick(g.currentOfficer), at: g.levelDueAt });
-      say(`शिकायत संख्या ${id.slice(-4).split("").join(" ")} दर्ज हो गई है। इसे ${dept ? dept.name.hi : "संबंधित विभाग"} को भेज दिया गया है।`);
-      await sleep(1800);
-
-      // 4. To the map and the officer's queue
-      setChapter(3);
-      await sleep(500);
-      const bubble = logRef.current?.querySelector(".wa-msg--out:last-of-type") ?? null;
-      const target = stageRef.current?.querySelector(`#ukd-${g.districtId} path`) ?? null;
-      setPulses([{ id: g.districtId, key: Date.now() }]);
-      setLit(g.districtId);
-      api.stats().then(setStats, () => undefined);
-      await fly(bubble, target, slotRef.current);
-      setRowIn(true);
-      await sleep(2200);
-
-      // 5. The officer acts, AI writes the report, photo proof
-      setChapter(4);
-      for (let i = 1; i <= OFFICER_NOTES.length; i++) {
-        setNote(OFFICER_NOTES.slice(0, i));
-        await sleep(30);
-      }
-      await sleep(500);
-      setPressed("polish");
-      await sleep(250);
-      setPressed(null);
-      setPolishing(true);
-      const { report: polished } = await api.demoPolish(OFFICER_NOTES, "en");
-      setPolishing(false);
-      setReport(polished);
-      await sleep(Math.min(3200, polished.split(" ").length * 45 + 900));
-      const stamp = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-      const pics = { before: demoScene("before", stamp(new Date(Date.now() - 4 * 86_400_000))), after: demoScene("after", stamp(new Date())) };
-      setPhotos(pics);
-      await sleep(3600);
-      setPressed("resolve");
-      await sleep(250);
-      setPressed(null);
-      const outsBefore = outs(await pull()).length;
-      await api.demoResolve(id, polished, { dataUrl: pics.before }, { dataUrl: pics.after });
-      setResolved(true);
-      api.stats().then(setStats, () => undefined);
-      await sleep(900);
-
-      // 6. Proof on WhatsApp, the citizen rates it
-      setChapter(5);
-      await waitFor(outsBefore, (m) => Boolean(m.image));
-      say("आपकी शिकायत का निस्तारण हो गया है। फ़ोटो प्रमाण व्हाट्सऐप पर भेजा गया है।");
-      await sleep(3200);
-      after = await typeAndSend("5", 6);
-      await waitFor(after, () => true, 20000);
-      setStars(true);
-      setElapsed(Date.now() - startedAt.current);
-      await sleep(2600);
-      setPhase("done");
-    } catch (err) {
-      setBotTyping(false);
-      setPolishing(false);
-      if ((err as Error).name === "AbortError") return;
-      setError((err as Error).message === "timeout" ? t("The live system took too long to reply.", "लाइव सिस्टम ने उत्तर देने में अधिक समय लिया।") : (err as Error).message);
-      setPhase("error");
-    }
-  }, [chime, department, fly, pick, say, t]);
-
-  const queue = useMemo(() => (stats?.hotspots ?? []).filter((h) => !kase || h.departmentId === kase.departmentId).slice(0, 3), [stats, kase]);
-  const deptOf = kase ? department(kase.departmentId) : undefined;
-  const words = useMemo(() => report.split(" "), [report]);
-  const [title, sub] = pick({ en: chapters[chapter].en.join("\u0000"), hi: chapters[chapter].hi.join("\u0000") }).split("\u0000");
-
+    log.current?.scrollTo({ top: log.current.scrollHeight, behavior: "smooth" });
+  }, [visible.length]);
+  const isTyping = typing && t >= typing[0] && t < typing[1];
+  const text = draft && t >= draft.start && t < draft.sent ? typed(draft.text, t, draft.start, draft.cps) : "";
   return (
-    <div className={`demo demo--${phase}`}>
-      <div className="demo__bg" aria-hidden="true">
-        <span className="demo__blob demo__blob--a" />
-        <span className="demo__blob demo__blob--b" />
-        <span className="demo__blob demo__blob--c" />
-        <svg className="demo__ridges" viewBox="0 0 1440 320" preserveAspectRatio="none">
-          <path d="M0 250 120 190 230 230 360 140 480 210 620 120 760 200 900 130 1040 210 1190 150 1320 220 1440 170V320H0Z" />
-          <path d="M0 290 160 240 300 270 450 210 610 260 760 220 930 270 1080 230 1250 270 1440 240V320H0Z" />
-        </svg>
-      </div>
-
-      <header className="demo__bar">
-        <Link to="/" className="demo__brand">
-          <StateSeal className="demo__seal" />
-          <span>
-            <strong>CM Helpline 1905</strong>
-            <small>{t("Live demonstration", "लाइव प्रदर्शन")}</small>
+    <div className="dm-phone">
+      <div className="dm-phone__notch" />
+      <div className="dm-phone__screen">
+        <header className="wa-head">
+          <span className="wa-head__avatar"><SahayakAvatar size={40} speaking={Boolean(isTyping)} /></span>
+          <span className="wa-head__titles">
+            <strong>CM Helpline 1905 <BadgeCheck size={15} aria-hidden="true" /></strong>
+            <span>{isTyping ? tr("typing…", "लिख रही हैं…") : tr("Government of Uttarakhand", "उत्तराखंड सरकार")}</span>
           </span>
-        </Link>
-        <div className="demo__tools">
-          <span className="demo__clock" aria-label={t("Elapsed time", "बीता समय")}>
-            <Clock3 size={16} aria-hidden="true" /> {clock(elapsed)}
-          </span>
-          <button type="button" className="demo__icon" onClick={() => setSound((s) => !s)} aria-pressed={sound} aria-label={sound ? t("Turn sound off", "आवाज़ बंद करें") : t("Turn sound on", "आवाज़ चालू करें")}>
-            {sound ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />}
-          </button>
-          {phase !== "ready" && (
-            <button type="button" className="demo__icon" onClick={run} aria-label={t("Restart", "फिर से शुरू करें")}>
-              <RotateCcw size={18} aria-hidden="true" />
-            </button>
-          )}
-          <Link to="/" className="demo__icon" aria-label={t("Exit the demonstration", "प्रदर्शन से बाहर")}>
-            <X size={18} aria-hidden="true" />
-          </Link>
-        </div>
-      </header>
-
-      <main className="demo__stage" ref={stageRef}>
-        {/* Citizen */}
-        <section className="demo__col demo__col--phone" aria-label={t("Citizen's WhatsApp", "नागरिक का व्हाट्सऐप")}>
-          <p className="demo__tag"><MessageCircle size={14} aria-hidden="true" /> {t("Citizen · WhatsApp", "नागरिक · व्हाट्सऐप")}</p>
-          <div className="phone demo__phone">
-            <div className="phone__notch" aria-hidden="true" />
-            <div className="phone__screen">
-              <header className="wa-head">
-                <span className="wa-head__avatar"><SahayakAvatar size={40} speaking={botTyping} /></span>
-                <span className="wa-head__titles">
-                  <strong>CM Helpline 1905 <BadgeCheck size={15} aria-hidden="true" /></strong>
-                  <span>{botTyping ? t("typing…", "लिख रही हैं…") : t("Government of Uttarakhand", "उत्तराखंड सरकार")}</span>
-                </span>
-              </header>
-              <div className="wa-log" ref={logRef} role="log" aria-live="polite">
-                {messages.map((m) => (
-                  <div key={m.id} className={`wa-msg wa-msg--${m.dir}`} data-no-translate>
-                    {m.image && <img src={m.image} alt={t("Photo proof from the officer", "अधिकारी द्वारा फ़ोटो प्रमाण")} className="wa-msg__img" />}
-                    <p>{rich(m.text)}</p>
-                    <span className="wa-msg__meta">{time(m.at)} {m.dir === "in" && <CheckCheck size={14} aria-hidden="true" />}</span>
-                  </div>
-                ))}
-                {botTyping && <div className="wa-msg wa-msg--out wa-typing" aria-hidden="true"><i /><i /><i /></div>}
-              </div>
-              <div className="wa-form" aria-hidden="true">
-                <span className={`demo__input${draft ? " is-typing" : ""}`} data-no-translate>{draft || t("Message", "संदेश")}</span>
-                <span className="demo__send"><Play size={16} /></span>
-              </div>
+        </header>
+        <div className="wa-log" ref={log}>
+          {visible.map((m, i) => (
+            <div key={i} className={`wa-msg ${m.from === "me" ? "wa-msg--in" : "wa-msg--out"}`} data-no-translate>
+              {m.image && <img src={m.image} alt="" className="wa-msg__img" />}
+              <p>{rich(m.text)}</p>
+              <span className="wa-msg__meta">10:4{Math.min(9, i)} am {m.from === "me" && <CheckCheck size={14} aria-hidden="true" />}</span>
             </div>
-            {stars && (
-              <div className="demo__stars" aria-hidden="true">
-                {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ "--i": i } as CSSProperties}>★</span>)}
-              </div>
-            )}
+          ))}
+          {isTyping && <div className="wa-msg wa-msg--out wa-typing"><i /><i /><i /></div>}
+        </div>
+        <div className="dm-phone__input">
+          <span className={text ? "is-typing" : ""} data-no-translate>{text || tr("Message", "संदेश")}</span>
+          <i className={draft && pressed(t, draft.sent - 200) ? "is-pressed" : ""}><ArrowRight size={16} /></i>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Browser({ url, children }: { url: string; children: ReactNode }) {
+  return (
+    <div className="dm-browser">
+      <div className="dm-browser__bar">
+        <span className="dm-browser__dots"><i /><i /><i /></span>
+        <span className="dm-browser__url">🔒 cmhelpline.uk.gov.in{url}</span>
+      </div>
+      <div className="dm-browser__body">{children}</div>
+    </div>
+  );
+}
+
+/** The one thing to notice in this step, shown large beside the main visual. */
+function Point({ t, at = 900, icon, title, text }: { t: number; at?: number; icon: ReactNode; title: string; text?: string }) {
+  return (
+    <div className="dm-point" style={show(t, at, 700, 24)}>
+      <span className="dm-point__icon">{icon}</span>
+      <strong>{title}</strong>
+      {text && <span>{text}</span>}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Scenes                                                              */
+/* ------------------------------------------------------------------ */
+
+function SceneView({ id, index, t, photos }: { id: string; index: number; t: number; photos: { before: string; after: string } }) {
+  const { t: tr, pick } = useI18n();
+  const { meta } = useMeta();
+
+  const waMsgs: Msg[] = [
+    { from: "me", scene: 1, at: 4300, text: "Namaste. Khirsu–Chaubatia road par landslide ka malba pada hai, 4 din se road band hai. School bus nahi aa rahi" },
+    { from: "bot", scene: 2, at: 1700, text: tr("Understood. This is for *Public Works (Roads)*.\n\nWhich district is this in?", "समझ गई। यह *लोक निर्माण विभाग* का विषय है।\n\nयह किस जनपद में है?") },
+    { from: "me", scene: 2, at: 4300, text: "Pauri" },
+    { from: "bot", scene: 3, at: 900, text: tr("I've written it formally:\n\n*Removal of landslide debris, Khirsu–Chaubatia road*\n🏢 Public Works · 📍 Pauri · ⚠️ Urgent\n\nReply *YES* to register.", "मैंने शिकायत औपचारिक भाषा में लिखी है:\n\n*खिर्सू–चौबटिया मार्ग से भूस्खलन मलबा हटाना*\n🏢 लोक निर्माण · 📍 पौड़ी · ⚠️ अत्यावश्यक\n\nदर्ज करने हेतु *हाँ* लिखें।") },
+    { from: "me", scene: 3, at: 3300, text: "haan" },
+    { from: "bot", scene: 3, at: 4500, text: tr(`✅ Registered: *${WA}*\nAction due by 15 November. Every update will come here.`, `✅ दर्ज: *${WA}*\n15 नवंबर तक कार्यवाही। हर अद्यतन यहीं आएगा।`) },
+    { from: "bot", scene: 10, at: 900, image: photos.after, text: tr(`✅ *${WA}* is resolved.\n“Debris removed with a JCB; road open both ways.”\n\nReply *1* to *5* to rate, or *REOPEN*.`, `✅ *${WA}* का निस्तारण हो गया।\n“JCB से मलबा हटाया; सड़क दोनों ओर से खुली।”\n\nरेटिंग हेतु *1* से *5*, या *REOPEN*।`) },
+    { from: "me", scene: 10, at: 3600, text: "5" },
+    { from: "bot", scene: 10, at: 4600, text: tr("🙏 Thank you for rating. The complaint is now closed.", "🙏 रेटिंग के लिए धन्यवाद। शिकायत बंद कर दी गई है।") },
+  ];
+
+  switch (id) {
+    case "intro":
+      return (
+        <div className="dm-intro">
+          <div className="dm-way" style={show(t, 300, 700, 30)}>
+            <span className="dm-way__icon dm-way__icon--wa"><MessageCircle size={40} /></span>
+            <strong>WhatsApp</strong>
+            <span>{tr("Chat in your own words", "अपने शब्दों में चैट करें")}</span>
           </div>
-        </section>
-
-        {/* State map */}
-        <section className="demo__col demo__col--map" aria-label={t("Uttarakhand map", "उत्तराखंड मानचित्र")}>
-          <p className="demo__tag"><MapPin size={14} aria-hidden="true" /> {t("Uttarakhand · live complaints by district", "उत्तराखंड · जनपदवार लाइव शिकायतें")}</p>
-          <div className="demo__map">
-            {stats && <UkMap rows={stats.byDistrict} metric="pending" selected={lit} onSelect={() => undefined} pulses={pulses} />}
-            {kase && (
-              <div className="demo__route" key={kase.id}>
-                <span className="demo__route-dot" />
-                <span>
-                  <b>{kase.id}</b>
-                  {deptOf ? pick(deptOf.name) : ""} · {district(kase.districtId) ? pick(district(kase.districtId)!.name) : ""}
-                </span>
-              </div>
-            )}
+          <div className="dm-or" style={show(t, 900)}>{tr("or", "या")}</div>
+          <div className="dm-way" style={show(t, 1200, 700, 30)}>
+            <span className="dm-way__icon dm-way__icon--web"><Globe size={40} /></span>
+            <strong>{tr("Website", "वेबसाइट")}</strong>
+            <span>{tr("Type or speak, in any language", "किसी भी भाषा में लिखें या बोलें")}</span>
           </div>
-        </section>
+          <div className="dm-into" style={show(t, 2600, 700)}>
+            <ArrowRight size={28} aria-hidden="true" />
+            <StateSeal className="dm-into__seal" />
+            <span>{tr("One system, one officer, one deadline", "एक प्रणाली, एक अधिकारी, एक समय सीमा")}</span>
+          </div>
+        </div>
+      );
 
-        {/* Officer */}
-        <section className="demo__col demo__col--console" aria-label={t("Officer console", "अधिकारी कंसोल")}>
-          <p className="demo__tag"><ShieldCheck size={14} aria-hidden="true" /> {t("Officer console", "अधिकारी कंसोल")}</p>
-          <div className="demo__console">
-            <header className="demo__officer">
-              <span className="demo__officer-icon">{deptOf ? <DeptIcon id={deptOf.id} size={22} /> : <ShieldCheck size={22} aria-hidden="true" />}</span>
-              <span>
-                <strong>{kase?.officer ?? t("Department officer", "विभागीय अधिकारी")}</strong>
-                <small>{deptOf ? pick(deptOf.name) : t("Waiting for a complaint", "शिकायत की प्रतीक्षा")}</small>
-              </span>
-            </header>
-            <div className="demo__ws" ref={wsRef}>
-              <ol className="demo__queue">
-                <li ref={slotRef} className={`demo__row demo__row--new${rowIn ? " is-in" : ""}${resolved ? " is-done" : ""}`}>
-                  {kase && (
-                    <>
-                      <span className="demo__row-title">{kase.subject}</span>
-                      <span className="demo__row-meta">{kase.id} · {district(kase.districtId) ? pick(district(kase.districtId)!.name) : ""}</span>
-                      <span className="demo__row-badge">{resolved ? t("Resolved", "निस्तारित") : t("New · 15 days", "नई · 15 दिन")}</span>
-                    </>
-                  )}
-                </li>
-                {queue.map((h) => (
-                  <li key={h.id} className="demo__row">
-                    <span className="demo__row-title">{h.subject}</span>
-                    <span className="demo__row-meta">{h.id} · {district(h.districtId) ? pick(district(h.districtId)!.name) : ""}</span>
-                  </li>
-                ))}
-              </ol>
-
-              {rowIn && kase && (
-                <div className="demo__case">
-                  <p className="demo__label">{t("Action taken", "की गई कार्यवाही")}</p>
-                  <div className={`demo__note${report ? " is-polished" : ""}${polishing ? " is-polishing" : ""}`} data-no-translate>
-                    {report ? words.map((w, i) => <span key={i} style={{ "--i": i } as CSSProperties}>{w} </span>) : <>{note}<i className="demo__caret" /></>}
-                  </div>
-                  <button type="button" tabIndex={-1} className={`demo__btn demo__btn--ai${pressed === "polish" ? " is-pressed" : ""}`}>
-                    <Sparkles size={15} aria-hidden="true" /> {polishing ? t("Writing the report…", "रिपोर्ट लिखी जा रही है…") : report ? t("Polished by AI", "AI द्वारा सुधारा गया") : t("Polish with AI", "AI से सुधारें")}
-                  </button>
-                  {photos && (
-                    <div className="demo__proof">
-                      <BeforeAfter before={{ dataUrl: photos.before }} after={{ dataUrl: photos.after }} />
-                    </div>
-                  )}
-                  {photos && (
-                    <button type="button" tabIndex={-1} className={`demo__btn demo__btn--ok${pressed === "resolve" ? " is-pressed" : ""}${resolved ? " is-done" : ""}`}>
-                      <CheckCircle2 size={16} aria-hidden="true" /> {resolved ? t("Resolved with photo proof", "फ़ोटो प्रमाण सहित निस्तारित") : t("Mark resolved", "निस्तारित करें")}
-                    </button>
-                  )}
+    case "wa-send":
+    case "wa-ai":
+    case "wa-done":
+    case "citizen": {
+      const draft =
+        id === "wa-send" ? { text: waMsgs[0].text, start: 900, sent: 4300, cps: 46 }
+        : id === "wa-ai" ? { text: "Pauri", start: 3300, sent: 4300, cps: 8 }
+        : id === "wa-done" ? { text: "haan", start: 2600, sent: 3300, cps: 8 }
+        : { text: "5", start: 3100, sent: 3600, cps: 4 };
+      const typing: [number, number] | undefined = id === "wa-ai" ? [400, 1700] : id === "wa-done" ? [3400, 4500] : id === "citizen" ? [3700, 4600] : undefined;
+      return (
+        <div className="dm-split">
+          <Phone msgs={waMsgs} scene={index} t={t} draft={draft} typing={typing} />
+          {id === "wa-send" && <Point t={t} at={1200} icon={<MessageCircle size={26} />} title={tr("Writes in Hinglish", "हिंग्लिश में लिखते हैं")} text={tr("No app, no form, no office visit", "न ऐप, न फ़ॉर्म, न कार्यालय")} />}
+          {id === "wa-ai" && <Point t={t} at={1900} icon={<Sparkles size={26} />} title={tr("AI picks the department", "AI विभाग चुनता है")} text={tr("Public Works · asks only for the district", "लोक निर्माण · केवल जनपद पूछता है")} />}
+          {id === "wa-done" && <Point t={t} at={4700} icon={<CheckCircle2 size={26} />} title={WA} text={tr("Registered in under a minute", "एक मिनट से कम में दर्ज")} />}
+          {id === "citizen" && (
+            <div className="dm-col">
+              <Point t={t} at={1300} icon={<Camera size={26} />} title={tr("Photo proof on WhatsApp", "व्हाट्सऐप पर फ़ोटो प्रमाण")} text={tr("Rate it 1–5, or reopen it", "1–5 रेटिंग दें, या पुनः खोलें")} />
+              {t > 3800 && (
+                <div className="dm-stars" aria-hidden="true">
+                  {[0, 1, 2, 3, 4].map((i) => <span key={i} style={{ "--i": i } as CSSProperties}>★</span>)}
                 </div>
               )}
             </div>
-          </div>
-        </section>
-
-        <div ref={flyRef} className="demo__fly" aria-hidden="true">
-          <MessageCircle size={16} />
-          <span>{kase?.id ?? "CMH"}</span>
+          )}
         </div>
+      );
+    }
+
+    case "web-speak": {
+      const spoken = "मेरे घर पिछले दस दिन से पानी नहीं आ रहा है। वार्ड 4, अल्मोड़ा।";
+      const listening = t > 900 && t < 4300;
+      return (
+        <div className="dm-split">
+          <Browser url="/">
+            <div className="dm-site">
+              <div className="dm-site__head"><StateSeal className="dm-site__seal" /> <strong>CM Helpline 1905</strong></div>
+              <div className="dm-site__hero">
+                <h3>{tr("Tell us the problem.", "समस्या बताइए।")}</h3>
+                <div className="dm-site__box">
+                  <p className="dm-site__label">{tr("What is the problem?", "समस्या क्या है?")}</p>
+                  <div className="dm-site__input" data-no-translate>{typed(spoken, t, 1300, 16) || <span className="dm-muted">{tr("Write it in your own words…", "अपने शब्दों में लिखें…")}</span>}</div>
+                  <div className="dm-site__row">
+                    <span className={`dm-mic${listening ? " is-on" : ""}`}><Mic size={18} /> {listening ? tr("Listening…", "सुन रहे हैं…") : tr("Speak", "बोलें")}{listening && <i className="dm-wave"><b /><b /><b /><b /><b /></i>}</span>
+                    <span className={`dm-btn${pressed(t, 5600) ? " is-pressed" : ""}`}>{tr("Find the right department", "सही विभाग खोजें")} <ArrowRight size={16} /></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Browser>
+          <Point t={t} at={1500} icon={<Mic size={26} />} title={tr("Speaks in Hindi", "हिंदी में बोलती हैं")} text={tr("Works in 15 languages, including Garhwali, Kumaoni and Jaunsari", "गढ़वाली, कुमाऊँनी और जौनसारी सहित 15 भाषाओं में")} />
+        </div>
+      );
+    }
+
+    case "web-submit":
+      return (
+        <div className="dm-split">
+          <Browser url="/register">
+            <div className="dm-site dm-form">
+              <ol className="dm-steps">
+                {[tr("Describe", "विवरण"), tr("Details", "जानकारी"), tr("Verify", "सत्यापन"), tr("Done", "पूर्ण")].map((s, i) => (
+                  <li key={s} className={t > [0, 600, 2600, 4600][i] ? "is-on" : ""}>{s}</li>
+                ))}
+              </ol>
+              <div className="dm-suggest" style={show(t, 500)}>
+                <Sparkles size={18} /> <span><b>{tr("Uttarakhand Jal Sansthan", "उत्तराखंड जल संस्थान")}</b> · {tr("Drinking water supply", "पेयजल आपूर्ति")}</span> <CheckCircle2 size={18} className="dm-ok" />
+              </div>
+              <div className="dm-form__grid">
+                <div className="dm-thumb" style={show(t, 1300)}><Camera size={18} /> {tr("Photo added · Ward 4, Almora", "फ़ोटो जोड़ी · वार्ड 4, अल्मोड़ा")}</div>
+                <label className={`dm-check${t > 2100 ? " is-on" : ""}`}><i>{t > 2100 && "✓"}</i> {tr("Send every update on WhatsApp", "हर अद्यतन व्हाट्सऐप पर भेजें")}</label>
+              </div>
+              <div className="dm-otp" style={show(t, 2600)}>
+                <span>{tr("OTP sent to 98765 ••••1", "OTP भेजा गया 98765 ••••1")}</span>
+                <span className="dm-otp__boxes">{"481905".split("").map((d, i) => <b key={i}>{t > 3000 + i * 160 ? d : ""}</b>)}</span>
+              </div>
+              <span className={`dm-btn dm-btn--wide${pressed(t, 4300) ? " is-pressed" : ""}`} style={show(t, 3900)}>{tr("Submit complaint", "शिकायत जमा करें")}</span>
+              {t > 4600 && (
+                <div className="dm-receipt">
+                  <CheckCircle2 size={34} />
+                  <strong>{WEB}</strong>
+                  <span>{tr("Registered · updates on WhatsApp", "दर्ज · अद्यतन व्हाट्सऐप पर")}</span>
+                </div>
+              )}
+            </div>
+          </Browser>
+          <Point t={t} at={4800} icon={<CheckCircle2 size={26} />} title={WEB} text={tr("Department suggested, photo, OTP: done", "विभाग सुझाव, फ़ोटो, OTP: पूर्ण")} />
+        </div>
+      );
+
+    case "flow":
+      return (
+        <div className="dm-flow">
+          <svg viewBox="0 0 900 380" className="dm-flow__lines" aria-hidden="true">
+            {["M190 95 C 320 95 330 190 420 190", "M190 285 C 320 285 330 190 420 190", "M480 190 C 570 190 580 95 710 95", "M480 190 C 570 190 580 285 710 285"].map((d, i) => (
+              <g key={d}>
+                <path d={d} className="dm-flow__path" style={{ strokeDashoffset: 400 * (1 - p(t, 500 + (i > 1 ? 1800 : 0), 1000)) }} />
+                {t > (i > 1 ? 2600 : 1000) && (
+                  <circle r="7" className={`dm-flow__dot dm-flow__dot--${i % 2 ? "web" : "wa"}`}>
+                    <animateMotion dur="1.6s" repeatCount="indefinite" path={d} />
+                  </circle>
+                )}
+              </g>
+            ))}
+          </svg>
+          <div className="dm-node dm-node--wa" style={show(t, 100)}><MessageCircle size={22} /><span><b>WhatsApp</b>{WA}</span></div>
+          <div className="dm-node dm-node--web" style={show(t, 300)}><Globe size={22} /><span><b>{tr("Website", "वेबसाइट")}</b>{WEB}</span></div>
+          <div className="dm-hub" style={show(t, 1300, 700)}><StateSeal className="dm-hub__seal" /><b>CM Helpline 1905</b><span>{tr("Routes to the officer", "अधिकारी तक भेजती है")}</span></div>
+          <div className="dm-node dm-node--pwd" style={show(t, 2900)}><ShieldCheck size={22} /><span><b>{tr("Public Works", "लोक निर्माण")}</b>{tr("Pauri", "पौड़ी")}</span></div>
+          <div className="dm-node dm-node--jal" style={show(t, 3200)}><ShieldCheck size={22} /><span><b>{tr("Jal Sansthan", "जल संस्थान")}</b>{tr("Almora", "अल्मोड़ा")}</span></div>
+        </div>
+      );
+
+    case "queue": {
+      const rows = [
+        { id: WA, title: tr("Landslide debris on Khirsu–Chaubatia road", "खिर्सू–चौबटिया मार्ग पर भूस्खलन मलबा"), where: tr("Pauri · via WhatsApp", "पौड़ी · व्हाट्सऐप से"), due: tr("15 days left", "15 दिन शेष"), at: 900, fresh: true },
+        { id: WEB, title: tr("No water supply for 10 days, Ward 4", "वार्ड 4 में 10 दिन से जलापूर्ति बंद"), where: tr("Almora · via website", "अल्मोड़ा · वेबसाइट से"), due: tr("15 days left", "15 दिन शेष"), at: 1500, fresh: true },
+        { id: "CMH-2026-004660", title: tr("Street light not working", "स्ट्रीट लाइट खराब"), where: tr("Nainital", "नैनीताल"), due: tr("6 days left", "6 दिन शेष"), at: 0, fresh: false },
+        { id: "CMH-2026-004612", title: tr("Pension not received", "पेंशन नहीं मिली"), where: tr("Tehri", "टिहरी"), due: tr("9 days left", "9 दिन शेष"), at: 0, fresh: false },
+      ];
+      return (
+        <div className="dm-split">
+          <Browser url="/officer">
+            <div className="dm-site dm-console">
+              <div className="dm-console__head"><ShieldCheck size={20} /> <b>{tr("Officer console", "अधिकारी कंसोल")}</b> <span>{tr("Priority queue", "प्राथमिकता कतार")}</span></div>
+              <ul className="dm-queue">
+                {rows.map((r) => (
+                  <li key={r.id} className={r.fresh ? "is-new" : ""} style={r.fresh ? show(t, r.at, 700, -30) : undefined}>
+                    <span className="dm-queue__main"><b>{r.title}</b><small>{r.id} · {r.where}</small></span>
+                    <span className="dm-queue__due">{r.fresh ? <em>{tr("New", "नई")}</em> : null}{r.due}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Browser>
+          <Point t={t} at={2300} icon={<ShieldCheck size={26} />} title={tr("Top of the queue", "कतार में सबसे ऊपर")} text={tr("Each with its own deadline", "हर एक की अपनी समय सीमा")} />
+        </div>
+      );
+    }
+
+    case "escalate": {
+      const day = Math.min(15, 1 + Math.floor(p(t, 600, 2800) * 14));
+      const moved = t > 3700;
+      return (
+        <div className="dm-esc">
+          <div className="dm-esc__day">
+            <span>{tr("Day", "दिन")}</span>
+            <b>{day}</b>
+            <i style={{ width: `${(day / 15) * 100}%` }} className={day >= 15 ? "is-full" : ""} />
+          </div>
+          <ol className="dm-ladder">
+            {([1, 2, 3, 4] as Level[]).map((l) => (
+              <li key={l} className={(moved ? l === 2 : l === 1) ? "is-here" : ""} style={show(t, 100 + l * 120)}>
+                <span>L{l}</span>
+                <b>{meta ? pick(meta.levels[l].title) : `Level ${l}`}</b>
+                <small>{meta ? tr(`${meta.levels[l].days} days`, `${meta.levels[l].days} दिन`) : ""}</small>
+                {l === (moved ? 2 : 1) && <i className="dm-token">{WA.slice(-4)}</i>}
+              </li>
+            ))}
+          </ol>
+          <p className="dm-esc__note" style={show(t, 3900)}>
+            <ArrowRight size={18} /> {tr("Moved up automatically. The citizen is told on WhatsApp.", "स्वतः उच्च स्तर पर भेजी गई। नागरिक को व्हाट्सऐप पर सूचना।")}
+          </p>
+        </div>
+      );
+    }
+
+    case "resolve": {
+      const notes = "JCB lagwa ke malba hataya, road dono taraf se khol di";
+      const report = tr("Debris was removed with a JCB and the road has been reopened to traffic in both directions.", "जेसीबी से मलबा हटाकर सड़क को दोनों दिशाओं में यातायात हेतु खोल दिया गया है।");
+      const polished = t > 3400;
+      const words = report.split(" ");
+      return (
+        <div className="dm-split">
+          <Browser url="/officer">
+            <div className="dm-site dm-resolve">
+              <p className="dm-site__label">{tr("Action taken", "की गई कार्यवाही")} · {WA}</p>
+              <div className={`dm-note${polished ? " is-polished" : ""}${t > 2700 && !polished ? " is-working" : ""}`} data-no-translate>
+                {polished ? words.map((w, i) => <span key={i} style={{ opacity: p(t, 3400 + i * 60, 300) }}>{w} </span>) : typed(notes, t, 400, 30)}
+              </div>
+              <span className={`dm-btn dm-btn--ai${pressed(t, 2500) ? " is-pressed" : ""}`}><Sparkles size={16} /> {polished ? tr("Written by AI", "AI द्वारा लिखा गया") : t > 2700 ? tr("Writing…", "लिखा जा रहा है…") : tr("Polish with AI", "AI से सुधारें")}</span>
+              <div className="dm-photos" style={show(t, 5000)}>
+                <figure><img src={photos.before} alt="" /><figcaption>{tr("Before", "पहले")}</figcaption></figure>
+                <figure><img src={photos.after} alt="" /><figcaption>{tr("After · geo-tagged", "बाद में · स्थान-अंकित")}</figcaption></figure>
+              </div>
+              {t > 6900 && <span className="dm-stamp"><CheckCircle2 size={20} /> {tr("Resolved with photo proof", "फ़ोटो प्रमाण सहित निस्तारित")}</span>}
+            </div>
+          </Browser>
+          <Point t={t} at={3600} icon={<Sparkles size={26} />} title={tr("Notes become a report", "नोट्स से रिपोर्ट")} text={tr("Can't close without a photo", "फ़ोटो के बिना बंद नहीं")} />
+        </div>
+      );
+    }
+
+    default:
+      return null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Player                                                              */
+/* ------------------------------------------------------------------ */
+
+type Track = { text: string; url?: string; ms: number };
+
+export function Demo() {
+  const { t: tr, locale } = useI18n();
+  const navigate = useNavigate();
+  useDocumentTitle("Watch it work", "देखें कैसे काम करता है");
+
+  const [voice, setVoice] = useState<Voice>(() => (voices.some((v) => v.code === locale) ? (locale as Voice) : "en"));
+  const [stage, setStage] = useState<"choose" | "preparing" | "playing">("choose");
+  const [ready, setReady] = useState(0);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [index, setIndex] = useState(0);
+  const [t, setT] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const clockStart = useRef(0);
+  const photos = useMemo(() => {
+    const stamp = (d: Date) => d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return { before: demoScene("before", stamp(new Date(Date.now() - 4 * 86_400_000))), after: demoScene("after", stamp(new Date())) };
+  }, []);
+
+  useEffect(() => () => audio.current?.pause(), []);
+
+  /** Write the narration in the chosen language, then voice every step before playing. */
+  const prepare = async () => {
+    // Unlock audio while we still have the click.
+    const el = audio.current ?? new Audio();
+    audio.current = el;
+    el.src = SILENCE;
+    void el.play().catch(() => undefined);
+    setStage("preparing");
+    setReady(0);
+
+    let texts = scenes.map((s) => (voice === "hi" ? s.hi : s.en));
+    if (voice !== "en" && voice !== "hi") {
+      try {
+        texts = (await api.translate(scenes.map((s) => s.hi), voice)).items;
+      } catch {
+        texts = scenes.map((s) => s.hi);
+      }
+    }
+    const out: Track[] = texts.map((text, i) => ({ text, ms: scenes[i].min }));
+    let next = 0;
+    const worker = async () => {
+      while (next < out.length) {
+        const i = next++;
+        // Speech occasionally comes back padded with silence; ask once more, then keep the step short anyway.
+        const expected = Math.max(8, out[i].text.length / 9);
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const blob = await api.speak(attempt ? `${out[i].text} ` : out[i].text, voice, undefined, "narrator");
+            const url = URL.createObjectURL(blob);
+            const secs = await new Promise<number>((resolve) => {
+              const a = new Audio(url);
+              a.addEventListener("loadedmetadata", () => resolve(a.duration), { once: true });
+              a.addEventListener("error", () => resolve(0), { once: true });
+            });
+            if (!secs) continue;
+            out[i] = { ...out[i], url, ms: Math.min(scenes[i].min + 6000, Math.max(scenes[i].min, Math.ceil(secs * 1000) + 900)) };
+            if (secs <= expected * 1.6) break;
+          } catch {
+            // Captions only for this step.
+          }
+        }
+        setReady((r) => r + 1);
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    setTracks(out);
+    setIndex(0);
+    setT(0);
+    setPaused(false);
+    setStage("playing");
+  };
+
+  // Start each step's voice-over.
+  useEffect(() => {
+    if (stage !== "playing") return;
+    const el = audio.current;
+    const url = tracks[index]?.url;
+    if (el && url) {
+      el.src = url;
+      el.currentTime = 0;
+      void el.play().catch(() => undefined);
+    }
+    clockStart.current = performance.now();
+    setT(0);
+  }, [stage, index, tracks]);
+
+  // The scene clock.
+  useEffect(() => {
+    if (stage !== "playing" || paused) return;
+    let raf = 0;
+    const tick = (now: number) => {
+      const elapsed = now - clockStart.current;
+      setT(elapsed);
+      if (elapsed >= (tracks[index]?.ms ?? 7000)) {
+        if (index >= scenes.length - 1) {
+          navigate("/");
+          return;
+        }
+        setIndex((i) => i + 1);
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [stage, paused, index, tracks, navigate]);
+
+  const togglePause = useCallback(() => {
+    const el = audio.current;
+    if (paused) {
+      clockStart.current = performance.now() - t;
+      if (el && tracks[index]?.url) void el.play().catch(() => undefined);
+    } else {
+      el?.pause();
+    }
+    setPaused((v) => !v);
+  }, [paused, t, tracks, index]);
+
+  const restart = () => {
+    setIndex(0);
+    setPaused(false);
+    clockStart.current = performance.now();
+    setT(0);
+    if (audio.current && tracks[0]?.url) {
+      audio.current.src = tracks[0].url;
+      void audio.current.play().catch(() => undefined);
+    }
+  };
+
+  const scene = scenes[index];
+  const groups: { id: Group; en: string; hi: string; Icon: typeof MessageCircle }[] = [
+    { id: "whatsapp", en: "WhatsApp", hi: "व्हाट्सऐप", Icon: MessageCircle },
+    { id: "website", en: "Website", hi: "वेबसाइट", Icon: Globe },
+    { id: "officer", en: "Officer", hi: "अधिकारी", Icon: ShieldCheck },
+    { id: "citizen", en: "Citizen", hi: "नागरिक", Icon: CheckCircle2 },
+  ];
+  const order: Group[] = ["start", "whatsapp", "website", "officer", "citizen", "end"];
+  const total = tracks.reduce((a, x) => a + x.ms, 0) || 1;
+  const done = tracks.slice(0, index).reduce((a, x) => a + x.ms, 0) + Math.min(t, tracks[index]?.ms ?? 0);
+  const left = stage === "playing" && scene.id === "end" ? Math.max(0, Math.ceil(((tracks[index]?.ms ?? 0) - t) / 1000)) : 0;
+
+  return (
+    <div className="dm">
+      <header className="dm-top">
+        <div className="dm-brand"><StateSeal className="dm-brand__seal" /><span><b>CM Helpline 1905</b><small>{tr("How it works", "यह कैसे काम करता है")}</small></span></div>
+        {stage === "playing" && (
+          <ol className="dm-tabs" aria-label={tr("Steps", "चरण")}>
+            {groups.map((g, i) => {
+              const state = scene.group === g.id ? "is-now" : order.indexOf(scene.group) > order.indexOf(g.id) ? "is-past" : "";
+              return (
+                <li key={g.id} className={state}>
+                  <span className="dm-tabs__n">{i + 1}</span>
+                  <g.Icon size={16} aria-hidden="true" /> {tr(g.en, g.hi)}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+        <div className="dm-controls">
+          {stage === "playing" && (
+            <>
+              <button type="button" onClick={togglePause} aria-label={paused ? tr("Play", "चलाएँ") : tr("Pause", "रोकें")}>{paused ? <Play size={18} /> : <Pause size={18} />}</button>
+              <button type="button" onClick={() => (index < scenes.length - 1 ? setIndex(index + 1) : navigate("/"))} aria-label={tr("Next step", "अगला चरण")}><SkipForward size={18} /></button>
+              <button type="button" onClick={restart} aria-label={tr("Restart", "फिर से")}><RotateCcw size={18} /></button>
+            </>
+          )}
+          <button type="button" onClick={() => navigate("/")} aria-label={tr("Close and go to the home page", "बंद करें और होम पेज पर जाएँ")}><X size={18} /></button>
+        </div>
+      </header>
+
+      <main className="dm-stage">
+        {stage === "playing" && (
+          <div className="dm-scene" key={scene.id}>
+            {scene.id === "end" ? (
+              <div className="dm-end">
+                <span className="dm-end__check"><CheckCircle2 size={56} /></span>
+                <h2 style={show(t, 300)}>{tr("Simple for citizens. Accountable for officers.", "नागरिकों के लिए आसान। अधिकारियों के लिए जवाबदेह।")}</h2>
+                <ul className="dm-end__facts" style={show(t, 900)}>
+                  <li><b>2</b> {tr("ways to report", "शिकायत के तरीके")}</li>
+                  <li><b>15</b> {tr("days, then it moves up", "दिन, फिर उच्च स्तर")}</li>
+                  <li><b>📷</b> {tr("photo proof to close", "बंद करने हेतु फ़ोटो")}</li>
+                  <li><b>3</b> {tr("languages of Uttarakhand, plus 12 more", "उत्तराखंड की भाषाएँ, और 12 अन्य")}</li>
+                </ul>
+                <div className="dm-end__actions" style={show(t, 1400)}>
+                  <button type="button" className="dm-primary" onClick={() => navigate("/")}><HomeIcon size={18} /> {tr("Go to the home page", "होम पेज पर जाएँ")} {left > 0 && <small>({left})</small>}</button>
+                  <button type="button" className="dm-secondary" onClick={restart}><RotateCcw size={18} /> {tr("Watch again", "फिर देखें")}</button>
+                </div>
+              </div>
+            ) : (
+              <SceneView id={scene.id} index={index} t={t} photos={photos} />
+            )}
+          </div>
+        )}
+
+        {stage !== "playing" && (
+          <div className="dm-start">
+            <StateSeal className="dm-start__seal" />
+            <h1>{tr("See how a complaint gets solved", "देखें शिकायत कैसे हल होती है")}</h1>
+            <p>{tr("Two citizens, two ways in: WhatsApp and the website. About 1½ minutes, with voice-over.", "दो नागरिक, दो तरीके: व्हाट्सऐप और वेबसाइट। लगभग डेढ़ मिनट, आवाज़ के साथ।")}</p>
+            <p className="dm-start__label">{tr("Voice-over language", "आवाज़ की भाषा")}</p>
+            <div className="dm-voices" role="radiogroup" aria-label={tr("Voice-over language", "आवाज़ की भाषा")}>
+              {voices.map((v) => (
+                <button key={v.code} type="button" role="radio" aria-checked={voice === v.code} disabled={stage === "preparing"} onClick={() => setVoice(v.code)} lang={v.code}>{v.label}</button>
+              ))}
+            </div>
+            {stage === "choose" ? (
+              <button type="button" className="dm-primary dm-primary--big" onClick={prepare} autoFocus><Play size={20} /> {tr("Start", "शुरू करें")}</button>
+            ) : (
+              <div className="dm-loading" role="status">
+                <span className="dm-loading__bar"><i style={{ width: `${(ready / scenes.length) * 100}%` }} /></span>
+                {tr(`Preparing the voice-over… ${ready}/${scenes.length}`, `आवाज़ तैयार हो रही है… ${ready}/${scenes.length}`)}
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
-      <footer className="demo__rail">
-        <div className="demo__caption" aria-live="polite" key={chapter}>
-          <span className="demo__step">{String(chapter + 1).padStart(2, "0")}<small>/06</small></span>
-          <span>
-            <strong>{title}</strong>
-            <span>{sub}</span>
-          </span>
-        </div>
-        <ol className="demo__chapters" aria-label={t("Steps", "चरण")}>
-          {chapters.map((c, i) => (
-            <li key={i} className={i < chapter || phase === "done" ? "is-past" : i === chapter && phase === "running" ? "is-now" : ""}>
-              <span>{pick({ en: c.en[0], hi: c.hi[0] })}</span>
-            </li>
-          ))}
-        </ol>
-      </footer>
-
-      {phase === "ready" && (
-        <div className="demo__overlay">
-          <div className="demo__intro">
-            <p className="demo__kicker">{t("Live demonstration · about 60 seconds", "लाइव प्रदर्शन · लगभग 60 सेकंड")}</p>
-            <h1>{t("One grievance, from first message to photo proof", "एक शिकायत, पहले संदेश से फ़ोटो प्रमाण तक")}</h1>
-            <p>{t("A citizen in Pauri reports a landslide on WhatsApp in Hinglish. Watch it reach the right officer, get resolved with proof, and come back to the citizen. Everything here runs on the live system: real AI, real database, real escalation rules.", "पौड़ी के एक नागरिक व्हाट्सऐप पर हिंग्लिश में भूस्खलन की सूचना देते हैं। देखें कैसे यह सही अधिकारी तक पहुँचती है, प्रमाण सहित निस्तारित होती है और नागरिक तक लौटती है। सब कुछ लाइव सिस्टम पर: वास्तविक AI, वास्तविक डेटाबेस, वास्तविक नियम।")}</p>
-            <div className="demo__intro-actions">
-              <button type="button" className="demo__play" onClick={run} autoFocus>
-                <span className="demo__play-ring" aria-hidden="true" />
-                <Play size={22} aria-hidden="true" /> {t("Start the demonstration", "प्रदर्शन शुरू करें")}
-              </button>
-              <button type="button" className="demo__ghost" onClick={() => setSound((s) => !s)} aria-pressed={sound}>
-                {sound ? <Volume2 size={18} aria-hidden="true" /> : <VolumeX size={18} aria-hidden="true" />} {sound ? t("Sound on", "आवाज़ चालू") : t("Sound off", "आवाज़ बंद")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {phase === "done" && (
-        <div className="demo__overlay demo__overlay--end">
-          <div className="demo__intro demo__end">
-            <span className="demo__end-check" aria-hidden="true"><CheckCircle2 size={44} /></span>
-            <p className="demo__kicker">{kase?.id}</p>
-            <h2>{t(`Registered, resolved and rated in ${clock(elapsed)}`, `${clock(elapsed)} में दर्ज, निस्तारित और रेटिंग प्राप्त`)}</h2>
-            <ul className="demo__facts">
-              <li><b>1</b> {t("WhatsApp chat, in Hinglish", "व्हाट्सऐप चैट, हिंग्लिश में")}</li>
-              <li><b>0</b> {t("office visits or forms", "कार्यालय चक्कर या फ़ॉर्म")}</li>
-              <li><b>15</b> {t("days before it moves up automatically", "दिन बाद स्वतः उच्च स्तर पर")}</li>
-              <li><b>📍</b> {t("geo-tagged photo proof", "स्थान-अंकित फ़ोटो प्रमाण")}</li>
-            </ul>
-            <div className="demo__intro-actions">
-              <button type="button" className="demo__play" onClick={run}><RotateCcw size={20} aria-hidden="true" /> {t("Watch again", "फिर देखें")}</button>
-              <Link className="demo__ghost" to="/whatsapp">{t("Try WhatsApp yourself", "स्वयं व्हाट्सऐप आज़माएँ")}</Link>
-              {kase && <Link className="demo__ghost" to={`/track?id=${kase.id}&mobile=${MOBILE}`}>{t("Track this complaint", "यह शिकायत देखें")}</Link>}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {phase === "error" && (
-        <div className="demo__overlay">
-          <div className="demo__intro">
-            <h2>{t("The demonstration stopped", "प्रदर्शन रुक गया")}</h2>
-            <p>{error}</p>
-            <div className="demo__intro-actions">
-              <button type="button" className="demo__play" onClick={run}><RotateCcw size={20} aria-hidden="true" /> {t("Try again", "फिर प्रयास करें")}</button>
-              <Link className="demo__ghost" to="/whatsapp">{t("Open the WhatsApp demo", "व्हाट्सऐप डेमो खोलें")}</Link>
-            </div>
-          </div>
-        </div>
+      {stage === "playing" && (
+        <footer className="dm-caption">
+          <p key={index} lang={voice} data-no-translate>{tracks[index]?.text}</p>
+          <span className="dm-progress"><i style={{ width: `${(done / total) * 100}%` }} /></span>
+        </footer>
       )}
     </div>
   );

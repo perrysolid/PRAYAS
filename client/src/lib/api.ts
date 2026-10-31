@@ -46,9 +46,6 @@ export const api = {
   waStatus: (signal?: AbortSignal) => request<{ mode: "cloud" | "simulated"; ai: boolean; demoMobiles: string[] }>("/whatsapp/status", { signal }),
   waThread: (mobile: string, signal?: AbortSignal) => request<WhatsAppMessage[]>(`/whatsapp/thread?${new URLSearchParams({ mobile })}`, { signal }),
   waSend: (mobile: string, text: string) => post<{ ok: true }>("/whatsapp/inbound", { mobile, text }),
-  demoReset: (mobile: string) => post<{ ok: true }>("/demo/reset", { mobile }),
-  demoPolish: (text: string, lang: "en" | "hi") => post<{ report: string }>("/demo/polish", { text, lang }),
-  demoResolve: (id: string, note: string, before: { dataUrl: string }, after: { dataUrl: string }) => post<{ officer: string; grievance: Grievance }>("/demo/resolve", { id, note, before, after }),
   officerNote: (text: string, lang: "en" | "hi") => post<{ report: string }>("/officer/ai/note", { text, lang }),
   aiStatus: (signal?: AbortSignal) => request<AiStatus>("/ai/status", { signal }),
   draft: (text: string, lang: string) => post<{ isGrievance: boolean; subject: string; description: string }>("/ai/draft", { text, lang }),
@@ -56,8 +53,8 @@ export const api = {
   assistant: (messages: { from: "me" | "bot"; text: string }[], lang: string) => post<AssistantReply>("/ai/assistant", { messages, lang }),
   translate: (strings: string[], lang: string) => post<{ items: string[] }>("/ai/translate", { strings, lang }),
   /** Natural speech as WAV audio. */
-  speak: async (text: string, lang: string, signal?: AbortSignal) => {
-    const res = await fetch("/api/ai/speak", { method: "POST", credentials: "include", signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, lang }) });
+  speak: async (text: string, lang: string, signal?: AbortSignal, voice: "assistant" | "narrator" = "assistant") => {
+    const res = await fetch("/api/ai/speak", { method: "POST", credentials: "include", signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, lang, voice }) });
     if (!res.ok) throw new ApiError(res.status, "AI_UNAVAILABLE", "Speech is not available right now.");
     return res.blob();
   },
