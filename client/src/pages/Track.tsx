@@ -1,4 +1,6 @@
 import { Link, useSearchParams } from "react-router-dom";
+import { BeforeAfter } from "../components/BeforeAfter";
+import { EscalationClock } from "../components/EscalationClock";
 import { Ladder } from "../components/Ladder";
 import { PageHead } from "../components/PageHead";
 import { LoadError, Loading } from "../components/States";
@@ -55,6 +57,13 @@ function Result({ id, mobile }: { id: string; mobile: string }) {
         {dist && <div className="summary__row"><dt>{t("District", "जनपद")}</dt><dd>{pick(dist.name)}</dd></div>}
         <div className="summary__row"><dt>{t("With", "किसके पास")}</dt><dd>{pick(data.currentOfficer)} (L{data.level})</dd></div>
       </dl>
+      {data.photos?.after && (
+        <>
+          <h3>{t("Proof of resolution", "निस्तारण का प्रमाण")}</h3>
+          <BeforeAfter before={data.photos.before} after={data.photos.after} />
+        </>
+      )}
+      {data.status !== "resolved" && data.status !== "closed" && <EscalationClock level={data.level} levelDueAt={data.levelDueAt} submittedAt={data.submittedAt} timeline={data.timeline} />}
       <h3>{t("Who is handling it", "कौन देख रहा है")}</h3>
       <Ladder current={data} />
       <h3>{t("History", "इतिहास")}</h3>

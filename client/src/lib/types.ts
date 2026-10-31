@@ -60,7 +60,7 @@ export type Grievance = {
   channel?: "web" | "phone" | "app" | "whatsapp";
 };
 
-export type PublicGrievance = Pick<Grievance, "id" | "citizenName" | "departmentId" | "categoryId" | "districtId" | "status" | "level" | "levelDueAt" | "submittedAt" | "resolvedAt" | "timeline" | "currentOfficer" | "supportCount"> & { hasProof: boolean };
+export type PublicGrievance = Pick<Grievance, "id" | "citizenName" | "departmentId" | "categoryId" | "districtId" | "status" | "level" | "levelDueAt" | "submittedAt" | "resolvedAt" | "timeline" | "currentOfficer" | "supportCount"> & { hasProof: boolean; photos?: { before?: Photo; after?: Photo } };
 
 export type SimilarGrievance = Pick<Grievance, "id" | "subject" | "categoryId" | "block" | "village" | "status" | "level" | "submittedAt" | "supportCount">;
 
