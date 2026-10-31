@@ -38,8 +38,8 @@ export function TrackForm({ compact, initial = { id: "", mobile: "" } }: { compa
       <Field id={`${prefix}ref`} label={t("Complaint number", "शिकायत संख्या")} hint={t("For example CMH-2026-004512", "उदाहरण: CMH-2026-004512")} error={errors[`${prefix}ref`]}>
         <Input id={`${prefix}ref`} value={id} onChange={(e) => setId(e.target.value)} autoComplete="off" spellCheck={false} invalid={Boolean(errors[`${prefix}ref`])} aria-describedby={describedBy(`${prefix}ref`, true, errors[`${prefix}ref`])} />
       </Field>
-      <Field id={`${prefix}track-mobile`} label={t("Registered mobile number", "पंजीकृत मोबाइल नंबर")} error={errors[`${prefix}track-mobile`]}>
-        <Input id={`${prefix}track-mobile`} className="input--short" type="tel" inputMode="numeric" autoComplete="tel-national" value={mobile} onChange={(e) => setMobile(e.target.value)} invalid={Boolean(errors[`${prefix}track-mobile`])} aria-describedby={describedBy(`${prefix}track-mobile`, false, errors[`${prefix}track-mobile`])} />
+      <Field id={`${prefix}track-mobile`} label={t("Registered mobile number", "पंजीकृत मोबाइल नंबर")} hint={t("10 digits, as given at registration", "10 अंक, जैसा पंजीकरण में दिया गया")} error={errors[`${prefix}track-mobile`]}>
+        <Input id={`${prefix}track-mobile`} className="input--short" type="tel" inputMode="numeric" autoComplete="tel-national" value={mobile} onChange={(e) => setMobile(e.target.value)} invalid={Boolean(errors[`${prefix}track-mobile`])} aria-describedby={describedBy(`${prefix}track-mobile`, true, errors[`${prefix}track-mobile`])} />
       </Field>
       <button className={compact ? "btn btn--secondary" : "btn"} type="submit">
         {t("Check status", "स्थिति देखें")}

@@ -92,7 +92,9 @@
 .quick a:hover .quick__icon { background: var(--paper); }
 
 .aside-card { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius-lg); padding: var(--s5); margin-bottom: var(--s5); box-shadow: var(--shadow-sm); }
-.aside-card--plain { background: var(--surface); border: 0; box-shadow: none; border-top: 4px solid var(--navy); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+.aside-card--plain { background: var(--surface); border: 1px solid var(--line-soft); box-shadow: none; border-radius: var(--radius-lg); }
+.aside-card--plain h3 { margin-bottom: var(--s2); }
+.aside-card--plain p { margin: 0 0 var(--s4); }
 .aside-card h3, .aside-card .h3 { font-size: var(--fs-lg); }
 .aside-card ul { padding-left: var(--s5); }
 .h3 { font-size: var(--fs-lg); }
@@ -954,3 +956,10 @@ body { overflow-x: clip; }
   .rising__word, .hero__eyebrow, .live-pulse, .hero .describe, .hero__call, .tiles > li, .carousel__img.is-active, .live-pulse__dot::after { animation: none; opacity: 1; transform: none; filter: none; }
 }
 .hero__stack .live-pulse { justify-self: center; margin: 0; }
+
+/* Track panel: both fields carry a hint, so labels, hints and inputs line up */
+.track-panel__form .field__hint { min-height: 0; }
+/* Hero photograph comes into focus on first load */
+.carousel { animation: focus-in 1.8s cubic-bezier(.2,.7,.2,1) .2s both; }
+@keyframes focus-in { from { filter: blur(18px) saturate(.8); } to { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .carousel { animation: none; } }

@@ -31,21 +31,6 @@ const quickStarts = [
   { dept: "revenue", en: "Certificate delayed", hi: "प्रमाण पत्र में देरी" },
 ];
 
-/** A small live indicator drawn from the same public figures as the dashboard. */
-function LivePulse() {
-  const { t, lang } = useI18n();
-  const { data } = useAsync((signal) => api.stats(signal), []);
-  if (!data) return <p className="live-pulse live-pulse--empty" aria-hidden="true" />;
-  return (
-    <p className="live-pulse">
-      <span className="live-pulse__dot" aria-hidden="true" />
-      <span>
-        <strong>{t("Live", "लाइव")}</strong> · {t(`${formatNumber(data.resolved, lang)} of ${formatNumber(data.total, lang)} complaints resolved in ${data.year}`, `${data.year} में ${formatNumber(data.total, lang)} में से ${formatNumber(data.resolved, lang)} शिकायतें निस्तारित`)}
-      </span>
-    </p>
-  );
-}
-
 function DescribeBox() {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
@@ -205,10 +190,10 @@ function Journey() {
   const { t } = useI18n();
   const [ref, inView] = useInView<HTMLDivElement>(0.25);
   const steps = [
-    { Icon: Mic, title: t("You describe it", "आप बताते हैं"), text: t("In your words, typed or spoken, Hindi or English. A photo helps.", "अपने शब्दों में, लिखकर या बोलकर। फ़ोटो से मदद मिलती है।"), chip: t("“No water in Khirsu for 10 days”", "“खिर्सू में 10 दिन से पानी नहीं”") },
-    { Icon: Sparkles, title: t("It is routed in seconds", "सेकंडों में सही विभाग"), text: t("AI suggests the department and urgency. You confirm it.", "AI विभाग और प्राथमिकता सुझाता है। पुष्टि आप करते हैं।"), chip: t("Drinking Water · Jal Sansthan", "पेयजल · जल संस्थान") },
-    { Icon: Building2, title: t("The officer acts, with proof", "अधिकारी कार्यवाही करते हैं, प्रमाण सहित"), text: t("15 days at the first level, then it moves up on its own. Resolving needs a photo.", "प्रथम स्तर पर 15 दिन, फिर स्वतः ऊपर। निस्तारण के लिए फ़ोटो ज़रूरी।"), chip: t("Photo proof attached", "फ़ोटो प्रमाण संलग्न") },
-    { Icon: Star, title: t("You rate it", "आप रेटिंग देते हैं"), text: t("Not fixed? Reopen within 30 days and it goes higher.", "हल नहीं हुआ? 30 दिन में पुनः खोलें, उच्च अधिकारी तक जाएगी।"), chip: "★★★★★" },
+    { Icon: Mic, title: t("Submission of grievance", "शिकायत प्रस्तुत करना"), text: t("State the problem in Hindi or English, in writing or by voice. A photograph may be attached.", "समस्या हिंदी या अंग्रेज़ी में, लिखकर या बोलकर दर्ज करें। फ़ोटो संलग्न की जा सकती है।"), chip: t("“No water supply in Khirsu for 10 days”", "“खिर्सू में 10 दिन से जलापूर्ति बाधित”") },
+    { Icon: Sparkles, title: t("Assignment to department", "संबंधित विभाग को प्रेषण"), text: t("The concerned department and priority are identified for the citizen's confirmation.", "संबंधित विभाग और प्राथमिकता चिह्नित कर नागरिक की पुष्टि हेतु प्रस्तुत की जाती है।"), chip: t("Drinking Water · Jal Sansthan", "पेयजल · जल संस्थान") },
+    { Icon: Building2, title: t("Action by the officer", "अधिकारी द्वारा कार्यवाही"), text: t("Each level has a fixed time limit (15 days at the first level), after which the grievance is escalated automatically. Disposal requires photographic proof.", "प्रत्येक स्तर की निर्धारित समय सीमा (प्रथम स्तर पर 15 दिन) के बाद शिकायत स्वतः उच्च स्तर पर जाती है। निस्तारण हेतु फ़ोटो प्रमाण अनिवार्य है।"), chip: t("Photographic proof attached", "फ़ोटो प्रमाण संलग्न") },
+    { Icon: Star, title: t("Citizen feedback", "नागरिक प्रतिपुष्टि"), text: t("If the grievance is not resolved, it may be reopened within 30 days and is referred to a higher level.", "समाधान न होने पर शिकायत 30 दिन के भीतर पुनः खोली जा सकती है और उच्च स्तर को भेजी जाती है।"), chip: "★★★★★" },
   ];
   return (
     <div ref={ref} className={`journey-stage${inView ? " is-in" : ""}`}>
@@ -253,7 +238,6 @@ function ImpactBand() {
             </div>
           ))}
         </dl>
-        <p className="impact__credit">{t("Valley of Flowers National Park, Chamoli", "फूलों की घाटी राष्ट्रीय उद्यान, चमोली")}</p>
       </div>
     </section>
   );
@@ -286,7 +270,6 @@ export function Home() {
       <section className="hero" aria-labelledby="hero-title">
         <HeroCarousel />
         <div className="container hero__stack">
-          <LivePulse />
           <h1 id="hero-title" className="hero__title" aria-label={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")}>
             <Typewriter text={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")} />
           </h1>

@@ -29,7 +29,7 @@ export function A11yProvider({ children }: { children: ReactNode }) {
   const [highContrast, setHighContrast] = useState(() => readPref("contrast") === "high");
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = readPref("theme");
-    return saved === "light" || saved === "dark" ? saved : "system";
+    return saved === "dark" ? "dark" : "light";
   });
 
   useEffect(() => {
