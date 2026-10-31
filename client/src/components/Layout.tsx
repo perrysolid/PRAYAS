@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
+import { PlayCircle, BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
-import { languages, type Locale } from "../lib/languages";
+import { languages, localLanguages, type Locale } from "../lib/languages";
 import { PageTranslator } from "./PageTranslator";
 import { Sahayak } from "./Sahayak";
 import { StateSeal } from "./Seal";
@@ -35,6 +35,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
     ...(session?.role === "officer" ? [] : [{ to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User }]),
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
+    { to: "/demo", label: t("Watch it work", "देखें कैसे काम करता है"), Icon: PlayCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
     { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
     { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
@@ -47,8 +48,16 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
         <label className="menu__lang">
           <Globe size={18} aria-hidden="true" />
           <select aria-labelledby="menu-lang" value={locale} onChange={(e) => setLocale(e.target.value as Locale)} data-no-translate>
-            {languages.map((l) => (
-              <option key={l.code} value={l.code} lang={l.code}>{l.native}{l.code !== "en" && l.code !== "hi" ? " · AI" : ""}</option>
+            {[
+              { label: t("Official", "आधिकारिक"), items: languages.filter((l) => l.code === "en" || l.code === "hi") },
+              { label: t("Languages of Uttarakhand", "उत्तराखंड की भाषाएँ"), items: localLanguages },
+              { label: t("Other Indian languages", "अन्य भारतीय भाषाएँ"), items: languages.filter((l) => l.code !== "en" && l.code !== "hi" && !localLanguages.some((x) => x.code === l.code)) },
+            ].map((g) => (
+              <optgroup key={g.label} label={g.label}>
+                {g.items.map((l) => (
+                  <option key={l.code} value={l.code} lang={l.code}>{l.native}{l.code !== "en" && l.code !== "hi" ? " · AI" : ""}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </label>

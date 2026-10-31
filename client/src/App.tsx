@@ -8,6 +8,7 @@ import { I18nProvider } from "./context/I18nContext";
 import { MetaProvider } from "./context/MetaContext";
 import { ComplaintDetail } from "./pages/ComplaintDetail";
 import { Dashboard } from "./pages/Dashboard";
+import { Demo } from "./pages/Demo";
 import { Departments } from "./pages/Departments";
 import { Home } from "./pages/Home";
 import { About, Accessibility, Contact, Cpgrams, Credits, Help, NotFound, Privacy, Sitemap, Terms } from "./pages/Info";
@@ -21,6 +22,8 @@ import { Register } from "./pages/Register";
 import { Track } from "./pages/Track";
 
 const router = createBrowserRouter([
+  // Full-screen guided demonstration, outside the site chrome.
+  { path: "/demo", element: <Demo /> },
   {
     element: <Layout />,
     children: [

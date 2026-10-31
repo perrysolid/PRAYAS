@@ -38,6 +38,8 @@ export function Intro() {
   const [show, setShow] = useState(() => {
     try {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+      // The guided demonstration has its own opening.
+      if (window.location.pathname.startsWith("/demo")) return false;
       return !sessionStorage.getItem(SEEN_KEY);
     } catch {
       return false;

@@ -1,6 +1,6 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Building2, MessageCircle, Mic, MicOff, Phone, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Building2, MessageCircle, Mic, MicOff, Phone, Play, Sparkles, Star } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { HeroCarousel } from "../components/HeroCarousel";
 import { Ladder } from "../components/Ladder";
@@ -13,11 +13,13 @@ import { WritingHelp } from "../components/WritingHelp";
 import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
 import { useAsync } from "../hooks/useAsync";
+import { useLiveStats } from "../hooks/useLiveStats";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useScrollScrub, type Rule } from "../hooks/useScrollScrub";
 import { useInView } from "../hooks/useInView";
 import { useSpeechInput } from "../hooks/useSpeechInput";
 import { api } from "../lib/api";
+import { languages, localLanguages } from "../lib/languages";
 import { formatDateTime, formatNumber } from "../lib/format";
 
 const quickStarts = [
@@ -30,6 +32,26 @@ const quickStarts = [
   { dept: "health", en: "Hospital or doctor", hi: "अस्पताल या डॉक्टर" },
   { dept: "revenue", en: "Certificate delayed", hi: "प्रमाण पत्र में देरी" },
 ];
+
+/** The guided demonstration, and one-tap switching to the languages of Uttarakhand. */
+function HeroExtras() {
+  const { t, locale, setLocale } = useI18n();
+  const options = [languages[0], languages[1], ...localLanguages];
+  return (
+    <div className="hero__extras">
+      <Link to="/demo" className="watch">
+        <span className="watch__icon" aria-hidden="true"><Play size={16} /></span>
+        {t("Watch it work", "देखें कैसे काम करता है")}
+        <span className="watch__time">{t("60 sec", "60 सेकंड")}</span>
+      </Link>
+      <div className="langs" role="group" aria-label={t("Language", "भाषा")} data-no-translate>
+        {options.map((l) => (
+          <button key={l.code} type="button" lang={l.code} aria-pressed={locale === l.code} onClick={() => setLocale(l.code)}>{l.native}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DescribeBox() {
   const { t, lang } = useI18n();
@@ -107,7 +129,7 @@ function DescribeBox() {
 function LiveMap() {
   const { t, pick, lang } = useI18n();
   const { department } = useMeta();
-  const { data } = useAsync((signal) => api.stats(signal), []);
+  const { data, pulses } = useLiveStats();
   const [selected, setSelected] = useState<string>("pauri");
   if (!data) return <div className="livemap livemap--loading" aria-hidden="true" />;
   const d = data.byDistrict.find((x) => x.id === selected) ?? data.byDistrict[0];
@@ -123,7 +145,7 @@ function LiveMap() {
   return (
     <div className="livemap">
       <div className="livemap__map card">
-        <UkMap rows={data.byDistrict} metric="pending" selected={selected} onSelect={setSelected} />
+        <UkMap rows={data.byDistrict} metric="pending" selected={selected} onSelect={setSelected} pulses={pulses} />
         <p className="livemap__stamp">
           {t("Official figures, straight from the records officers work on.", "आधिकारिक आँकड़े, सीधे उन्हीं रिकॉर्ड से जिन पर अधिकारी कार्य करते हैं।")}
           <br />
@@ -273,6 +295,7 @@ export function Home() {
           <h1 id="hero-title" className="hero__title" aria-label={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")}>
             <Typewriter text={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")} />
           </h1>
+          <HeroExtras />
           <div className="hero__panels">
             <DescribeBox />
             <aside className="hero__call" aria-labelledby="call-title">

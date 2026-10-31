@@ -58,6 +58,12 @@ Set `AI_API_KEY`, `AI_MODEL`, `AI_DRAFT_MODEL` and `AI_TTS_MODEL` in `server/.en
 
 All AI endpoints (`/api/ai/*`) are validated and rate-limited, and every feature degrades gracefully when the model is unavailable.
 
+### Guided demonstration
+
+`/demo` ("Watch it work", also on the home page) plays one complaint end to end in about a minute, on the live system: a citizen writes on WhatsApp in Hinglish, AI routes it and writes it formally, the district lights up on the state map, the complaint tops the officer's queue, the officer's rough notes become a report with "Polish with AI", geo-tagged before/after photos prove the fix, and the photo reaches the citizen, who rates it. The receipt and resolution are read aloud in Hindi. Demo routes (`/api/demo/*`) exist only in demo mode and only act on the demo numbers.
+
+Also: new complaints ripple on the public maps as they arrive, tracking shows a live countdown to automatic escalation, and resolved complaints show a draggable before/after comparison. Garhwali, Kumaoni and Jaunsari are one tap away on the home page.
+
 ### WhatsApp updates
 
 Every change to a complaint (registration, officer note, automatic escalation, resolution with photo, reminder, reopening, neighbours joining) is sent to the citizen on WhatsApp, and to citizens who joined it. Citizens can reply:

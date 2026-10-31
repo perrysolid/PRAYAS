@@ -8,7 +8,7 @@ import { useI18n } from "../context/I18nContext";
 import { api, type WhatsAppMessage } from "../lib/api";
 
 /** WhatsApp's *bold* markup, rendered safely as React nodes. */
-function rich(text: string): ReactNode {
+export function rich(text: string): ReactNode {
   return text.split(/(\*[^*\n]+\*)/g).map((part, i) => (part.startsWith("*") && part.endsWith("*") && part.length > 2 ? <strong key={i}>{part.slice(1, -1)}</strong> : <Fragment key={i}>{part}</Fragment>));
 }
 
