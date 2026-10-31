@@ -187,11 +187,6 @@ function errorText(err: unknown, hi: boolean) {
   return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 1905 पर कॉल करें।" : "That didn't work right now. Please try again, or call 1905.";
 }
 
-/** Forget a conversation in progress, so a guided demo always starts clean. */
-export function resetConversation(mobile: string) {
-  conversations.delete(mobile);
-}
-
 export async function handleInbound(mobile: string, raw: string, profileName?: string) {
   const text = raw.trim().slice(0, 1000);
   if (!text) return;

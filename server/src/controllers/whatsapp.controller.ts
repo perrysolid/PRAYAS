@@ -5,7 +5,7 @@ import { store } from "../data/store.js";
 import * as wa from "../services/whatsapp.service.js";
 
 /** Numbers anyone may use in the demo phone. Other numbers need that citizen to be signed in. */
-export const DEMO_MOBILES = ["9876543210", "9876500001"];
+const DEMO_MOBILES = ["9876543210", "9876500001"];
 
 function allowedMobile(req: Request, mobile: string) {
   const s = req.session;

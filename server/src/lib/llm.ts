@@ -43,11 +43,12 @@ export async function generateJson<T>(opts: { system: string; contents: Content[
 }
 
 /** Natural speech for `text`. Returns WAV audio. */
-export async function synthesize(text: string, style: string, voice = "Kore"): Promise<Buffer> {
+/** Speech for the given text. Only the text is sent: spoken-style instructions tend to be read out too. */
+export async function synthesize(text: string, voice = "Kore"): Promise<Buffer> {
   const parts = await post(
     config.ai.ttsModel,
     {
-      contents: [{ role: "user", parts: [{ text: `${style}\n\n${text}` }] }],
+      contents: [{ role: "user", parts: [{ text }] }],
       generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
     },
     30_000,

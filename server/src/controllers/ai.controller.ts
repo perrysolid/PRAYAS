@@ -24,5 +24,5 @@ export function translate(req: Request, res: Response, next: NextFunction) {
 }
 
 export function speak(req: Request, res: Response, next: NextFunction) {
-  ai.speak(req.body.text, req.body.lang).then((audio) => res.set({ "content-type": "audio/wav", "cache-control": "private, max-age=3600" }).send(audio), next);
+  ai.speak(req.body.text, req.body.lang, req.body.voice).then((audio) => res.set({ "content-type": "audio/wav", "cache-control": "private, max-age=3600" }).send(audio), next);
 }
