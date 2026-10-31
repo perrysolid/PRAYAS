@@ -236,7 +236,7 @@ export function Sitemap() {
   const groups = [
     { title: ["Complaints", "शिकायतें"], links: [["/register", "Register a complaint", "शिकायत दर्ज करें"], ["/track", "Check status", "स्थिति देखें"], ["/my-complaints", "My complaints", "मेरी शिकायतें"], ["/cpgrams", "Central government complaints", "केंद्र सरकार की शिकायतें"]] },
     { title: ["Information", "जानकारी"], links: [["/departments", "Departments", "विभाग"], ["/dashboard", "Live dashboard", "लाइव डैशबोर्ड"], ["/orders", "Government orders", "शासनादेश"], ["/about", "About", "परिचय"], ["/help", "Help and FAQs", "सहायता"]] },
-    { title: ["Account", "खाता"], links: [["/login", "Sign in", "साइन इन"], ["/officer", "Officer desk", "अधिकारी डेस्क"]] },
+    { title: ["Account", "खाता"], links: [["/login", "Sign in", "साइन इन"], ["/officer", "Officer console", "अधिकारी कंसोल"], ["/whatsapp", "WhatsApp updates", "व्हाट्सऐप अद्यतन"]] },
     { title: ["Policies", "नीतियाँ"], links: [["/accessibility", "Accessibility", "सुगम्यता"], ["/privacy", "Privacy", "गोपनीयता"], ["/terms", "Terms of use", "उपयोग की शर्तें"], ["/contact", "Contact", "संपर्क"], ["/proposal", "About this redesign", "इस नए डिज़ाइन के बारे में"], ["/credits", "Photo and map credits", "फ़ोटो एवं मानचित्र श्रेय"]] },
   ] as const;
   return (

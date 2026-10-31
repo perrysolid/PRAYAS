@@ -30,6 +30,18 @@ export const config = {
     draftModel: process.env.AI_DRAFT_MODEL || process.env.AI_MODEL || "",
     ttsModel: process.env.AI_TTS_MODEL ?? "",
   },
+  /** WhatsApp Business (Cloud API). Without a token, messages are simulated and shown in the demo phone. */
+  whatsapp: {
+    token: process.env.WHATSAPP_TOKEN ?? "",
+    phoneId: process.env.WHATSAPP_PHONE_ID ?? "",
+    verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? "",
+    appSecret: process.env.WHATSAPP_APP_SECRET ?? "",
+  },
+  /** Supabase as the database. Without it, data is kept in data.json. */
+  supabase: {
+    url: process.env.SUPABASE_URL ?? "",
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+  },
   /** Return the OTP in the API response. Never enable with a real SMS gateway. */
   showDemoOtp: !isProd || process.env.SHOW_DEMO_OTP === "true",
   otpTtlMs: 5 * 60 * 1000,

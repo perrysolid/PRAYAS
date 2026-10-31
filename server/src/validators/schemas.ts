@@ -32,6 +32,8 @@ export const createGrievanceSchema = z.object({
     .object({ source: z.enum(["ai", "rules"]), confidence: z.number().min(0).max(1), urgency: z.enum(["normal", "high"]) })
     .optional(),
   photo: photoSchema.optional(),
+  whatsapp: z.boolean().optional(),
+  lang: z.enum(languageCodes).optional(),
 });
 
 export const similarQuery = z.object({
@@ -65,3 +67,8 @@ export const assistantSchema = z.object({
 });
 export const translateSchema = z.object({ lang: langCode, strings: z.array(z.string().max(600)).min(1).max(200) });
 export const speakSchema = z.object({ lang: langCode, text: z.string().trim().min(1).max(700) });
+
+// ---------- WhatsApp demo ----------
+export const waThreadQuery = z.object({ mobile: mobile });
+export const waInboundSchema = z.object({ mobile: mobile, text: z.string().trim().min(1).max(1000) });
+export const officerNoteSchema = z.object({ text: z.string().trim().min(5).max(1500), lang: z.enum(["en", "hi"]) });

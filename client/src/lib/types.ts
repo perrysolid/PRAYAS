@@ -56,6 +56,8 @@ export type Grievance = {
   actions: Actions;
   photos?: { before?: Photo; after?: Photo };
   supportCount: number;
+  whatsapp?: boolean;
+  channel?: "web" | "phone" | "app" | "whatsapp";
 };
 
 export type PublicGrievance = Pick<Grievance, "id" | "citizenName" | "departmentId" | "categoryId" | "districtId" | "status" | "level" | "levelDueAt" | "submittedAt" | "resolvedAt" | "timeline" | "currentOfficer" | "supportCount"> & { hasProof: boolean };

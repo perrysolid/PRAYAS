@@ -20,7 +20,7 @@ export function createApp() {
   app.use(compression());
   app.use(cors({ origin: config.corsOrigins, credentials: true }));
   // Room for one browser-compressed photo per request.
-  app.use(express.json({ limit: "2mb" }));
+  app.use(express.json({ limit: "2mb", verify: (req, _res, buf) => ((req as express.Request & { rawBody?: Buffer }).rawBody = buf) }));
   app.use(cookieParser());
   app.use(loadSession);
 

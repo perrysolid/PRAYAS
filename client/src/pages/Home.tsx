@@ -31,6 +31,21 @@ const quickStarts = [
   { dept: "revenue", en: "Certificate delayed", hi: "प्रमाण पत्र में देरी" },
 ];
 
+/** A small live indicator drawn from the same public figures as the dashboard. */
+function LivePulse() {
+  const { t, lang } = useI18n();
+  const { data } = useAsync((signal) => api.stats(signal), []);
+  if (!data) return <p className="live-pulse live-pulse--empty" aria-hidden="true" />;
+  return (
+    <p className="live-pulse">
+      <span className="live-pulse__dot" aria-hidden="true" />
+      <span>
+        <strong>{t("Live", "लाइव")}</strong> · {t(`${formatNumber(data.resolved, lang)} of ${formatNumber(data.total, lang)} complaints resolved in ${data.year}`, `${data.year} में ${formatNumber(data.total, lang)} में से ${formatNumber(data.resolved, lang)} शिकायतें निस्तारित`)}
+      </span>
+    </p>
+  );
+}
+
 function DescribeBox() {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
@@ -271,6 +286,7 @@ export function Home() {
       <section className="hero" aria-labelledby="hero-title">
         <HeroCarousel />
         <div className="container hero__stack">
+          <LivePulse />
           <h1 id="hero-title" className="hero__title" aria-label={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")}>
             <Typewriter text={t("Tell us the problem. We'll get it to the officer who can fix it.", "समस्या बताइए। हम उसे समाधान करने वाले अधिकारी तक पहुँचाएँगे।")} />
           </h1>

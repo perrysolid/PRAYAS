@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { config } from "../config.js";
-import type { Grievance, Level } from "../types.js";
+import type { Grievance, Level, WhatsAppMessage } from "../types.js";
 import { departments, districts, levels } from "./catalog.js";
 
-type Db = { grievances: Grievance[]; sequence: number; contactMessages: { at: string; name: string; email: string; message: string }[] };
+type Db = { grievances: Grievance[]; sequence: number; contactMessages: { at: string; name: string; email: string; message: string }[]; whatsapp: WhatsAppMessage[] };
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -179,40 +179,100 @@ function seed(): Db {
     supporters: [],
   });
 
-  return { grievances, sequence, contactMessages: [] };
+  return { grievances, sequence, contactMessages: [], whatsapp: [] };
+}
+
+/** Older data files predate WhatsApp; seeded history counts as already notified. */
+function upgrade(db: Db): Db {
+  db.whatsapp ??= [];
+  for (const g of db.grievances) g.notifiedUpTo ??= g.timeline.length;
+  return db;
 }
 
 function load(): Db {
   if (existsSync(config.dataFile)) {
     try {
-      return JSON.parse(readFileSync(config.dataFile, "utf8")) as Db;
+      return upgrade(JSON.parse(readFileSync(config.dataFile, "utf8")) as Db);
     } catch {
       // Corrupt file: fall through and reseed rather than crash the portal.
     }
   }
-  const db = seed();
+  const db = upgrade(seed());
   writeFileSync(config.dataFile, JSON.stringify(db, null, 2));
   return db;
 }
 
 const db = load();
 let saveTimer: NodeJS.Timeout | undefined;
+const listeners: ((g: Grievance) => void)[] = [];
+const dirty = new Set<string>();
+let remote: RemoteStore | undefined;
+
+/** Optional remote database (Supabase). The in-memory copy stays the working set; changes are written through. */
+export type RemoteStore = {
+  load(): Promise<Db | null>;
+  saveGrievances(rows: Grievance[]): Promise<void>;
+  saveMessages(rows: WhatsAppMessage[]): Promise<void>;
+  saveState(state: { sequence: number }): Promise<void>;
+};
+const pendingMessages: WhatsAppMessage[] = [];
 
 function persist() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => writeFileSync(config.dataFile, JSON.stringify(db, null, 2)), 200);
+  saveTimer = setTimeout(() => {
+    writeFileSync(config.dataFile, JSON.stringify(db, null, 2));
+    if (!remote) return dirty.clear();
+    const rows = db.grievances.filter((g) => dirty.has(g.id));
+    const msgs = pendingMessages.splice(0);
+    dirty.clear();
+    Promise.all([remote.saveGrievances(rows), remote.saveMessages(msgs), remote.saveState({ sequence: db.sequence })]).catch((err) => console.warn("Remote save failed", err));
+  }, 200);
+}
+
+function changed(g: Grievance) {
+  dirty.add(g.id);
+  for (const fn of listeners) {
+    try {
+      fn(g);
+    } catch (err) {
+      console.warn("Listener failed", err);
+    }
+  }
 }
 
 export const store = {
+  /** Connect a remote database. Its data replaces the local copy; an empty database is filled from it. */
+  async useRemote(r: RemoteStore) {
+    remote = r;
+    const data = await r.load();
+    if (data && data.grievances.length) {
+      Object.assign(db, upgrade(data));
+    } else {
+      await r.saveGrievances(db.grievances);
+      await r.saveMessages(db.whatsapp);
+      await r.saveState({ sequence: db.sequence });
+    }
+  },
+  /** Called after a complaint changes, e.g. to send WhatsApp updates. */
+  onChange(fn: (g: Grievance) => void) {
+    listeners.push(fn);
+  },
   grievances: {
     all(): Grievance[] {
       const now = Date.now();
-      if (db.grievances.some((g) => applyEscalation(g, now))) persist();
+      const escalated = db.grievances.filter((g) => applyEscalation(g, now));
+      if (escalated.length) {
+        persist();
+        escalated.forEach(changed);
+      }
       return db.grievances;
     },
     find(id: string): Grievance | undefined {
       const g = db.grievances.find((x) => x.id === id.toUpperCase());
-      if (g && applyEscalation(g)) persist();
+      if (g && applyEscalation(g)) {
+        persist();
+        changed(g);
+      }
       return g;
     },
     nextId(): string {
@@ -222,10 +282,24 @@ export const store = {
     insert(g: Grievance) {
       db.grievances.push(g);
       persist();
+      changed(g);
       return g;
     },
-    save() {
+    save(g?: Grievance) {
       persist();
+      if (g) changed(g);
+    },
+  },
+  whatsapp: {
+    insert(m: WhatsAppMessage) {
+      db.whatsapp.push(m);
+      if (db.whatsapp.length > 5000) db.whatsapp.splice(0, db.whatsapp.length - 5000);
+      pendingMessages.push(m);
+      persist();
+      return m;
+    },
+    thread(mobile: string, limit = 60) {
+      return db.whatsapp.filter((m) => m.mobile === mobile).slice(-limit);
     },
   },
   contact: {
@@ -235,3 +309,5 @@ export const store = {
     },
   },
 };
+
+export type { Db };

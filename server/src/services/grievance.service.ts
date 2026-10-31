@@ -74,9 +74,11 @@ export type CreateGrievanceInput = {
   village?: string;
   triage?: Pick<TriageResult, "source" | "confidence" | "urgency">;
   photo?: Omit<Photo, "at">;
+  whatsapp?: boolean;
+  lang?: string;
 };
 
-export function create(session: CitizenSession, input: CreateGrievanceInput) {
+export function create(session: CitizenSession, input: CreateGrievanceInput, channel: Grievance["channel"] = "web") {
   const dept = departments.find((d) => d.id === input.departmentId);
   if (!dept) throw badRequest("VALIDATION_FAILED", "Choose a department", { departmentId: "Choose a department" });
   if (!dept.categories.some((c) => c.id === input.categoryId)) {
@@ -112,7 +114,10 @@ export function create(session: CitizenSession, input: CreateGrievanceInput) {
     ],
     remindersSent: 0,
     triage: input.triage ? { source: input.triage.source, confidence: input.triage.confidence } : { source: "citizen", confidence: 1 },
-    channel: "web",
+    channel,
+    whatsapp: input.whatsapp ?? true,
+    lang: input.lang,
+    notifiedUpTo: 0,
     photos: input.photo ? { before: { ...input.photo, at: now } } : undefined,
     supporters: [],
   };
@@ -156,7 +161,7 @@ export function remind(session: CitizenSession, id: string) {
   g.remindersSent += 1;
   g.lastReminderAt = now;
   g.timeline.push({ at: now, event: "reminder", by: "Citizen", level: g.level, note: `Reminder ${g.remindersSent} sent to ${levels[g.level].title.en}; visible to CM Office` });
-  store.grievances.save();
+  store.grievances.save(g);
   return toDetail(g);
 }
 
@@ -170,7 +175,7 @@ export function giveFeedback(session: CitizenSession, id: string, rating: number
     g.status = "closed";
     g.timeline.push({ at: now, event: "closed", by: "System", note: "Closed with citizen's satisfaction" });
   }
-  store.grievances.save();
+  store.grievances.save(g);
   return toDetail(g);
 }
 
@@ -185,7 +190,7 @@ export function reopen(session: CitizenSession, id: string, reason: string) {
   g.levelDueAt = addDays(now, levels[next].days);
   g.resolvedAt = undefined;
   g.timeline.push({ at: now, event: "reopened", by: "Citizen", level: next, note: reason });
-  store.grievances.save();
+  store.grievances.save(g);
   return toDetail(g);
 }
 
@@ -227,7 +232,7 @@ export function support(session: CitizenSession, id: string) {
     if ([1, 5, 10, 25, 50, 100].includes(g.supporters.length)) {
       g.timeline.push({ at: new Date().toISOString(), event: "supported", by: "Citizens", level: g.level, note: `${g.supporters.length} other ${g.supporters.length === 1 ? "citizen faces" : "citizens face"} the same problem` });
     }
-    store.grievances.save();
+    store.grievances.save(g);
   }
   return { id: g.id, supportCount: g.supporters.length, supported: true };
 }
@@ -268,6 +273,6 @@ export function officerAct(officer: OfficerSession, id: string, action: "note" |
     if (g.status === "registered") g.status = "in_progress";
     g.timeline.push({ at: now, event: "note", by: officer.name, level: g.level, note });
   }
-  store.grievances.save();
+  store.grievances.save(g);
   return toDetail(g);
 }

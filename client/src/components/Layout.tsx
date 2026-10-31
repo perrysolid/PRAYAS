@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
+import { BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -34,6 +34,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
     { to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User },
+    { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
     { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
     { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
@@ -77,7 +78,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
           </a>
         </li>
         {session?.role === "officer" && (
-          <li><NavLink to="/officer" onClick={onClose}><ShieldCheck size={18} aria-hidden="true" />{t("Officer desk", "अधिकारी डेस्क")}</NavLink></li>
+          <li><NavLink to="/officer" onClick={onClose}><ShieldCheck size={18} aria-hidden="true" />{t("Officer console", "अधिकारी कंसोल")}</NavLink></li>
         )}
         <li><a href="tel:1905"><Phone size={18} aria-hidden="true" />{t("Call 1905, toll free", "1905 पर कॉल करें, निःशुल्क")}</a></li>
         {session && (
