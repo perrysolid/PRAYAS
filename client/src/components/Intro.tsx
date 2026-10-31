@@ -58,6 +58,13 @@ export function Intro() {
     setShow(false);
   };
 
+  // Hold the hero photo blurred until the intro lands, so its reveal is seen rather than played behind the intro.
+  useEffect(() => {
+    if (!show) return;
+    document.documentElement.classList.add("intro-playing");
+    return () => document.documentElement.classList.remove("intro-playing");
+  }, [show]);
+
   // Load the imagery and the outline before anything is shown; give up quietly if it takes too long.
   useEffect(() => {
     if (!show) return;
@@ -146,7 +153,8 @@ export function Intro() {
           </svg>
         </div>
       )}
-      <button type="button" className="intro__skip" onClick={finish} autoFocus>{t("Skip", "छोड़ें")}</button>
+      {/* Shown once the imagery is in; Escape also skips. Not auto-focused, so no focus ring flashes on load. */}
+      {uk && <button type="button" className="intro__skip" onClick={finish}>{t("Skip", "छोड़ें")}</button>}
     </div>
   );
 }
