@@ -4,3 +4,6 @@ server/data.json
 server/.env
 .DS_Store
 *.tsbuildinfo
+
+# Exported demo videos (shared separately)
+*.mp4

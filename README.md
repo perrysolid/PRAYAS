@@ -1,145 +1,223 @@
-# CM Helpline 1905 – citizen-first redesign (hackathon prototype)
+<div align="center">
 
-A working redesign of [cmhelpline.uk.gov.in](https://cmhelpline.uk.gov.in/), Uttarakhand's grievance portal. Same service, same rules and back-office flow, rebuilt around one idea: **describe it once, then always know who has it and by when.**
+<img src="client/public/img/seal.png" alt="Emblem of the Government of Uttarakhand" width="84" />
 
-- `docs/SUBMISSION.md` – answers for the hackathon form (problem, solution, features, link)
-- `docs/AUDIT.md` – line-by-line audit of the live portal, with evidence
-- `docs/DESIGN.md` – design system, references and decisions
+# CM Helpline 1905
 
-## Run it
+**Tell us the problem. We'll get it to the officer who can fix it.**
 
-Requires Node 20+.
+A citizen-first redesign of Uttarakhand's grievance helpline, built for the<br/>
+Uttarakhand Citizen Digital Platforms hackathon.
+
+<br/>
+
+[![Live prototype](https://img.shields.io/badge/Live_prototype-cm--helpline--uttarakhand.vercel.app-0a2650?style=for-the-badge&logo=vercel&logoColor=white)](https://cm-helpline-uttarakhand.vercel.app)
+
+![React](https://img.shields.io/badge/React_18-20232a?style=flat-square&logo=react&logoColor=61dafb)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-1c1c1c?style=flat-square&logo=supabase&logoColor=3ecf8e)
+![WhatsApp](https://img.shields.io/badge/WhatsApp_updates-25d366?style=flat-square&logo=whatsapp&logoColor=white)
+![Languages](https://img.shields.io/badge/15_languages-f28c1b?style=flat-square)
+
+<br/>
+
+<img src="docs/media/preview.gif" alt="Preview of the CM Helpline 1905 prototype" width="760" />
+
+</div>
+
+<br/>
+
+## Why it matters
+
+Every year, lakhs of people in Uttarakhand turn to CM Helpline 1905 for water, roads, electricity and pensions. Today, most of them:
+
+- **have to know which department to pick** before they can even begin;
+- **lose track of their complaint** once it's filed, with no idea who has it or by when;
+- **have no proof** that anything was actually done before it's marked resolved.
+
+This prototype keeps the helpline's existing rules and back-office flow, and rebuilds the experience around one simple promise: **describe it once, then always know who has it and by when.**
+
+<br/>
+
+## How a complaint travels
+
+```mermaid
+flowchart LR
+    A["💬 WhatsApp<br/><sub>chat in your own words</sub>"] --> C
+    B["🌐 Website<br/><sub>type or speak, any language</sub>"] --> C
+    C(["🏛️ CM Helpline 1905<br/><sub>right department, right district</sub>"]) --> D["👷 Officer<br/><sub>clear deadline</sub>"]
+    D -->|"no action in time"| E["⬆️ Senior officer<br/><sub>moves up automatically</sub>"]
+    D --> F["📷 Resolved<br/><sub>with photo proof</sub>"]
+    E --> F
+    F --> G["⭐ Citizen rates it<br/><sub>or reopens it</sub>"]
+
+    style C fill:#0a2650,color:#fff,stroke:#0a2650
+    style F fill:#e3f3ea,stroke:#12824c,color:#0a2650
+    style G fill:#fff4e5,stroke:#f28c1b,color:#0a2650
+```
+
+<br/>
+
+## What's new
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h3>💬 Report it your way</h3>
+      Chat on <b>WhatsApp</b> or use the <b>website</b>. Type or simply speak, in Hindi, English or Hinglish.
+    </td>
+    <td width="33%" valign="top">
+      <h3>🧭 No guesswork</h3>
+      Describe the problem in plain words. The right department is suggested for you, and the complaint is written formally.
+    </td>
+    <td width="33%" valign="top">
+      <h3>⏱️ Always know where it is</h3>
+      See who holds your complaint and how many days they have. If time runs out, it moves up to a senior officer on its own.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h3>📷 Proof, not promises</h3>
+      Officers can't close a complaint without a photo of the fix. You see the before and after, then rate the work or reopen it.
+    </td>
+    <td valign="top">
+      <h3>🔔 Updates on WhatsApp</h3>
+      Every step, from registration and officer notes to escalation and resolution, arrives on the number you registered with.
+    </td>
+    <td valign="top">
+      <h3>🗣️ Your language</h3>
+      15 languages, including <b>Garhwali</b>, <b>Kumaoni</b> and <b>Jaunsari</b>, with text read aloud and larger text and high-contrast options.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h3>🤝 "I face this too"</h3>
+      Neighbours can join an existing complaint instead of filing duplicates, so officers see how many people are affected.
+    </td>
+    <td valign="top">
+      <h3>👷 A desk for officers</h3>
+      A clear queue with deadlines first, a district map, and quick notes turned into a proper report.
+    </td>
+    <td valign="top">
+      <h3>📜 Schemes in one place</h3>
+      Ongoing state schemes with where and how to apply, and a one-tap complaint if a benefit never arrived.
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+## A look inside
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/media/home.jpg" alt="Home page" /><p align="center"><sub><b>Home</b> · describe the problem, or call 1905</sub></p></td>
+    <td width="50%"><img src="docs/media/whatsapp.jpg" alt="WhatsApp updates" /><p align="center"><sub><b>WhatsApp</b> · register and follow every update by chat</sub></p></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/officer.jpg" alt="Officer console" /><p align="center"><sub><b>Officer console</b> · deadlines, districts and the priority queue</sub></p></td>
+    <td><img src="docs/media/map.jpg" alt="Complaints across Uttarakhand" /><p align="center"><sub><b>Open data</b> · live figures for every district</sub></p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="docs/media/schemes.jpg" alt="Government schemes" /><p align="center"><sub><b>Government schemes</b> · what's running now, and where to apply</sub></p></td>
+  </tr>
+</table>
+
+<br/>
+
+## Try it
+
+Open **[cm-helpline-uttarakhand.vercel.app](https://cm-helpline-uttarakhand.vercel.app)**, or press **Watch it work** on the home page for a 90-second guided tour with voice-over.
+
+| To see | Do this |
+|---|---|
+| **Register a complaint** | On the home page, type or speak the problem and press *Find the right department*. The one-time code appears on screen in the demo. |
+| **Track one** | Go to *Track* and enter **CMH-2026-004512** with **9876543210**. |
+| **WhatsApp** | Open `/whatsapp` and message the demo phone, for example *"No water in Khirsu for 4 days"*. |
+| **Officer desk** | Sign in as an officer with **`ee.pwd.pauri`** and **`Demo@1905`**. |
+| **Ask Sahayak** | Tap the assistant in the bottom corner and ask about any complaint or service. |
+
+> [!NOTE]
+> The live prototype runs on a free server that sleeps when idle. The first visit after a quiet spell can take up to a minute to wake up.
+
+<br/>
+
+## Run it locally
+
+You'll need **Node.js 20** or newer.
 
 ```bash
 npm install
-npm run dev          # API on :4000, web on http://localhost:5173
+npm run dev
 ```
 
-Production (one process serves API + built site):
+The site opens at **http://localhost:5173**. Everything works out of the box with built-in sample data. To turn on the AI writing help, voice, WhatsApp and the Supabase database, copy `server/.env.example` to `server/.env` and fill in the keys you have.
 
-```bash
-npm run build
-cd server && NODE_ENV=production JWT_SECRET=<long-random> npm start   # http://localhost:4000
+<details>
+<summary><b>Deploying</b></summary>
+<br/>
+
+The website is hosted on **Vercel** and the server on **Render**. Both settings files are included, and every push to `main` redeploys both.
+
+| Part | Host | Settings |
+|---|---|---|
+| Website | Vercel | `vercel.json`: forwards `/api` to the server, so sign-in stays on one address |
+| Server | Render | `render.yaml`: add the Supabase and AI keys when asked |
+
+</details>
+
+<details>
+<summary><b>What's in the folder</b></summary>
+<br/>
+
+```
+client/     The website (React)
+  pages/        Home, Register, Track, My complaints, Officer, WhatsApp, Schemes, Demo …
+  components/   Map, Sahayak assistant, photo proof, escalation clock …
+server/     The server (Node.js)
+  routes → controllers → services → data
+supabase/   Database setup
+docs/       Submission answers, audit of the current portal, design notes
 ```
 
-For a hosted demo with no SMS gateway, also set `SHOW_DEMO_OTP=true` so the OTP appears on screen.
+</details>
 
-### Demo walkthrough
+<details>
+<summary><b>How the rules work</b></summary>
+<br/>
 
-| Try | How |
+- The first officer has **15 days**, as set by government order. Each senior level then has its own deadline.
+- If a deadline passes, the complaint **moves up automatically**, and the citizen is told on WhatsApp.
+- A reminder can be sent **7 days** after filing, then every three days.
+- Closing a complaint needs an **"after" photo**. The citizen can rate it, and a low rating or a reopen within **30 days** sends it one level higher.
+- Up to **10 open complaints** per mobile number, as set by government order.
+
+</details>
+
+<br/>
+
+## Further reading
+
+| | |
 |---|---|
-| Register a complaint | Home → type or speak “पौड़ी में 6 दिन से बिजली नहीं है” → Continue. The OTP is shown on screen in dev. |
-| Track without signing in | `/track` with **CMH-2026-004512** and **9876543210** |
-| Citizen actions | Sign in with **9876543210** → My complaints → send a reminder, rate CMH-2026-004498, reopen |
-| Officer desk | Sign in → Officer tab → `je.jal.khirsu` / `Demo@1905` (also `sdo.upcl.srinagar`, `ee.pwd.pauri`) |
-| “I face this too” | Register → “No water in Khirsu ward 4…” → district Pauri, block Khirsu → join CMH-2026-004512 instead of filing a duplicate |
-| Photo proof | Register with a photo → sign in as `ee.pwd.pauri` (for a road complaint) → resolve with an “after” photo → citizen sees the before/after slider |
-| Sahayak | “Ask Sahayak” (bottom right) → type `CMH-2026-004512`, then `9876543210`; or describe a problem by voice |
-| Acknowledgement | After registering → “Download acknowledgement” (print or save as PDF, with QR) |
-| Live map | Home → “Complaints across Uttarakhand”, or `/dashboard` for the scorecard |
-| Hindi / accessibility | हिंदी, A−/A/A+ and High contrast in the top bar |
+| 📝 [**Submission**](docs/SUBMISSION.md) | Problem, solution, features and links for the hackathon form |
+| 🔍 [**Audit**](docs/AUDIT.md) | What's wrong with the current portal, with evidence |
+| 🎨 [**Design notes**](docs/DESIGN.md) | Colours, type, accessibility and the reasoning behind them |
 
-Delete `server/data.json` to reset the demo data.
+<br/>
 
-### AI triage (optional)
+## Credits
 
-By default a built-in bilingual keyword classifier (English, Hindi, Hinglish) routes complaints, with no network calls. Set `ANTHROPIC_API_KEY` in `server/.env` to use Claude (`claude-opus-5-5`, structured output, low effort) instead. It falls back to the keyword classifier on any error or refusal. The Claude path is typechecked but was not exercised against the live API while this prototype was built.
+Landscape photos are from Wikimedia Commons under their stated licences. The state emblem and the Chief Minister's portrait are works of the Government of Uttarakhand. District boundaries are from Census 2011 via DataMeet. Full credits are on the site's [Credits](https://cm-helpline-uttarakhand.vercel.app/credits) page.
 
-### Language model features (optional)
+<br/>
 
-Set `AI_API_KEY`, `AI_MODEL`, `AI_DRAFT_MODEL` and `AI_TTS_MODEL` in `server/.env` (see `server/.env.example`). The key never leaves the server. This turns on:
-
-- **Live writing help**: under "What is the problem?", once the citizen pauses typing or speaking, shows a clearer one-line version, tap-to-add answers for missing details (where, since when, how many affected) and useful words. Nothing changes until they tap, and no facts are invented.
-- **Write it formally**: rewrites the citizen's words into a formal complaint in Hindi or English, keeping every fact and adding none. The citizen picks their version or the formal one.
-- **Guarded Sahayak**: answers only about CM Helpline 1905 and Uttarakhand government services, refuses everything else (general knowledge, politics, coding), flags emergencies with 112, and never claims to register or change anything. Citizen text is always sent as data, never as instructions.
-- **14 languages**: English and Hindi are hand-written; Garhwali, Kumaoni, Nepali, Punjabi, Urdu (right to left), Bengali, Marathi, Gujarati, Tamil, Telugu, Kannada and Malayalam are translated automatically in place, with a notice and a one-click way back to English.
-- **Natural voice** for Listen and Sahayak in every language, falling back to the browser's voice.
-- **Model triage**, ahead of the keyword classifier, which stays as the fallback.
-
-All AI endpoints (`/api/ai/*`) are validated and rate-limited, and every feature degrades gracefully when the model is unavailable.
-
-### Guided demonstration
-
-`/demo` ("Watch it work", also on the home page) plays one complaint end to end in about a minute, on the live system: a citizen writes on WhatsApp in Hinglish, AI routes it and writes it formally, the district lights up on the state map, the complaint tops the officer's queue, the officer's rough notes become a report with "Polish with AI", geo-tagged before/after photos prove the fix, and the photo reaches the citizen, who rates it. The receipt and resolution are read aloud in Hindi. Demo routes (`/api/demo/*`) exist only in demo mode and only act on the demo numbers.
-
-Also: new complaints ripple on the public maps as they arrive, tracking shows a live countdown to automatic escalation, and resolved complaints show a draggable before/after comparison. Garhwali, Kumaoni and Jaunsari are one tap away on the home page.
-
-### WhatsApp updates
-
-Every change to a complaint (registration, officer note, automatic escalation, resolution with photo, reminder, reopening, neighbours joining) is sent to the citizen on WhatsApp, and to citizens who joined it. Citizens can reply:
-
-| Reply | What happens |
-|---|---|
-| Any description of a problem | AI writes it formally, routes it, asks for the district, and registers it after **YES** |
-| `STATUS` | Their complaints with level and deadline |
-| `REMIND` | Sends a reminder on the latest open complaint (rules apply) |
-| `1`–`5` | Rates the latest resolved complaint |
-| `REOPEN` | Reopens it one level higher |
-
-Without a WhatsApp Business account, messages are **simulated** and shown in the demo phone at `/whatsapp` (demo number 98765 43210, or your own number once signed in). To send real messages, set `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `WHATSAPP_VERIFY_TOKEN` and `WHATSAPP_APP_SECRET`, and point the Meta webhook at `/api/whatsapp/webhook` (signature-checked). Messages started by the business outside the 24-hour window need approved templates in production.
-
-### Officer console
-
-`/officer` (demo: `ee.pwd.pauri`, `sdo.upcl.srinagar` or `je.jal.khirsu`, password `Demo@1905`): KPIs, a district map of the officer's own complaints, a deadline radar, issues breakdown, a searchable priority queue and a workspace with "Polish with AI" for action-taken reports. Resolving needs a photo, which reaches the citizen on WhatsApp.
-
-### Supabase
-
-Apply `supabase/migrations/20261031000000_init.sql` to a Supabase project, then set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in `server/.env`. On start the API loads from Supabase (filling an empty database from the seed) and writes every change through. Row level security is on with no public policies, so only the server's service role can read data. Without these variables the API uses `server/data.json`.
-
-### Dark mode
-
-Follows the device setting by default; the "Dark mode" switch in the top bar overrides it. High contrast always wins.
-
-## Architecture
-
-```
-client/ (React 18 + Vite + TypeScript + React Router 6)
-  src/pages/        Route screens: Home, Register (wizard), Track, MyComplaints, ComplaintDetail,
-                    Receipt, Officer, Departments, Dashboard, Orders, Info pages, Credits, Proposal
-  src/components/   Layout (id bar, header, nav, footer), Form (Field, ErrorSummary), Ladder,
-                    Timeline, OtpSignIn, TrackForm, StatusTag, PageHead
-  src/context/      I18n (en/hi + <html lang>), A11y (text size, contrast), Auth, Meta
-  src/components/   HeroCarousel, Ticker, UkMap, Sahayak, PhotoInput, BeforeAfter, ReadAloud, DeptIcon
-  src/data/ukMap.ts District outlines (Census 2011, simplified) + point-in-district lookup
-  src/hooks/        useAsync, useDraft, useSpeechInput, useSpeak, useCountdown, useDocumentTitle
-  src/lib/api.ts    Typed API client
-
-server/ (Express + TypeScript + Zod)
-  routes/ → controllers/ → services/ → data/store
-  routes:      auth, grievances, officer, public (meta, stats, orders, contact)
-  services:    grievance (lifecycle, rules), triage (rules + Claude), auth (OTP, officers), stats
-  middleware:  session cookie, role guards, Zod validation with field errors, rate limits, errors
-  data:        catalog (departments, 13 districts + blocks, L1–L4, GOs), JSON-file store
-```
-
-### API
-
-| Method | Path | Who | What |
-|---|---|---|---|
-| POST | `/api/auth/otp/send`, `/otp/verify` | public | Mobile OTP sign-in (rate-limited, hashed, 5 attempts) |
-| POST | `/api/auth/officer/login` | public | Officer sign-in (demo; production uses Jan Parichay) |
-| GET | `/api/auth/me` · POST `/api/auth/logout` | any | Session |
-| POST | `/api/grievances/triage` | public | Suggest department, category, urgency, CPGRAMS flag |
-| GET | `/api/grievances/track?id&mobile` | public | Masked status view; both fields required |
-| GET/POST | `/api/grievances` | citizen | List mine / register (max 10 open, per GO) |
-| GET | `/api/grievances/:id` | owner | Full record + allowed actions |
-| GET | `/api/grievances/similar?departmentId&districtId&categoryId&block` | public | Open complaints about the same thing nearby |
-| POST | `/api/grievances/:id/support` | citizen | “I face this too” (not on your own complaint) |
-| POST | `/api/grievances/:id/reminder` · `/feedback` · `/reopen` | owner | Lifecycle actions, enforced server-side |
-| GET | `/api/officer/grievances` · POST `/:id/actions` | officer | Queue (overdue, urgent, widely shared first) / update, or resolve with a photo |
-| GET | `/api/meta` · `/api/stats` · `/api/orders` | public | Catalogue, dashboard, government orders |
-
-### Business rules
-
-- L1 has 15 days (per GO raising it from 7). L2 7, L3 7, L4 10 days are prototype defaults in `server/src/data/catalog.ts`.
-- Escalation is automatic once a level's deadline passes; it is applied on read.
-- Reminders open 7 days after registering, then every 72 hours while the complaint is open.
-- Feedback is allowed once, after resolution; a rating of 3 or more closes the complaint.
-- A complaint can be reopened within 30 days of resolution, and goes up one level.
-- At most 10 unresolved complaints per mobile number (per GO).
-- Resolving needs an “after” photo (proof of resolution). Photos are resized in the browser and stored inline in the prototype; production would use object storage.
-- Public tracking accepts the owner's mobile or a supporter's mobile.
-
-### Images and data
-
-Photos are from Wikimedia Commons (CC BY / CC BY-SA / CC0), the state emblem and the Chief Minister's portrait are government works; full credits are at `/credits`. District boundaries are Census 2011 via DataMeet / india-maps-data. Swap in official ITDA photography before any real deployment.
+<div align="center">
+<sub>
+<b>A hackathon prototype, not the official portal.</b> For a real complaint, call <b>1905</b> or visit <a href="https://cmhelpline.uk.gov.in">cmhelpline.uk.gov.in</a>.<br/>
+In an emergency, call <b>112</b>.
+</sub>
+<br/><br/>
+<img src="docs/media/banner.jpg" alt="CM Helpline 1905" width="600" />
+</div>
