@@ -965,8 +965,8 @@ body { overflow-x: clip; }
 /* Hero photograph comes into focus on first load */
 .carousel { animation: focus-in 1.8s cubic-bezier(.2,.7,.2,1) .2s both; }
 @keyframes focus-in { from { filter: blur(18px) saturate(.8); } to { filter: none; } }
-/* While the intro plays the photo waits, blurred; the reveal starts as the intro hands over. */
-html.intro-playing .carousel { animation: none; filter: blur(18px) saturate(.8); }
+/* The intro already opens the site; after it, the photo is shown sharp straight away. */
+html.intro-played .carousel { animation: none; filter: none; }
 @media (prefers-reduced-motion: reduce) { .carousel { animation: none; } }
 
 /* ---------- Map: a new complaint ripples out from its district ---------- */

@@ -58,11 +58,9 @@ export function Intro() {
     setShow(false);
   };
 
-  // Hold the hero photo blurred until the intro lands, so its reveal is seen rather than played behind the intro.
+  // After the intro the hero photo is already in focus: no second blur reveal on a first visit.
   useEffect(() => {
-    if (!show) return;
-    document.documentElement.classList.add("intro-playing");
-    return () => document.documentElement.classList.remove("intro-playing");
+    if (show) document.documentElement.classList.add("intro-played");
   }, [show]);
 
   // Load the imagery and the outline before anything is shown; give up quietly if it takes too long.
