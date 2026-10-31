@@ -5,7 +5,7 @@ import { useI18n } from "../context/I18nContext";
 import { useMeta } from "../context/MetaContext";
 import { useSpeak } from "../hooks/useSpeak";
 import { useSpeechInput } from "../hooks/useSpeechInput";
-import { SahayakAvatar } from "./SahayakAvatar";
+import { Sahayak3D, Sahayak3DFace } from "./Sahayak3D";
 import { statusLabels } from "../i18n/strings";
 import { aiStatus } from "../lib/ai";
 import { api, ApiError } from "../lib/api";
@@ -35,7 +35,7 @@ const intents: { id: string; words: RegExp }[] = [
  * It never registers anything on its own: it hands over to the same reviewed form.
  */
 export function Sahayak() {
-  const { t, pick, lang, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const { department } = useMeta();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -238,22 +238,26 @@ export function Sahayak() {
 
   return (
     <>
-      {greet && !open && (
-        <p className="sahayak-greet" aria-hidden="true">
-          {t("Namaste! Tell me your problem, I'll find the right department.", "नमस्ते! अपनी समस्या बताइए, मैं सही विभाग खोज दूँगी।")}
-        </p>
-      )}
       <button ref={launcherRef} type="button" className="sahayak-launcher" aria-expanded={open} aria-controls="sahayak" onClick={() => { setGreet(false); open ? close() : setOpen(true); }} hidden={open}>
-        <span className="sahayak-launcher__icon"><SahayakAvatar size={52} /></span>
-        <span className="sahayak-launcher__text">
-          <strong>{t("Ask Sahayak", "सहायक से पूछें")}</strong>
-          <span>{t("Speak or type, Hindi or English", "बोलें या लिखें, हिंदी या अंग्रेज़ी")}</span>
+        <span className={`sahayak-bubble${greet ? " is-greeting" : ""}`}>
+          {greet ? (
+            <>
+              <strong>{t("Namaste!", "नमस्ते!")}</strong>
+              <span>{t("Tell me your problem and I'll find the right department.", "अपनी समस्या बताइए, मैं सही विभाग खोज दूँगी।")}</span>
+            </>
+          ) : (
+            <>
+              <strong>{t("Sahayak is here to help you", "सहायक आपकी मदद के लिए यहाँ है")}</strong>
+              <span>{t("Tap to chat, speak or type", "बात करने, बोलने या लिखने के लिए दबाएँ")}</span>
+            </>
+          )}
         </span>
+        <span className="sahayak-launcher__icon"><Sahayak3D joined /></span>
       </button>
       {open && (
         <section id="sahayak" className="sahayak" role="dialog" aria-modal="false" aria-labelledby="sahayak-title" onKeyDown={(e) => e.key === "Escape" && close()}>
           <header className="sahayak__head">
-            <span className="sahayak__avatar"><SahayakAvatar size={50} speaking={voice.speaking || mouthing} /></span>
+            <span className="sahayak__avatar"><Sahayak3D speaking={voice.speaking || mouthing} greetAfter={900} /></span>
             <span className="sahayak__titles">
               <h2 id="sahayak-title">{t("Sahayak", "सहायक")}</h2>
               <span>{voice.speaking ? t("Speaking…", "बोल रही हैं…") : t("CM Helpline assistant · online", "मुख्यमंत्री हेल्पलाइन सहायक · ऑनलाइन")}</span>
@@ -270,7 +274,7 @@ export function Sahayak() {
           <div className="sahayak__log" ref={logRef} role="log" aria-live="polite" aria-relevant="additions">
             {messages.map((m) => (
               <div key={m.id} className={`bubble bubble--${m.from}`} data-no-translate={m.native || m.from === "me" ? "" : undefined}>
-                {m.from === "bot" && <span className="bubble__face"><SahayakAvatar size={26} /></span>}
+                {m.from === "bot" && <span className="bubble__face"><Sahayak3DFace size={26} /></span>}
                 <span className="visually-hidden">{m.from === "bot" ? t("Sahayak says:", "सहायक:") : t("You said:", "आपने कहा:")} </span>
                 <p>{m.text}</p>
                 {m.actions && (
@@ -305,7 +309,6 @@ export function Sahayak() {
               <Send size={18} aria-hidden="true" />
             </button>
           </form>
-          <p className="sahayak__foot">{t("Sahayak suggests; you confirm. Nothing is registered without your check.", "सहायक सुझाव देता है; पुष्टि आप करते हैं। आपकी जाँच के बिना कुछ दर्ज नहीं होता।")} {pick({ en: "Emergency: 112", hi: "आपात: 112" })}</p>
         </section>
       )}
     </>

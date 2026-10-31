@@ -163,7 +163,6 @@ export function Accessibility() {
         <h2>{t("What you can do", "आप क्या कर सकते हैं")}</h2>
         <ul>
           <li>{t("Make text up to 130% bigger with A+ at the top of every page, or zoom to 400% without losing content", "हर पृष्ठ के ऊपर A+ से अक्षर 130% तक बड़े करें, या बिना सामग्री खोए 400% तक ज़ूम करें")}</li>
-          <li>{t("Switch to high contrast", "उच्च कंट्रास्ट पर जाएँ")}</li>
           <li>{t("Use the whole site with a keyboard; a yellow focus shows where you are", "पूरी साइट कीबोर्ड से चलाएँ; पीला फ़ोकस बताता है कि आप कहाँ हैं")}</li>
           <li>{t("Use a screen reader: pages set the correct language (Hindi or English), every form error is announced, and each page has a unique title", "स्क्रीन रीडर का उपयोग करें: पृष्ठ सही भाषा (हिंदी या अंग्रेज़ी) बताते हैं, हर त्रुटि बोली जाती है और हर पृष्ठ का अलग शीर्षक है")}</li>
           <li>{t("Speak your complaint instead of typing, in Hindi or English", "टाइप करने के बजाय हिंदी या अंग्रेज़ी में बोलकर शिकायत दर्ज करें")}</li>
@@ -278,6 +277,25 @@ const credits = [
   { img: "/img/tungnath-960.webp", title: "Tungnath, India (32735073444).jpg", artist: "Aditya Siva", license: "CC0", url: "https://commons.wikimedia.org/wiki/File:Tungnath,_India_(32735073444).jpg" },
   { img: "/img/haridwar-960.webp", title: "Har Ki Pauri and Clock Tower of Haridwar.jpg", artist: "Whispyhistory", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Har_Ki_Pauri_and_Clock_Tower_of_Haridwar.jpg" },
   { img: "/img/auli-960.webp", title: "Auli mountains.jpg", artist: "Navi8apr", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Auli_mountains.jpg" },
+  { img: "/img/rishikesh-960.webp", title: "Ganga ghats, Laxman jhula, Rishikesh.jpg", artist: "आशीष_भटनागर", license: "CC BY-SA 3.0", url: "https://commons.wikimedia.org/wiki/File:Ganga_ghats,_Laxman_jhula,_Rishikesh.jpg" },
+  { img: "/img/badrinath-960.webp", title: "Badrinath Temple.jpg", artist: "Harshit SR", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Badrinath_Temple.jpg" },
+  { img: "/img/panchachuli-960.webp", title: "Panchachuli Peaks.jpg", artist: "Mukul.pandey07", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Panchachuli_Peaks.jpg" },
+  { img: "/img/chopta-hills-960.webp", title: "Layers of hills at chopta.jpg", artist: "Gaurav Kapatia", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Layers_of_hills_at_chopta.jpg" },
+  { img: "/img/hemkund-sahib-960.webp", title: "Hemkund Sahib and Lokpal Lake.jpg", artist: "Harshit SR", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Hemkund_Sahib_and_Lokpal_Lake.jpg" },
+  { img: "/img/tehri-lake-960.webp", title: "The Tehri Dam.jpg", artist: "Yogendra singh negi", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:The_Tehri_Dam.jpg" },
+  { img: "/img/gangotri-960.webp", title: "Gangotri (ganga river).jpg", artist: "Dhwani Shree", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Gangotri_(ganga_river).jpg" },
+  { img: "/img/landour-960.webp", title: "Dehradun Valley from Landour, Uttarakhand India November 2010.jpg", artist: "Paul Hamilton", license: "CC BY-SA 2.0", url: "https://commons.wikimedia.org/wiki/File:Dehradun_Valley_from_Landour,_Uttarakhand_India_November_2010.jpg" },
+  { img: "/img/bhimtal-960.webp", title: "Panoramic view of Bhimtal lake from Aquarium Island Cafe by The Lake Hill.jpg", artist: "Subhrajyoti07", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Panoramic_view_of_Bhimtal_lake_from_Aquarium_Island_Cafe_by_The_Lake_Hill.jpg" },
+  { img: "/img/chopta-peak-960.webp", title: "Mighty snow peak, Chopta, Uttarakhand.jpg", artist: "Ssteaj", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Mighty_snow_peak,_Chopta,_Uttarakhand.jpg" },
+  { img: "/img/pithoragarh-960.webp", title: "A landscape of Pithoragarh City.jpg", artist: "Mukul.pandey07", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:A_landscape_of_Pithoragarh_City.jpg" },
+  { img: "/img/chaubatia-960.webp", title: "Apple orchards in Chaubatia, Ranikhet, Uttarakhand.jpg", artist: "Harshit SR", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Apple_orchards_in_Chaubatia,_Ranikhet,_Uttarakhand.jpg" },
+  { img: "/img/pindari-960.webp", title: "Pindari Glacier, Bageshwar, in Indian Himalayas, Uttarakhand.jpg", artist: "Harshit SR", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Pindari_Glacier,_Bageshwar,_in_Indian_Himalayas,_Uttarakhand.jpg" },
+  { img: "/img/hill-villages-960.webp", title: "Hill villages in the mist (supplied by the site owner)", artist: "Source to be confirmed before launch", license: "To be confirmed", url: "" },
+  { img: "/img/cm-portrait.webp", title: "Chief Minister portrait (supplied by the site owner)", artist: "Press photograph, source to be confirmed before launch", license: "To be confirmed", url: "" },
+  { img: "/img/gov-l1-960.webp", title: "Post Office Building, Pauri.jpg", artist: "Nitin Maletha", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Post_Office_Building,_Pauri.jpg" },
+  { img: "/img/gov-l2-960.webp", title: "Ghanta Ghar (Clock tower), Dehradun.jpg", artist: "Debasish Dey", license: "Public domain", url: "https://commons.wikimedia.org/wiki/File:Ghanta_Ghar_(Clock_tower),_Dehradun.jpg" },
+  { img: "/img/gov-l3-960.webp", title: "Governor House, Nainital, Uttarakhand, India.jpg", artist: "Photographer Praveen Singh Bisht", license: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Governor_House,_Nainital,_Uttarakhand,_India.jpg" },
+  { img: "/img/gov-l4-960.webp", title: "Bhararisain-Vidhan-sabha-Uttarakhand.jpg", artist: "NatashaRostova14", license: "CC0", url: "https://commons.wikimedia.org/wiki/File:Bhararisain-Vidhan-sabha-Uttarakhand.jpg" },
   { img: "/img/cm-dhami.webp", title: "Pushkar Dhami.jpg", artist: "Ministry of Defence, Government of India", license: "GODL-India", url: "https://commons.wikimedia.org/wiki/File:Pushkar_Dhami.jpg" },
   { img: "/img/seal.png", title: "Seal of Uttarakhand.svg", artist: "Government of Uttarakhand", license: "Public domain", url: "https://commons.wikimedia.org/wiki/File:Seal_of_Uttarakhand.svg" },
 ];

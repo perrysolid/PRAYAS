@@ -58,6 +58,7 @@ export const contactSchema = z.object({
 // ---------- AI helpers ----------
 const langCode = z.enum(languageCodes);
 export const draftSchema = z.object({ text: z.string().trim().min(10, "Write at least 10 characters").max(2000), lang: langCode });
+export const assistSchema = z.object({ text: z.string().trim().min(8, "Write at least 8 characters").max(1500), lang: langCode });
 export const assistantSchema = z.object({
   lang: langCode,
   messages: z.array(z.object({ from: z.enum(["me", "bot"]), text: z.string().trim().min(1).max(1000) })).min(1).max(12),

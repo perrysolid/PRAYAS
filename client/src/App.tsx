@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Intro } from "./components/Intro";
 import { Layout } from "./components/Layout";
 import { A11yProvider } from "./context/A11yContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -55,6 +56,7 @@ export function App() {
         <AuthProvider>
           <MetaProvider>
             <RouterProvider router={router} />
+            <Intro />
           </MetaProvider>
         </AuthProvider>
       </A11yProvider>

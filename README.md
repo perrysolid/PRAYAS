@@ -49,6 +49,7 @@ By default a built-in bilingual keyword classifier (English, Hindi, Hinglish) ro
 
 Set `AI_API_KEY`, `AI_MODEL`, `AI_DRAFT_MODEL` and `AI_TTS_MODEL` in `server/.env` (see `server/.env.example`). The key never leaves the server. This turns on:
 
+- **Live writing help**: under "What is the problem?", once the citizen pauses typing or speaking, shows a clearer one-line version, tap-to-add answers for missing details (where, since when, how many affected) and useful words. Nothing changes until they tap, and no facts are invented.
 - **Write it formally**: rewrites the citizen's words into a formal complaint in Hindi or English, keeping every fact and adding none. The citizen picks their version or the formal one.
 - **Guarded Sahayak**: answers only about CM Helpline 1905 and Uttarakhand government services, refuses everything else (general knowledge, politics, coding), flags emergencies with 112, and never claims to register or change anything. Citizen text is always sent as data, never as instructions.
 - **14 languages**: English and Hindi are hand-written; Garhwali, Kumaoni, Nepali, Punjabi, Urdu (right to left), Bengali, Marathi, Gujarati, Tamil, Telugu, Kannada and Malayalam are translated automatically in place, with a notice and a one-click way back to English.

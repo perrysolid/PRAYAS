@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import "@fontsource/rozha-one/400.css";
 import "@fontsource/noto-sans/400.css";
 import "@fontsource/noto-sans/600.css";
 import "@fontsource/noto-sans/700.css";

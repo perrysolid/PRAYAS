@@ -43,7 +43,7 @@ export function Dashboard() {
                 </div>
               ))}
             </dl>
-            <p className="small muted">{t("Updated", "अद्यतन")} {formatDateTime(data.generatedAt, lang)} · {t("Prototype data", "प्रोटोटाइप डेटा")}</p>
+            <p className="small muted">{t("Updated", "अद्यतन")} {formatDateTime(data.generatedAt, lang)}</p>
 
             <section className="section" aria-labelledby="map-title">
               <div className="section__head">

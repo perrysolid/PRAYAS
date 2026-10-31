@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { BarChart3, Building2, FileText, Globe, HelpCircle, LayoutList, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, X } from "lucide-react";
+import { BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -9,78 +9,120 @@ import { PageTranslator } from "./PageTranslator";
 import { Sahayak } from "./Sahayak";
 import { StateSeal } from "./Seal";
 
-function ThemeToggle() {
+function ThemeSwitch() {
   const { t } = useI18n();
   const { theme, setTheme } = useA11y();
   const systemDark = typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches;
   const dark = theme === "dark" || (theme === "system" && systemDark);
   return (
-    <button type="button" onClick={() => setTheme(dark ? "light" : "dark")} aria-pressed={dark} className="idbar__theme">
-      {dark ? <Sun size={15} aria-hidden="true" /> : <Moon size={15} aria-hidden="true" />}
-      {t("Dark mode", "डार्क मोड")}
+    <button type="button" role="switch" aria-checked={dark} className="menu__switch" onClick={() => setTheme(dark ? "light" : "dark")}>
+      <span className="menu__switch-name">
+        {dark ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
+        {dark ? t("Dark mode", "डार्क मोड") : t("Light mode", "लाइट मोड")}
+      </span>
+      <span className="menu__track" aria-hidden="true" />
     </button>
   );
 }
 
-function IdentifierBar() {
+/** The menu behind the hamburger: language first, then appearance, then the places to go. */
+function SiteMenu({ onClose }: { onClose: () => void }) {
   const { t, locale, setLocale } = useI18n();
   const a11y = useA11y();
+  const { session, logout } = useAuth();
+  const items = [
+    { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
+    { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
+    { to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User },
+    { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
+    { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
+    { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
+    { to: "/help", label: t("Help", "सहायता"), Icon: HelpCircle },
+  ];
   return (
-    <div className="idbar">
-      <div className="container idbar__inner">
-        <span className="idbar__gov">
-          <strong>{t("Government of Uttarakhand", "उत्तराखंड सरकार")}</strong>
-          {/* On adoption this becomes "Official website". */}
-          <span className="idbar__gov-long">· {t("Prototype redesign, not the official site", "प्रोटोटाइप पुनः डिज़ाइन, आधिकारिक साइट नहीं")}</span>
-        </span>
-        <div className="idbar__tools" role="group" aria-label={t("Display settings", "प्रदर्शन सेटिंग")}>
-          <button type="button" onClick={a11y.shrink} disabled={!a11y.canShrink} aria-label={t("Decrease text size", "अक्षर छोटे करें")}>A−</button>
-          <button type="button" onClick={a11y.reset} aria-label={t("Reset text size", "सामान्य अक्षर आकार")}>A</button>
-          <button type="button" onClick={a11y.grow} disabled={!a11y.canGrow} aria-label={t("Increase text size", "अक्षर बड़े करें")}>A+</button>
-          <span className="idbar__sep" aria-hidden="true" />
-          <button type="button" onClick={a11y.toggleContrast} aria-pressed={a11y.highContrast}>
-            {t("High contrast", "उच्च कंट्रास्ट")}
-          </button>
-          <span className="idbar__sep" aria-hidden="true" />
-          <ThemeToggle />
-          <span className="idbar__sep" aria-hidden="true" />
-          <label className="idbar__lang">
-            <Globe size={16} aria-hidden="true" />
-            <span className="visually-hidden">{t("Language", "भाषा")}</span>
-            <select value={locale} onChange={(e) => setLocale(e.target.value as Locale)} data-no-translate>
-              {languages.map((l) => (
-                <option key={l.code} value={l.code} lang={l.code}>{l.native}{l.code !== "en" && l.code !== "hi" ? " · AI" : ""}</option>
-              ))}
-            </select>
-          </label>
+    <div id="site-menu" className="menu" role="dialog" aria-label={t("Menu", "मेनू")}>
+      <div className="menu__group">
+        <p className="menu__label" id="menu-lang">{t("Language", "भाषा")}</p>
+        <label className="menu__lang">
+          <Globe size={18} aria-hidden="true" />
+          <select aria-labelledby="menu-lang" value={locale} onChange={(e) => setLocale(e.target.value as Locale)} data-no-translate>
+            {languages.map((l) => (
+              <option key={l.code} value={l.code} lang={l.code}>{l.native}{l.code !== "en" && l.code !== "hi" ? " · AI" : ""}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="menu__group">
+        <p className="menu__label">{t("Display", "प्रदर्शन")}</p>
+        <ThemeSwitch />
+        <div className="menu__size" role="group" aria-label={t("Text size", "अक्षर आकार")}>
+          <span>{t("Text size", "अक्षर आकार")}</span>
+          <div>
+            <button type="button" onClick={a11y.shrink} disabled={!a11y.canShrink} aria-label={t("Decrease text size", "अक्षर छोटे करें")}>A−</button>
+            <button type="button" onClick={a11y.reset} aria-label={t("Reset text size", "सामान्य अक्षर आकार")}>A</button>
+            <button type="button" onClick={a11y.grow} disabled={!a11y.canGrow} aria-label={t("Increase text size", "अक्षर बड़े करें")}>A+</button>
+          </div>
         </div>
       </div>
+      <ul className="menu__list">
+        {items.map(({ to, label, Icon }) => (
+          <li key={to}>
+            <NavLink to={to} onClick={onClose}><Icon size={18} aria-hidden="true" />{label}</NavLink>
+          </li>
+        ))}
+        <li>
+          <a href="https://eservices.uk.gov.in/" target="_blank" rel="noopener noreferrer" onClick={onClose}>
+            <FileBadge size={18} aria-hidden="true" />{t("Apply for permits", "अनुमति हेतु आवेदन")}
+            <ExternalLink size={14} className="menu__ext" aria-hidden="true" /><span className="visually-hidden">{t("(opens Apuni Sarkar in a new tab)", "(अपनी सरकार नए टैब में खुलेगा)")}</span>
+          </a>
+        </li>
+        {session?.role === "officer" && (
+          <li><NavLink to="/officer" onClick={onClose}><ShieldCheck size={18} aria-hidden="true" />{t("Officer desk", "अधिकारी डेस्क")}</NavLink></li>
+        )}
+        <li><a href="tel:1905"><Phone size={18} aria-hidden="true" />{t("Call 1905, toll free", "1905 पर कॉल करें, निःशुल्क")}</a></li>
+        {session && (
+          <li>
+            <button type="button" onClick={() => { logout(); onClose(); }}><LogOut size={18} aria-hidden="true" />{t("Sign out", "साइन आउट")}</button>
+          </li>
+        )}
+      </ul>
     </div>
   );
 }
 
 function Header() {
   const { t, lang } = useI18n();
-  const { session, logout } = useAuth();
+  const { session } = useAuth();
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const wrap = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
 
   useEffect(() => setOpen(false), [location.pathname]);
 
-  const links = [
-    { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
-    { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
-    { to: "/my-complaints", label: t("My complaints", "मेरी शिकायतें"), Icon: LayoutList },
-    { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
-    { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
-    { to: "/orders", label: t("Government orders", "शासनादेश"), Icon: FileText },
-    { to: "/help", label: t("Help", "सहायता"), Icon: HelpCircle },
-  ];
+  // Close on outside click or Escape, handing focus back to the button like any disclosure.
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (e: PointerEvent) => { if (!wrap.current?.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); toggle.current?.focus(); } };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("pointerdown", onPointer); document.removeEventListener("keydown", onKey); };
+  }, [open]);
 
   return (
-    <header className="header-wrap">
+    <header className={`header-wrap${location.pathname === "/" ? " header-wrap--overlay" : ""}`}>
       <div className="header">
         <div className="container header__inner">
+          <div className="header__left">
+            <Link to="/about" className="cm-chip">
+              <img className="cm-chip__photo" src="/img/cm-portrait.webp" width="58" height="58" alt="" />
+              <span className="cm-chip__text">
+                <span className="cm-chip__name">{t("Shri Pushkar Singh Dhami", "श्री पुष्कर सिंह धामी")}</span>
+                <span className="cm-chip__role">{t("Hon'ble Chief Minister, Uttarakhand", "माननीय मुख्यमंत्री, उत्तराखंड")}</span>
+              </span>
+            </Link>
+          </div>
           <Link to="/" className="brand">
             <StateSeal className="brand__seal" />
             <span className="brand__text">
@@ -89,60 +131,23 @@ function Header() {
               <span className="brand__sub">{t("Government of Uttarakhand", "उत्तराखंड सरकार")}</span>
             </span>
           </Link>
-          <div className="header__actions">
-            <a className="call-pill" href="tel:1905">
-              <Phone size={18} aria-hidden="true" />
-              {t("Call 1905, toll free", "1905 पर कॉल करें, निःशुल्क")}
-            </a>
+          <div className="header__right" ref={wrap}>
             {session ? (
-              <button type="button" className="btn btn--secondary btn--small" onClick={logout}>
-                {t("Sign out", "साइन आउट")}
-              </button>
+              <Link className="signin" to="/my-complaints">{t("My profile", "मेरी प्रोफ़ाइल")}</Link>
             ) : (
-              <Link className="btn btn--secondary btn--small" to="/login">
-                {t("Sign in", "साइन इन")}
+              <Link className="signin" to="/login">
+                <User size={18} aria-hidden="true" />
+                <span className="signin__long">{t("Sign in / Sign up", "साइन इन / साइन अप")}</span>
+                <span className="signin__short">{t("Sign in", "साइन इन")}</span>
               </Link>
             )}
-            <button
-              type="button"
-              className="btn btn--secondary btn--small nav-toggle"
-              aria-expanded={open}
-              aria-controls="primary-nav"
-              onClick={() => setOpen((v) => !v)}
-            >
-              {open ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
-              {t("Menu", "मेनू")}
+            <button ref={toggle} type="button" className="burger" aria-expanded={open} aria-controls="site-menu" aria-label={t("Menu", "मेनू")} onClick={() => setOpen((v) => !v)}>
+              {open ? <X size={22} aria-hidden="true" /> : <Menu size={22} aria-hidden="true" />}
             </button>
-            <Link to="/about" className="cm-chip">
-              <img className="cm-chip__photo" src="/img/cm-dhami.webp" width="56" height="56" alt="" />
-              <span className="cm-chip__text">
-                <span className="cm-chip__name">{t("Shri Pushkar Singh Dhami", "श्री पुष्कर सिंह धामी")}</span>
-                <span className="cm-chip__role">{t("Hon'ble Chief Minister, Uttarakhand", "माननीय मुख्यमंत्री, उत्तराखंड")}</span>
-              </span>
-            </Link>
+            {open && <SiteMenu onClose={() => setOpen(false)} />}
           </div>
         </div>
       </div>
-      <nav id="primary-nav" className="nav" data-open={open} aria-label={t("Main", "मुख्य")}>
-        <ul className="container nav__list">
-          {links.map(({ to, label, Icon }) => (
-            <li key={to}>
-              <NavLink to={to}>
-                <Icon size={17} aria-hidden="true" />
-                {label}
-              </NavLink>
-            </li>
-          ))}
-          {session?.role === "officer" && (
-            <li>
-              <NavLink to="/officer">
-                <ShieldCheck size={17} aria-hidden="true" />
-                {t("Officer desk", "अधिकारी डेस्क")}
-              </NavLink>
-            </li>
-          )}
-        </ul>
-      </nav>
     </header>
   );
 }
@@ -209,12 +214,7 @@ function Footer() {
           </div>
         </div>
         <div className="footer__base">
-          <span>
-            {t(
-              "CM Helpline 1905 is run by ITDA, Government of Uttarakhand. This site is a hackathon redesign prototype, not the official service.",
-              "मुख्यमंत्री हेल्पलाइन 1905 का संचालन आईटीडीए, उत्तराखंड सरकार करती है। यह साइट हैकाथॉन हेतु बना पुनः डिज़ाइन प्रोटोटाइप है, आधिकारिक सेवा नहीं।",
-            )}
-          </span>
+          <span>{t("CM Helpline 1905 is run by ITDA, Government of Uttarakhand.", "मुख्यमंत्री हेल्पलाइन 1905 का संचालन आईटीडीए, उत्तराखंड सरकार करती है।")}</span>
           <a href="https://cmhelpline.uk.gov.in/" rel="noopener">{t("Go to the official portal", "आधिकारिक पोर्टल पर जाएँ")}</a>
         </div>
       </div>
@@ -248,7 +248,6 @@ export function Layout() {
         {t("Skip to main content", "मुख्य सामग्री पर जाएँ")}
       </a>
       <div className="tricolour" aria-hidden="true"><span /><span /><span /></div>
-      <IdentifierBar />
       <Header />
       <PageTranslator />
       <main id="main" ref={mainRef} tabIndex={-1}>

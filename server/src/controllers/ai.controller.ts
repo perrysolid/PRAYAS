@@ -11,6 +11,10 @@ export function draft(req: Request, res: Response, next: NextFunction) {
   ai.draft(req.body.text, req.body.lang).then((out) => res.json(out), next);
 }
 
+export function assist(req: Request, res: Response, next: NextFunction) {
+  ai.assist(req.body.text, req.body.lang).then((out) => res.json(out), next);
+}
+
 export function assistant(req: Request, res: Response, next: NextFunction) {
   ai.assistant(req.body.messages, req.body.lang).then((out) => res.json(out), next);
 }

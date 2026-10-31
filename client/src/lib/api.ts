@@ -39,9 +39,12 @@ const post = <T>(path: string, json?: unknown) => request<T>(path, { method: "PO
 export type AiStatus = { enabled: boolean; speech: boolean };
 export type AssistantReply = { kind: "answer" | "complaint" | "track" | "emergency" | "refuse"; reply: string; route?: string };
 
+export type Assist = { isGrievance: boolean; clearer: string; questions: { ask: string; options: string[] }[]; phrases: string[] };
+
 export const api = {
   aiStatus: (signal?: AbortSignal) => request<AiStatus>("/ai/status", { signal }),
   draft: (text: string, lang: string) => post<{ isGrievance: boolean; subject: string; description: string }>("/ai/draft", { text, lang }),
+  assist: (text: string, lang: string, signal?: AbortSignal) => request<Assist>("/ai/assist", { method: "POST", json: { text, lang }, signal }),
   assistant: (messages: { from: "me" | "bot"; text: string }[], lang: string) => post<AssistantReply>("/ai/assistant", { messages, lang }),
   translate: (strings: string[], lang: string) => post<{ items: string[] }>("/ai/translate", { strings, lang }),
   /** Natural speech as WAV audio. */
