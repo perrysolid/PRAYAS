@@ -4,7 +4,7 @@ import { ArrowRight, Building2, MessageCircle, Mic, MicOff, Phone, Play, Sparkle
 import { DeptIcon } from "../components/DeptIcon";
 import { HeroCarousel } from "../components/HeroCarousel";
 import { Ladder } from "../components/Ladder";
-import { TrackForm } from "../components/TrackForm";
+import { Schemes } from "../components/Schemes";
 import { UkMap } from "../components/UkMap";
 import { CountUp } from "../components/CountUp";
 import { Reveal } from "../components/Reveal";
@@ -276,9 +276,6 @@ const scrubRules: Rule[] = [
   { selector: ".livemap__side", from: () => ({ x: 150, y: 30 }) },
   { selector: ".kpi", from: (i) => ({ y: i % 2 ? 50 : -50 }) },
   { selector: ".ladder--path .ladder__step", from: (i) => ({ y: 44 + i * 10 }) },
-  { selector: ".track-panel", from: () => ({ y: 60, scale: 0.9 }) },
-  { selector: ".track-panel__copy", from: () => ({ x: -70 }) },
-  { selector: ".track-panel__form", from: () => ({ x: 70 }) },
 ];
 
 export function Home() {
@@ -377,18 +374,10 @@ export function Home() {
           <Reveal className="path__steps" delay={120}>
             <Ladder variant="path" />
           </Reveal>
-          <Reveal className="track-panel" delay={200}>
-            <div className="track-panel__copy">
-              <h3>{t("Already registered?", "पहले से दर्ज है?")}</h3>
-              <p>{t("Type the number from your SMS and see exactly where your complaint is. No sign-in needed.", "SMS में मिला नंबर डालिए और देखिए आपकी शिकायत अभी कहाँ है। साइन इन ज़रूरी नहीं।")}</p>
-              <Link to="/my-complaints">{t("Or sign in to see all your complaints", "या सभी शिकायतें देखने के लिए साइन इन करें")} <ArrowRight size={16} aria-hidden="true" /></Link>
-            </div>
-            <div className="track-panel__form">
-              <TrackForm compact />
-            </div>
-          </Reveal>
         </div>
       </section>
+
+      <Schemes />
 
       <section className="section section--slim" aria-labelledby="central-title">
         <div className="container">
