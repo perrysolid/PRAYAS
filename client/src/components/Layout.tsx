@@ -33,7 +33,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
   const items = [
     { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
-    { to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User },
+    ...(session?.role === "officer" ? [] : [{ to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User }]),
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
     { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
@@ -133,7 +133,12 @@ function Header() {
             </span>
           </Link>
           <div className="header__right" ref={wrap}>
-            {session ? (
+            {session?.role === "officer" ? (
+              <Link className="signin" to="/officer">
+                <ShieldCheck size={18} aria-hidden="true" />
+                {t("Officer console", "अधिकारी कंसोल")}
+              </Link>
+            ) : session ? (
               <Link className="signin" to="/my-complaints">{t("My profile", "मेरी प्रोफ़ाइल")}</Link>
             ) : (
               <Link className="signin" to="/login">
