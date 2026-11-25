@@ -25,7 +25,7 @@ type Socket = ReturnType<Baileys["default"]>;
 
 export type LinkStatus = { state: "off" | "starting" | "waiting" | "pairing" | "open" | "logged_out"; number?: string; since: string; error?: string };
 
-const link: { sock?: Socket; status: LinkStatus; stopped?: boolean } = { status: { state: "off", since: new Date().toISOString() } };
+const link: { sock?: Socket; status: LinkStatus; stopped?: boolean; qr?: { value: string; at: number }; code?: { value: string; at: number } } = { status: { state: "off", since: new Date().toISOString() } };
 const set = (s: Partial<LinkStatus> & Pick<LinkStatus, "state">) => (link.status = { ...link.status, error: undefined, ...s, since: new Date().toISOString() });
 
 export const waLinkStatus = () => ({ ...link.status, number: link.status.number ? `${link.status.number.slice(0, 4)}••••${link.status.number.slice(-2)}` : undefined });
@@ -34,6 +34,20 @@ const pairNumber = () => {
   const d = config.waLink.number;
   return d.length === 10 ? `91${d}` : d || undefined;
 };
+
+/** For the linking page: the live QR, or a pairing code requested on demand. */
+export const waLinkQr = () => (link.status.state === "open" ? undefined : link.qr);
+export async function waLinkCode(): Promise<string> {
+  const number = pairNumber();
+  if (!number) throw new Error("Set WA_LINK_NUMBER (with 91) to link with a code");
+  if (!link.sock || link.status.state === "open") throw new Error("Not waiting to be linked");
+  // One code at a time: each new request cancels the previous one, so reuse a fresh code.
+  if (link.code && Date.now() - link.code.at < 50_000) return link.code.value;
+  const value = (await link.sock.requestPairingCode(number)).match(/.{1,4}/g)!.join("-");
+  link.code = { value, at: Date.now() };
+  set({ state: "pairing", number });
+  return value;
+}
 
 /* ------------------------------------------------------------------ */
 /* Login storage: one row per key, the layout of Baileys' file store   */
@@ -145,28 +159,17 @@ async function connect() {
   link.sock = sock;
   sock.ev.on("creds.update", () => void saveCreds());
 
-  let asked = false;
   sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
-    if (qr && !state.creds.registered) {
-      const number = pairNumber();
-      if (number && !asked) {
-        asked = true;
-        try {
-          const code = (await sock.requestPairingCode(number)).match(/.{1,4}/g)!.join("-");
-          set({ state: "pairing", number });
-          // Useful only to whoever holds the phone; it expires after a few minutes and a new one follows.
-          console.log(`[wa-link] PAIRING CODE ${code}  →  on the phone: WhatsApp → Settings → Linked devices → Link a device → Link with phone number instead`);
-        } catch (err) {
-          set({ state: "waiting", error: `Could not get a pairing code: ${(err as Error).message}` });
-          console.warn(`[wa-link] ${link.status.error}`);
-        }
-      } else if (!number && !asked) {
-        asked = true;
+    if (qr && link.sock === sock) {
+      // WhatsApp rotates the QR every ~20 s; the linking page always shows the latest one.
+      link.qr = { value: qr, at: Date.now() };
+      if (link.status.state !== "pairing") {
         set({ state: "waiting" });
-        console.warn("[wa-link] not linked: set WA_LINK_NUMBER to the WhatsApp number (with 91) to get a pairing code in this log");
+        console.log(`[wa-link] not linked yet: open ${config.publicUrl || "<api>"}/api/whatsapp/link?key=<PHONE_STREAM_SECRET> and scan the QR (WhatsApp → Linked devices → Link a device)`);
       }
     }
     if (connection === "open") {
+      link.qr = undefined;
       set({ state: "open", number: sock.user?.id?.split(":")[0] });
       console.log(`[wa-link] linked as ${link.status.number?.slice(0, 4)}••••, answering every message`);
     }
@@ -177,7 +180,7 @@ async function connect() {
       if (code === b.DisconnectReason.loggedOut) {
         await kv.clear().catch(() => {});
         set({ state: "logged_out", number: undefined });
-        console.warn("[wa-link] logged out from the phone; a new pairing code follows");
+        console.warn("[wa-link] logged out from the phone; open the linking page to link again");
         setTimeout(() => void startWaLink(), 2_000);
         return;
       }
@@ -188,9 +191,9 @@ async function connect() {
         set({ state: "off" });
         return;
       }
-      // An unanswered pairing code expires with the connection; the next one starts from a clean login.
-      if (!state.creds.registered) await kv.clear().catch(() => {});
-      else console.warn(`[wa-link] connection closed (${code ?? "network"}), reconnecting`);
+      // Keep the login: right after linking WhatsApp asks for a restart (515), and an unfinished
+      // link is resumed with the same keys so a code already shown stays valid.
+      if (state.creds.me) console.warn(`[wa-link] connection closed (${code ?? "network"}), reconnecting`);
       setTimeout(() => void startWaLink(), code === b.DisconnectReason.restartRequired ? 0 : 3_000);
     }
   });

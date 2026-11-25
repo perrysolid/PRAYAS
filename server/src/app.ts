@@ -12,6 +12,7 @@ import { apiLimiter } from "./middleware/rateLimit.js";
 import { api } from "./routes/index.js";
 import { whatsappStatus } from "./services/whatsapp.service.js";
 import { waLinkStatus } from "./services/walink.service.js";
+import { waLinkRoutes } from "./routes/walink.routes.js";
 import { voiceReady } from "./voice/phone.js";
 
 export function createApp() {
@@ -29,6 +30,7 @@ export function createApp() {
   app.use(loadSession);
 
   app.get("/api/health", (_req, res) => res.json({ ok: true, whatsapp: whatsappStatus().mode, waLink: waLinkStatus().state, phone: voiceReady() }));
+  app.use("/api/whatsapp", waLinkRoutes);
   app.use("/api", apiLimiter, api);
   app.use("/api", notFoundHandler);
 
