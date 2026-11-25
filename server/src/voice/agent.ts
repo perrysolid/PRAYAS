@@ -11,6 +11,7 @@ import { garhwaliEnabled, transcribeGarhwali } from "./garhwali.js";
 import { duplicateMessage, duplicateSpoken, findDuplicate, joinDuplicate } from "../services/duplicate.service.js";
 import { send } from "../services/whatsapp.service.js";
 import { LINES, SYSTEM, confirmLine, emptySlots, mergeSlots, registeredLine, spokenNumber, splitReply, statusLine, takeSentences, turnMessage, type Action, type Slots } from "./prompt.js";
+import { note } from "./log.js";
 import { Listener, Speaker } from "./sarvam.js";
 
 /*
@@ -101,7 +102,7 @@ export class CallAgent {
     });
     this.listener.on("final", (text) => void this.onFinal(text));
     this.listener.on("error", (msg) => {
-      console.warn(`[voice] ${msg}`);
+      note(`speech-to-text error: ${msg}`);
       this.t.event?.({ type: "error", message: "Speech recognition is unavailable" });
     });
   }
@@ -198,6 +199,7 @@ export class CallAgent {
     if (this.ended || !text) return;
     this.silentPrompts = 0;
     this.log("citizen", text);
+    note(`heard: ${text.slice(0, 80)}`);
     this.t.event?.({ type: "caption", who: "citizen", text, final: true });
     // Several short finals in a row ("हाँ", "पौड़ी में") are answered together.
     this.heard = this.heard ? `${this.heard} ${text}` : text;
@@ -218,7 +220,7 @@ export class CallAgent {
     const abort = new AbortController();
     this.abort = abort;
     const user: Anthropic.MessageParam = { role: "user", content: turnMessage(heard, this.slots, this.lastAction, garhwaliText) };
-    const out = await this.speaker.begin(this.lang, (pcm) => this.audioOut(id, pcm)).catch(() => null);
+    const out = await this.speaker.begin(this.lang, (pcm) => this.audioOut(id, pcm)).catch((e: Error) => (note(`text-to-speech failed: ${e.message}`), null));
     if (!out) return this.say(LINES.sorry[this.lang], { end: true });
 
     let raw = "";
@@ -251,7 +253,7 @@ export class CallAgent {
       }
     } catch (err) {
       if (abort.signal.aborted) return;
-      console.warn(`[voice] model failed${err instanceof Anthropic.APIError ? ` (${err.status})` : ""}`, err instanceof Error ? err.message : "");
+      note(`model failed${err instanceof Anthropic.APIError ? ` (${err.status})` : ""}: ${err instanceof Error ? err.message.slice(0, 120) : ""}`);
       out.say(LINES.sorry[this.lang]);
       out.end();
       this.endAfterPlayback = true;
@@ -404,7 +406,7 @@ export class CallAgent {
         parts.push(pcm);
         this.audioOut(id, pcm);
       })
-      .catch(() => null);
+      .catch((e: Error) => (note(`text-to-speech failed: ${e.message}`), null));
     if (!out) {
       if (opts.end) return this.finish();
       return;

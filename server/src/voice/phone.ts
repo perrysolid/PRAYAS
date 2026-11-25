@@ -5,6 +5,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import { config } from "../config.js";
 import { claudeEnabled } from "../lib/claude.js";
 import { CallAgent, callsInProgress, type Transport } from "./agent.js";
+import { note } from "./log.js";
 import { sarvamEnabled } from "./sarvam.js";
 
 /*
@@ -19,14 +20,7 @@ import { sarvamEnabled } from "./sarvam.js";
 
 export const voiceReady = () => sarvamEnabled() && claudeEnabled();
 
-/** The last few phone-line events, for /api/phone/debug: shows whether Exotel reached us and what it sent. */
-const recent: { at: string; what: string }[] = [];
-export const phoneLog = () => recent;
-export function note(what: string) {
-  recent.push({ at: new Date().toISOString(), what });
-  if (recent.length > 40) recent.shift();
-  console.log(`[phone] ${what}`);
-}
+export { note, phoneLog } from "./log.js";
 
 
 const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -93,6 +87,7 @@ function exotel(ws: WebSocket) {
     ws.close(1008);
   }, 10_000);
   let media = 0;
+  let sent = 0;
 
   ws.on("message", (raw, isBinary) => {
     if (isBinary) return;
@@ -119,11 +114,14 @@ function exotel(ws: WebSocket) {
       const t: Transport = {
         sampleRate: rate,
         sendAudio: (pcm) => {
+          if (!sent) note(`agent: first audio to caller (${pcm.length} bytes)`);
+          sent += pcm.length;
           outBuf = Buffer.concat([outBuf, pcm]);
           flush(false);
         },
         mark: (name) => {
           flush(true);
+          note(`agent: reply ${name} sent, ${(sent / (rate * 2)).toFixed(1)} s of speech so far`);
           send("mark", { mark: { name } });
         },
         clear: () => {
@@ -136,12 +134,15 @@ function exotel(ws: WebSocket) {
       void agent.start();
     } else if (m.event === "media" && agent && m.media?.payload) agent.feed(Buffer.from(m.media.payload, "base64"));
     else if (m.event === "dtmf" && m.dtmf?.digit) agent?.dtmf(String(m.dtmf.digit));
-    else if (m.event === "mark" && m.mark?.name) agent?.played(m.mark.name);
+    else if (m.event === "mark" && m.mark?.name) {
+      note(`Exotel: played ${m.mark.name}`);
+      agent?.played(m.mark.name);
+    }
     else if (m.event === "stop") ws.close(1000);
   });
   ws.on("close", (code) => {
     clearTimeout(idle);
-    note(`Exotel stream closed (${code}) after ${media} audio frames`);
+    note(`Exotel stream closed (${code}) after ${media} caller frames; agent sent ${(sent / 16000).toFixed(1)} s of speech`);
     agent?.stop();
   });
   ws.on("error", () => {});
