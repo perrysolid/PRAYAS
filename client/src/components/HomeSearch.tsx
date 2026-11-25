@@ -22,7 +22,6 @@ export function HomeSearch() {
           <input id="home-q" type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder={t("Try “no water supply” or “pension”", "जैसे “पानी की आपूर्ति नहीं” या “पेंशन”")} autoComplete="off" enterKeyHint="search" />
           <button type="submit" className="btn btn--accent btn--small">{t("Search", "खोजें")}</button>
         </form>
-        <p className="home-search__hint">{t("See how similar complaints were handled and how long they took.", "देखें कि ऐसी शिकायतों पर क्या कार्यवाही हुई और कितना समय लगा।")}</p>
       </div>
     </section>
   );

@@ -69,9 +69,6 @@ function DescribeBox() {
       <label htmlFor="describe" className="describe__label">
         {t("What is the problem?", "समस्या क्या है?")}
       </label>
-      <span className="field__hint" id="describe-hint">
-        {t("Write it in your own words, in Hindi or English. Or press Speak.", "अपने शब्दों में लिखें, हिंदी या अंग्रेज़ी में। या ‘बोलें’ दबाएँ।")}
-      </span>
       {error && (
         <span className="field__error" id="describe-error">
           {error}
@@ -88,7 +85,7 @@ function DescribeBox() {
             if (error) setError("");
           }}
           placeholder={t("For example: No water supply in Ward 4, Khirsu for 10 days", "उदाहरण: खिर्सू के वार्ड 4 में 10 दिन से पानी नहीं आ रहा")}
-          aria-describedby={error ? "describe-hint describe-error" : "describe-hint"}
+          aria-describedby={error ? "describe-error" : undefined}
           aria-invalid={Boolean(error) || undefined}
         />
         {speech.supported && (
@@ -207,22 +204,21 @@ function Journey() {
   const { t } = useI18n();
   const [ref, inView] = useInView<HTMLDivElement>(0.25);
   const steps = [
-    { Icon: Mic, title: t("Submission of grievance", "शिकायत प्रस्तुत करना"), text: t("State the problem in Hindi or English, in writing or by voice. A photograph may be attached.", "समस्या हिंदी या अंग्रेज़ी में, लिखकर या बोलकर दर्ज करें। फ़ोटो संलग्न की जा सकती है।"), chip: t("“No water supply in Khirsu for 10 days”", "“खिर्सू में 10 दिन से जलापूर्ति बाधित”") },
-    { Icon: Sparkles, title: t("Assignment to department", "संबंधित विभाग को प्रेषण"), text: t("The concerned department and priority are identified for the citizen's confirmation.", "संबंधित विभाग और प्राथमिकता चिह्नित कर नागरिक की पुष्टि हेतु प्रस्तुत की जाती है।"), chip: t("Drinking Water · Jal Sansthan", "पेयजल · जल संस्थान") },
-    { Icon: Building2, title: t("Action by the officer", "अधिकारी द्वारा कार्यवाही"), text: t("Each level has a fixed time limit (15 days at the first level), after which the grievance is escalated automatically. Disposal requires photographic proof.", "प्रत्येक स्तर की निर्धारित समय सीमा (प्रथम स्तर पर 15 दिन) के बाद शिकायत स्वतः उच्च स्तर पर जाती है। निस्तारण हेतु फ़ोटो प्रमाण अनिवार्य है।"), chip: t("Photographic proof attached", "फ़ोटो प्रमाण संलग्न") },
-    { Icon: Star, title: t("Citizen feedback", "नागरिक प्रतिपुष्टि"), text: t("If the grievance is not resolved, it may be reopened within 30 days and is referred to a higher level.", "समाधान न होने पर शिकायत 30 दिन के भीतर पुनः खोली जा सकती है और उच्च स्तर को भेजी जाती है।"), chip: "★★★★★" },
+    { Icon: Mic, title: t("Tell us", "बताइए"), text: t("Type or speak the problem, in Hindi or English.", "समस्या हिंदी या अंग्रेज़ी में लिखें या बोलें।") },
+    { Icon: Sparkles, title: t("Right department", "सही विभाग"), text: t("The right department is found for you to confirm.", "सही विभाग खोजकर आपकी पुष्टि हेतु दिखाया जाता है।") },
+    { Icon: Building2, title: t("Officer acts", "अधिकारी कार्यवाही"), text: t("A fixed time limit at every level. A photo is needed to close it.", "हर स्तर पर निश्चित समय सीमा। निस्तारण हेतु फ़ोटो आवश्यक।") },
+    { Icon: Star, title: t("Your verdict", "आपका निर्णय"), text: t("Not fixed? Reopen it within 30 days.", "समाधान नहीं हुआ? 30 दिन में पुनः खोलें।") },
   ];
   return (
     <div ref={ref} className={`journey-stage${inView ? " is-in" : ""}`}>
       <Roadmap />
       <Figure />
       <ol className="journey">
-        {steps.map(({ Icon, title, text, chip }, i) => (
+        {steps.map(({ Icon, title, text }, i) => (
           <li key={title} className="journey__step" style={{ "--i": i } as CSSProperties}>
             <span className="journey__icon"><Icon size={26} aria-hidden="true" /></span>
             <h3>{title}</h3>
             <p>{text}</p>
-            <span className="journey__chip" aria-hidden="true">{chip}</span>
           </li>
         ))}
       </ol>
@@ -312,7 +308,6 @@ export function Home() {
             <div className="split__head">
               <span className="kicker kicker--plain">{t("Start here", "यहाँ से शुरू करें")}</span>
               <h2 id="quick-title" className="split__title">{t("Common problems", "आम समस्याएँ")}</h2>
-              <p>{t("Choose one and we'll pre-select the department.", "एक चुनें, विभाग पहले से चुना रहेगा।")}</p>
             </div>
             <ul className="pills" role="list" aria-label={t("Common problems", "आम समस्याएँ")}>
               {quickStarts.map((q, i) => (
@@ -325,12 +320,9 @@ export function Home() {
               ))}
             </ul>
             <Link className="offices-bar" to="/offices">
-              <span className="offices-bar__icon" aria-hidden="true"><MapPin size={22} /></span>
-              <span className="offices-bar__text">
-                <strong>{t("Find an office near you", "अपने निकट का कार्यालय खोजें")}</strong>
-                <small>{t("Addresses, phone numbers and emails of departments and key government offices", "विभागों और प्रमुख सरकारी कार्यालयों के पते, फ़ोन नंबर और ईमेल")}</small>
-              </span>
-              <ArrowRight size={18} aria-hidden="true" />
+              <span className="offices-bar__icon" aria-hidden="true"><MapPin size={40} /></span>
+              <strong className="offices-bar__title">{t("Find an office near you", "अपने निकट का कार्यालय खोजें")}</strong>
+              <ArrowRight className="offices-bar__go" size={28} aria-hidden="true" />
             </Link>
             <Link className="split__more" to="/departments">{t("All 16 departments", "सभी 16 विभाग")} <ArrowRight size={16} aria-hidden="true" /></Link>
           </Reveal>
@@ -338,7 +330,6 @@ export function Home() {
             <div className="split__head">
               <span className="kicker kicker--plain">{t("How it works", "यह कैसे काम करता है")}</span>
               <h2 id="journey-title" className="split__title">{t("From your words to a fixed solution", "आपके शब्दों से समाधान तक")}</h2>
-              <p>{t("Four clear steps, and you can see every one of them.", "चार साफ़ कदम, और हर कदम आपको दिखता है।")}</p>
             </div>
             <Journey />
           </Reveal>
@@ -349,7 +340,6 @@ export function Home() {
         <div className="container">
           <Reveal className="section__head section__head--center">
             <div>
-              <span className="kicker kicker--plain">{t("Select a district on the map to see how its complaints are doing.", "मानचित्र पर कोई जनपद चुनें और देखें वहाँ की शिकायतों की स्थिति क्या है।")}</span>
               <h2 id="map-title" className="split__title">{t("Complaints across Uttarakhand", "पूरे उत्तराखंड में शिकायतें")}</h2>
             </div>
           </Reveal>
@@ -366,12 +356,6 @@ export function Home() {
           <Reveal className="path__head">
             <span className="path__eyebrow">{t("After you register", "दर्ज करने के बाद")}</span>
             <h2 id="ladder-title" className="path__title"><span>{t("Your complaint never gets stuck on one desk", "आपकी शिकायत एक मेज़ पर अटकती नहीं")}</span></h2>
-            <p>
-              {t(
-                "It goes straight to the officer responsible. If nothing happens in time, it moves up on its own. You never have to chase anyone.",
-                "यह सीधे ज़िम्मेदार अधिकारी के पास जाती है। समय पर कुछ न हुआ तो अपने आप ऊपर चली जाती है। आपको किसी के पीछे भागना नहीं पड़ता।",
-              )}
-            </p>
           </Reveal>
           <Reveal className="path__steps" delay={120}>
             <Ladder variant="path" />

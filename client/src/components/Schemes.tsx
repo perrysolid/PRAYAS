@@ -160,7 +160,6 @@ export function Schemes() {
         <div className="schemes__head">
           <div>
             <h2 id="schemes-title">{t("Government schemes", "सरकारी योजनाएँ")}</h2>
-            <p>{t("Schemes of the Government of Uttarakhand that are running now. Open one to see where and how to apply.", "उत्तराखंड सरकार की अभी चल रही योजनाएँ। कहाँ और कैसे आवेदन करें, यह देखने के लिए योजना खोलें।")}</p>
           </div>
           <div className="schemes__nav">
             <button type="button" onClick={() => scroll(-1)} aria-label={t("Previous schemes", "पिछली योजनाएँ")}><ChevronLeft size={20} /></button>
@@ -195,7 +194,6 @@ export function Schemes() {
           <span className="feedback-strip__icon" aria-hidden="true"><MessageSquareHeart size={22} /></span>
           <div className="feedback-strip__text">
             <strong>{t("How did we do?", "हमारी सेवा कैसी लगी?")}</strong>
-            <span>{t("Two minutes of your time helps us improve this portal for everyone.", "आपके दो मिनट इस पोर्टल को सबके लिए बेहतर बनाने में मदद करते हैं।")}</span>
           </div>
           <Link className="btn btn--secondary btn--small" to="/feedback" target="_blank" rel="noopener">
             {t("Share feedback", "प्रतिपुष्टि दें")} <ExternalLink size={15} aria-hidden="true" /><span className="visually-hidden"> {t("(opens in a new tab)", "(नए टैब में खुलता है)")}</span>

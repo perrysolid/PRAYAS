@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { AlarmClock, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, Lock, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X } from "lucide-react";
+import { AlarmClock, ArrowLeft, ArrowRight, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, Lock, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { LocationCard } from "../components/LocationCard";
 import { ErrorSummary, Field, TextArea, describedBy } from "../components/Form";
@@ -42,7 +42,7 @@ function ActionForm({ g, onDone }: { g: Grievance; onDone: (g: Grievance) => voi
 
   const id = `note-${g.id}`;
   const polish = async () => {
-    if (note.trim().length < 5) return setErrors({ [id]: t("Write a few words about what was done first", "पहले कार्यवाही के बारे में कुछ शब्द लिखें") });
+    if (note.trim().length < 5) return setErrors({ [id]: t("Write a few words first", "पहले कार्यवाही के बारे में कुछ शब्द लिखें") });
     setPolishing(true);
     setErrors({});
     try {
@@ -59,8 +59,8 @@ function ActionForm({ g, onDone }: { g: Grievance; onDone: (g: Grievance) => voi
   const act = async (action: "note" | "resolve", e?: FormEvent) => {
     e?.preventDefault();
     const next: Record<string, string> = {};
-    if (note.trim().length < 10) next[id] = t("Write at least 10 characters about the action taken", "की गई कार्यवाही के बारे में कम से कम 10 अक्षर लिखें");
-    if (action === "resolve" && !photo) next[`photo-${g.id}`] = t("Attach a photo that shows the problem is fixed, or of the order or letter issued", "समाधान दिखाने वाली फ़ोटो, या जारी आदेश/पत्र की फ़ोटो संलग्न करें");
+    if (note.trim().length < 10) next[id] = t("Write at least 10 characters", "कम से कम 10 अक्षर लिखें");
+    if (action === "resolve" && !photo) next[`photo-${g.id}`] = t("Add a photo to mark it resolved", "निस्तारित करने के लिए फ़ोटो जोड़ें");
     if (Object.keys(next).length) return setErrors(next);
     setBusy(true);
     setErrors({});
@@ -79,13 +79,13 @@ function ActionForm({ g, onDone }: { g: Grievance; onDone: (g: Grievance) => voi
   return (
     <form onSubmit={(e) => act("note", e)} noValidate className="ws-form">
       <ErrorSummary errors={errors} />
-      <Field id={id} label={t("Action taken / update for the citizen", "की गई कार्यवाही / नागरिक हेतु अद्यतन")} hint={t("Rough notes are fine — “Polish with AI” turns them into a clear report. The citizen gets it on WhatsApp.", "कच्चे नोट्स चलेंगे — “AI से सुधारें” उन्हें स्पष्ट रिपोर्ट बना देगा। नागरिक को यह व्हाट्सऐप पर मिलेगा।")} error={errors[id]}>
-        <TextArea id={id} rows={4} value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} invalid={Boolean(errors[id])} aria-describedby={describedBy(id, true, errors[id])} />
+      <Field id={id} label={t("Remarks", "टिप्पणी")} error={errors[id]}>
+        <TextArea id={id} rows={4} value={note} onChange={(e) => setNote(e.target.value)} maxLength={2000} invalid={Boolean(errors[id])} aria-describedby={describedBy(id, false, errors[id])} />
       </Field>
       {ai && (
         <div className="ws-ai">
           <button type="button" className="btn btn--secondary btn--small formal__btn" onClick={polish} disabled={polishing}>
-            <Sparkles size={16} aria-hidden="true" /> {polishing ? t("Writing…", "लिखा जा रहा है…") : t("Polish with AI", "AI से सुधारें")}
+            <Sparkles size={16} aria-hidden="true" /> {polishing ? t("Writing…", "लिखा जा रहा है…") : t("Improve with AI", "AI से सुधारें")}
           </button>
           {before !== null && (
             <button type="button" className="btn btn--quiet btn--small" onClick={() => { setNote(before); setBefore(null); }}>
@@ -96,15 +96,14 @@ function ActionForm({ g, onDone }: { g: Grievance; onDone: (g: Grievance) => voi
       )}
       <PhotoInput
         id={`photo-${g.id}`}
-        label={t("Proof of resolution (needed to mark resolved)", "निस्तारण का प्रमाण (निस्तारित करने हेतु आवश्यक)")}
-        hint={t("Photo of the site after the fix, geo-tagged automatically. For paperwork, a photo of the order or letter.", "समाधान के बाद स्थल की फ़ोटो, स्थान स्वतः दर्ज। कागज़ी कार्य हेतु आदेश या पत्र की फ़ोटो।")}
+        label={t("Photo", "फ़ोटो")}
         error={errors[`photo-${g.id}`]}
         value={photo}
         onChange={setPhoto}
       />
       <div className="btn-row">
         <button type="button" className="btn btn--success" disabled={busy} onClick={() => act("resolve")}><CheckCircle2 size={18} aria-hidden="true" /> {t("Mark resolved", "निस्तारित करें")}</button>
-        <button type="submit" className="btn btn--secondary" disabled={busy}>{t("Add update only", "केवल अद्यतन जोड़ें")}</button>
+        <button type="submit" className="btn btn--secondary" disabled={busy}>{t("Save remark", "टिप्पणी सहेजें")}</button>
       </div>
     </form>
   );
@@ -117,60 +116,94 @@ function ActionForm({ g, onDone }: { g: Grievance; onDone: (g: Grievance) => voi
 function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance) => void; onClose: () => void }) {
   const { t, pick, lang } = useI18n();
   const { department, district } = useMeta();
+  const [step, setStep] = useState<"view" | "act">("view");
+  const [panel, setPanel] = useState<"history" | "complaint" | null>(null);
   const due = daysUntil(g.levelDueAt);
   const cat = department(g.departmentId)?.categories.find((c) => c.id === g.categoryId);
+
+  const head = (
+    <header className="ws__head">
+      <div>
+        <p className="ws__id">{g.id}{cat ? ` · ${pick(cat.name)}` : ""}</p>
+        <h2 id="ws-title" className="ws__title">{g.subject}</h2>
+      </div>
+      <button type="button" className="ws__close" onClick={onClose} aria-label={t("Close", "बंद करें")}><X size={18} aria-hidden="true" /></button>
+    </header>
+  );
+
+  if (step === "act") {
+    return (
+      <section className="ws card" aria-labelledby="ws-title">
+        {head}
+        <button type="button" className="ws-back" onClick={() => setStep("view")}><ArrowLeft size={16} aria-hidden="true" /> {t("Back", "वापस")}</button>
+        {isOpen(g) ? (
+          <ActionForm g={g} onDone={(x) => { onDone(x); setStep("view"); }} />
+        ) : (
+          <p className="muted">{t("This complaint is closed.", "यह शिकायत बंद है।")}</p>
+        )}
+      </section>
+    );
+  }
+
   return (
     <section className="ws card" aria-labelledby="ws-title">
-      <header className="ws__head">
-        <div>
-          <p className="ws__id">{g.id} · {cat ? pick(cat.name) : ""}</p>
-          <h2 id="ws-title" className="ws__title">{g.subject}</h2>
-        </div>
-        <button type="button" className="ws__close" onClick={onClose} aria-label={t("Close", "बंद करें")}><X size={18} aria-hidden="true" /></button>
-      </header>
+      {head}
       <div className="ws__tags">
         <StatusTag status={g.status} />
         {g.urgency === "high" && <StatusTag status="urgent" />}
-        {g.sensitive && <span className="tag tag--sensitive" title={t("Keep the complainant's identity private. Do not discuss it with the people named.", "शिकायतकर्ता की पहचान गोपनीय रखें। नामित व्यक्तियों से इस पर चर्चा न करें।")}><Lock size={13} aria-hidden="true" /> {t("Sensitive: identity private", "संवेदनशील: पहचान गोपनीय")}</span>}
-        {isOpen(g) && <span className={`ws__due${due < 0 ? " is-overdue" : due <= 2 ? " is-soon" : ""}`}><Clock3 size={14} aria-hidden="true" /> L{g.level} · {due >= 0 ? t(`${due} days left`, `${due} दिन शेष`) : t(`${-due} days overdue`, `${-due} दिन विलंब`)}</span>}
+        {g.sensitive && <span className="tag tag--sensitive"><Lock size={13} aria-hidden="true" /> {t("Private", "गोपनीय")}</span>}
+        {isOpen(g) && <span className={`ws__due${due < 0 ? " is-overdue" : due <= 2 ? " is-soon" : ""}`}><Clock3 size={14} aria-hidden="true" /> {t("Level", "स्तर")} {g.level} · {due >= 0 ? t(`${due} days left`, `${due} दिन शेष`) : t(`${-due} days late`, `${-due} दिन विलंब`)}</span>}
         {g.supportCount > 0 && <span className="people"><Users size={14} aria-hidden="true" /> +{g.supportCount}</span>}
       </div>
       <dl className="ws__facts">
         <div><dt><MapPin size={14} aria-hidden="true" /> {t("Where", "कहाँ")}</dt><dd>{[g.village, g.block, district(g.districtId) && pick(district(g.districtId)!.name)].filter(Boolean).join(", ")}</dd></div>
         <div><dt><Phone size={14} aria-hidden="true" /> {t("Citizen", "नागरिक")}</dt><dd>{g.citizenName} · {g.citizenMobile}</dd></div>
-        <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Phone call", "फ़ोन कॉल") : t("Website", "वेबसाइट")}</dd></div>
+        <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Phone", "फ़ोन") : t("Website", "वेबसाइट")}</dd></div>
       </dl>
       {g.escalationBrief && (
-        <section className="ws-brief ws-brief--esc" aria-label={t("Why this reached you", "यह आपके पास क्यों आई")}>
-          <h3><ArrowUpRight size={16} aria-hidden="true" /> {t(`Why this reached you (L${g.escalationBrief.level})`, `यह आपके पास क्यों आई (L${g.escalationBrief.level})`)}</h3>
+        <section className="ws-brief ws-brief--esc" aria-label={t("Why it reached you", "आपके पास क्यों आई")}>
+          <h3><ArrowUpRight size={16} aria-hidden="true" /> {t("Why it reached you", "आपके पास क्यों आई")}</h3>
           <ul data-no-translate>{g.escalationBrief.points.map((p) => <li key={p}>{p}</li>)}</ul>
         </section>
       )}
       {g.brief && (
         <section className="ws-brief" aria-label={t("Brief", "सार")}>
-          <h3>{g.brief.source === "ai" ? <Sparkles size={16} aria-hidden="true" /> : <ListChecks size={16} aria-hidden="true" />} {t("In brief", "संक्षेप में")}</h3>
+          <h3>{g.brief.source === "ai" ? <Sparkles size={16} aria-hidden="true" /> : <ListChecks size={16} aria-hidden="true" />} {t("Brief", "सार")}</h3>
           <ul data-no-translate>{g.brief.points.map((p) => <li key={p}>{p}</li>)}</ul>
         </section>
       )}
-      <p className="ws__desc">{g.description}</p>
-      {g.call && g.call.transcript.length > 0 && (
-        <details className="ws-call">
-          <summary><Phone size={15} aria-hidden="true" /> {t(`Call transcript · ${Math.max(1, Math.round(g.call.seconds / 60))} min`, `कॉल का विवरण · ${Math.max(1, Math.round(g.call.seconds / 60))} मिनट`)}</summary>
-          <ol data-no-translate>
-            {g.call.transcript.map((l, i) => (
-              <li key={i} className={`ws-call__${l.who}`}><strong>{l.who === "agent" ? t("Agent", "एजेंट") : t("Citizen", "नागरिक")}</strong> {l.text}</li>
-            ))}
-          </ol>
-        </details>
+
+      <div className="ws-pills">
+        <button type="button" className="ws-pill" aria-expanded={panel === "history"} onClick={() => setPanel((v) => (v === "history" ? null : "history"))}>{t("History", "इतिहास")}</button>
+        <button type="button" className="ws-pill" aria-expanded={panel === "complaint"} onClick={() => setPanel((v) => (v === "complaint" ? null : "complaint"))}>{t("See complaint", "शिकायत देखें")}</button>
+      </div>
+
+      {panel === "history" && (
+        <div className="ws-panel">
+          <Timeline entries={g.timeline} />
+        </div>
       )}
-      {g.photos?.before && <img className="ws__photo" src={g.photos.before.dataUrl} alt={t("Citizen's photo of the problem", "समस्या की नागरिक द्वारा फ़ोटो")} />}
-      <LocationCard pin={g.location} officer />
-      {g.whatsapp !== false && (
-        <p className="ws__wa"><MessageCircle size={16} aria-hidden="true" /> {t("The citizen gets your update and photo on WhatsApp automatically.", "नागरिक को आपका अद्यतन और फ़ोटो व्हाट्सऐप पर स्वतः मिलेगा।")}</p>
+      {panel === "complaint" && (
+        <div className="ws-panel">
+          <p className="ws__desc">{g.description}</p>
+          {g.call && g.call.transcript.length > 0 && (
+            <details className="ws-call">
+              <summary><Phone size={15} aria-hidden="true" /> {t(`Call · ${Math.max(1, Math.round(g.call.seconds / 60))} min`, `कॉल · ${Math.max(1, Math.round(g.call.seconds / 60))} मिनट`)}</summary>
+              <ol data-no-translate>
+                {g.call.transcript.map((l, i) => (
+                  <li key={i} className={`ws-call__${l.who}`}><strong>{l.who === "agent" ? t("Agent", "एजेंट") : t("Citizen", "नागरिक")}</strong> {l.text}</li>
+                ))}
+              </ol>
+            </details>
+          )}
+          {g.photos?.before && <img className="ws__photo" src={g.photos.before.dataUrl} alt={t("Citizen's photo of the problem", "समस्या की नागरिक द्वारा फ़ोटो")} />}
+          <LocationCard pin={g.location} officer />
+        </div>
       )}
-      {isOpen(g) && <ActionForm g={g} onDone={onDone} />}
-      <h3 className="ws__h3">{t("History", "इतिहास")}</h3>
-      <Timeline entries={g.timeline} />
+
+      {isOpen(g) && (
+        <button type="button" className="ws-pill ws-pill--next" onClick={() => setStep("act")}>{t("Next", "आगे")} <ArrowRight size={16} aria-hidden="true" /></button>
+      )}
     </section>
   );
 }
@@ -270,9 +303,6 @@ function Console() {
             <h1 className="oc-hero__title">{session.name}</h1>
             <p className="oc-hero__sub">{dept ? pick(dept.name) : allDepts ? t("All departments", "सभी विभाग") : ""} · {new Date().toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
           </div>
-          <p className="oc-hero__note">
-            <MessageCircle size={16} aria-hidden="true" /> {t("Citizens get every update on WhatsApp", "नागरिकों को हर अद्यतन व्हाट्सऐप पर")}
-          </p>
         </div>
       </section>
 
@@ -289,7 +319,7 @@ function Console() {
         <div className="oc-grid">
           <section className="card oc-map" aria-labelledby="oc-map-title">
             <div className="oc-card-head">
-              <h2 id="oc-map-title">{t("Your complaints by district", "जनपदवार आपकी शिकायतें")}</h2>
+              <h2 id="oc-map-title">{t("By district", "जनपदवार")}</h2>
               <div className="segmented segmented--small" role="group" aria-label={t("Colour the map by", "मानचित्र का रंग")}>
                 {([["pending", "Open", "खुली"], ["resolvedPct", "Resolved %", "निस्तारण %"], ["total", "All", "सभी"]] as const).map(([id, en, hi]) => (
                   <button key={id} type="button" aria-pressed={metric === id} onClick={() => setMetric(id)}>{t(en, hi)}</button>
@@ -297,12 +327,11 @@ function Console() {
               </div>
             </div>
             <UkMap rows={rows} metric={metric} selected={districtFilter ?? undefined} onSelect={(id) => setDistrictFilter((d) => (d === id ? null : id))} />
-            <p className="small muted">{t("Select a district to filter the queue.", "कतार फ़िल्टर करने हेतु जनपद चुनें।")}</p>
           </section>
 
           <div className="oc-side">
             <section className="card" aria-labelledby="oc-radar-title">
-              <h2 id="oc-radar-title" className="oc-h2">{t("Deadline radar", "समय सीमा रडार")}</h2>
+              <h2 id="oc-radar-title" className="oc-h2">{t("Deadlines", "समय सीमा")}</h2>
               <ul className="oc-bars">
                 {radar.map((r) => (
                   <li key={r.label}>
@@ -312,7 +341,6 @@ function Console() {
                   </li>
                 ))}
               </ul>
-              <p className="small muted">{t("Unresolved complaints move up a level automatically at the deadline.", "समय सीमा पर अनिस्तारित शिकायतें स्वतः ऊपर जाती हैं।")}</p>
             </section>
             <section className="card" aria-labelledby="oc-cat-title">
               <h2 id="oc-cat-title" className="oc-h2">{allDepts ? t("Open, by department", "खुली, विभागवार") : t("Open, by issue", "खुली, विषयवार")}</h2>
@@ -334,7 +362,7 @@ function Console() {
         <div className="oc-work">
           <section aria-labelledby="oc-queue-title" className="oc-queue">
             <div className="oc-card-head">
-              <h2 id="oc-queue-title">{t("Priority queue", "प्राथमिकता कतार")} <span className="oc-count">{list.length}</span></h2>
+              <h2 id="oc-queue-title">{t("Complaints", "शिकायतें")} <span className="oc-count">{list.length}</span></h2>
             </div>
             <div className="oc-tools">
               <label className="oc-search">
@@ -377,7 +405,7 @@ function Console() {
                           {g.urgency === "high" && live && <span className="oc-dot oc-dot--urgent" title={t("Urgent", "अत्यावश्यक")} />}
                           {g.supportCount > 0 && <span className="oc-mini"><Users size={13} aria-hidden="true" />{g.supportCount}</span>}
                           {g.channel === "whatsapp" && <span className="oc-mini oc-mini--wa"><MessageCircle size={13} aria-hidden="true" /></span>}
-                          {g.channel === "phone" && <span className="oc-mini" title={t("Registered by phone call", "फ़ोन कॉल से दर्ज")}><Phone size={13} aria-hidden="true" /></span>}
+                          {g.channel === "phone" && <span className="oc-mini" title={t("Phone", "फ़ोन")}><Phone size={13} aria-hidden="true" /></span>}
                         </span>
                       </span>
                     </button>
@@ -393,7 +421,6 @@ function Console() {
               <div className="ws-empty card">
                 <Inbox size={36} aria-hidden="true" />
                 <p><strong>{t("Select a complaint", "शिकायत चुनें")}</strong></p>
-                <p className="muted small">{t("Overdue and urgent ones are at the top, then problems many citizens share.", "विलंबित और अत्यावश्यक ऊपर हैं, फिर कई नागरिकों की साझा समस्याएँ।")}</p>
               </div>
             )}
           </div>
@@ -415,7 +442,6 @@ export function Officer() {
         <span className="oc-hero__badge" aria-hidden="true"><ShieldCheck size={30} /></span>
         <div className="oc-hero__text">
           <h1 className="oc-hero__title">{t("Officer console", "अधिकारी कंसोल")}</h1>
-          <p className="oc-hero__sub">{t("For department officers: priority queue, district map, deadlines and AI-assisted reports.", "विभागीय अधिकारियों हेतु: प्राथमिकता कतार, जनपद मानचित्र, समय सीमा और AI-सहायित रिपोर्ट।")}</p>
           <p><Link className="btn btn--accent" to="/login">{t("Sign in as an officer", "अधिकारी के रूप में साइन इन करें")}</Link></p>
         </div>
       </div>

@@ -1262,3 +1262,38 @@ html.intro-played .carousel { animation: none; filter: none; }
 .pin-page__map { height: min(60vh, 460px); border-radius: var(--radius-lg, 12px); border: 1px solid var(--line); margin-bottom: var(--s2); z-index: 0; }
 .pin-page__done { display: flex; gap: var(--s2); align-items: flex-start; padding: var(--s3) var(--s4); border-radius: 10px; background: #e8f6ee; color: #0f5132; }
 .pin-marker span { display: block; width: 30px; height: 30px; margin: 0 auto; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--saffron, #f28c1b); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }
+
+/* ---------------- Section headings stay on one line ---------------- */
+.split__title, .path__title, .schemes__head h2, .home-search__title, .impact__title { white-space: nowrap; }
+.split__right .split__title { font-size: clamp(1.35rem, 5.3cqw, 2.4rem); }
+.section--map .split__title, .section--faq .split__title { font-size: clamp(1.6rem, 3.4vw, 2.75rem); }
+.path__title { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+@media (max-width: 640px) {
+  .split__title, .path__title, .schemes__head h2, .home-search__title, .impact__title { white-space: normal; }
+}
+
+/* ---------------- No tinted fills behind text ---------------- */
+.pill { background: transparent; box-shadow: none; border: 1.5px solid color-mix(in srgb, var(--navy) 26%, transparent); }
+.pill__icon { background: transparent; }
+.feedback-strip { background: none; border: 1px solid var(--line-soft); }
+.notice { background: none; }
+.ws-brief, .ws-brief--esc { background: none; }
+.ws__facts { background: none; }
+
+/* ---------------- Find an office: a block that fills the column ---------------- */
+.split__left .pills { flex: 0 0 auto; }
+.split__left .offices-bar { flex: 1 1 auto; width: 100%; max-width: none; min-height: 230px; margin: var(--s6) 0 0; flex-direction: column; justify-content: center; align-items: center; gap: var(--s4); padding: var(--s6); border-radius: 32px; background: var(--paper); border: 1px solid var(--line-soft); box-shadow: var(--shadow); text-align: center; }
+.split__left .offices-bar:hover, .split__left .offices-bar:focus-visible { background: var(--paper); box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.offices-bar__icon { width: 88px; height: 88px; }
+.offices-bar__title { font-family: "Rozha One", var(--font-display); font-weight: 400; font-size: clamp(1.4rem, 2.2vw, 1.9rem); color: var(--navy); line-height: 1.2; }
+.offices-bar__go { color: var(--navy); }
+.split__left .split__more { margin-top: var(--s4); }
+
+/* ---------------- Officer: complaint view in steps ---------------- */
+.ws-pills { display: flex; flex-wrap: wrap; gap: var(--s2); margin: var(--s3) 0; }
+.ws-pill { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 20px; border-radius: 999px; border: 1.5px solid var(--navy); background: transparent; color: var(--navy); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; transition: background .2s ease, color .2s ease; }
+.ws-pill:hover, .ws-pill[aria-expanded="true"] { background: var(--navy); color: var(--paper); }
+.ws-pill--next { margin-top: var(--s3); background: var(--saffron); border-color: var(--saffron); color: #1b1300; }
+.ws-pill--next:hover { background: #ffa03a; color: #1b1300; }
+.ws-panel { margin: var(--s3) 0 var(--s2); padding-top: var(--s3); border-top: 1px solid var(--line-soft); }
+.ws-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--s4); padding: 0; border: 0; background: none; color: var(--link); font: inherit; font-weight: 600; cursor: pointer; }

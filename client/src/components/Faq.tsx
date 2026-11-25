@@ -49,7 +49,6 @@ export function Faq() {
         <Reveal className="path__head">
           <span className="kicker kicker--plain">{t("Need to know", "जानने योग्य")}</span>
           <h2 id="faq-title" className="split__title">{t("Frequently asked questions", "अक्सर पूछे जाने वाले प्रश्न")}</h2>
-          <p>{t("Short answers to what citizens ask us most.", "नागरिकों के सबसे आम प्रश्नों के संक्षिप्त उत्तर।")}</p>
         </Reveal>
         <Reveal className="faqs" delay={120}>
           {questions.map((x) => (
