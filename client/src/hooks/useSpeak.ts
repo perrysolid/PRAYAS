@@ -31,7 +31,7 @@ export function useSpeak(locale: Locale) {
   const browserSpeak = useCallback(
     (text: string) => {
       if (!synth) return setSpeaking(false);
-      const tag = languageOf(locale).speech;
+      const tag = /[\u0900-\u097F]/.test(text) && locale === "en" ? "hi-IN" : languageOf(locale).speech;
       const u = new SpeechSynthesisUtterance(text);
       u.lang = tag;
       u.rate = 0.95;
@@ -57,7 +57,8 @@ export function useSpeak(locale: Locale) {
         if (opts.english && locale !== "en" && locale !== "hi") say = (await translateStrings([text], locale))[0];
         if (ctrl.signal.aborted) return;
         if ((await aiStatus()).speech) {
-          const blob = await api.speak(say.slice(0, 700), locale, ctrl.signal);
+          // A Hindi reply on the English page is read in Hindi.
+          const blob = await api.speak(say.slice(0, 700), /[\u0900-\u097F]/.test(say) && locale === "en" ? "hi" : locale, ctrl.signal);
           if (ctrl.signal.aborted) return;
           const url = URL.createObjectURL(blob);
           const el = new Audio(url);

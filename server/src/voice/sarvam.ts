@@ -274,3 +274,25 @@ export async function transcribeFile(audio: Buffer, mime: string): Promise<{ tex
   const text = (json.transcript ?? "").trim();
   return text ? { text, language: json.language_code ?? undefined } : null;
 }
+
+/** Languages Sarvam can speak; Devanagari hill languages and Nepali are read with the Hindi voice. */
+const SPOKEN: Record<string, string> = { en: "en-IN", hi: "hi-IN", gbm: "hi-IN", kfy: "hi-IN", jns: "hi-IN", ne: "hi-IN", bn: "bn-IN", gu: "gu-IN", kn: "kn-IN", ml: "ml-IN", mr: "mr-IN", pa: "pa-IN", ta: "ta-IN", te: "te-IN" };
+export const sarvamSpeaks = (lang: string) => lang in SPOKEN;
+
+/** A short reply read aloud on the website, as a WAV file. */
+export async function speakFile(text: string, lang: string, narrator = false): Promise<Buffer> {
+  const code = SPOKEN[lang];
+  if (!sarvamEnabled() || !code) throw new Error("Sarvam cannot speak this language");
+  // Hindi and English have Sarvam's newest voices; the other languages use its multilingual default.
+  const persona = code === "hi-IN" ? (narrator ? "ratan_hi_customer_expressive" : config.voice.speakerHi) : code === "en-IN" ? (narrator ? "simran_en_customer" : config.voice.speakerEn) : null;
+  const res = await fetch("https://api.sarvam.ai/text-to-speech", {
+    method: "POST",
+    headers: { ...headers(), "content-type": "application/json" },
+    body: JSON.stringify({ text, target_language_code: code, speech_sample_rate: 22050, pace: 1.0, ...(persona ? { model: "bulbul:v4-flash", speaker: persona } : { model: "bulbul:v3" }) }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) throw new Error(`Sarvam speech failed (${res.status})`);
+  const json = (await res.json()) as { audios?: string[] };
+  if (!json.audios?.[0]) throw new Error("Sarvam returned no audio");
+  return Buffer.from(json.audios[0], "base64");
+}

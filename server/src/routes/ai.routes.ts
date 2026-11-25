@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import rateLimit from "express-rate-limit";
 import * as ctrl from "../controllers/ai.controller.js";
 import { validate } from "../middleware/validate.js";
@@ -16,4 +16,6 @@ export const aiRoutes = Router()
   .post("/assist", assistLimiter, validate(assistSchema), ctrl.assist)
   .post("/assistant", aiLimiter, validate(assistantSchema), ctrl.assistant)
   .post("/translate", translateLimiter, validate(translateSchema), ctrl.translate)
-  .post("/speak", aiLimiter, validate(speakSchema), ctrl.speak);
+  .post("/speak", aiLimiter, validate(speakSchema), ctrl.speak)
+  // The mic in the chat and complaint form: up to ~1 minute of compressed audio.
+  .post("/listen", aiLimiter, express.raw({ type: ["audio/*", "video/webm", "application/octet-stream"], limit: "3mb" }), ctrl.listen);

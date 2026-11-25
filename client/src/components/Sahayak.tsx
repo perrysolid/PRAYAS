@@ -104,6 +104,14 @@ export function Sahayak() {
     launcherRef.current?.focus();
   };
 
+  /** Answers in Hindi when the citizen writes or speaks Hindi, whatever language the page is in. */
+  function inLanguageOf(input: string) {
+    const hindi = /[\u0900-\u097F]/.test(input) && lang !== "hi";
+    const tr = (en: string, hi: string) => (hindi ? hi : t(en, hi));
+    const reply = (m: Omit<Message, "id" | "from">) => say(hindi ? { ...m, native: true } : m);
+    return { tr, reply, chatLang: hindi ? "hi" : locale };
+  }
+
   async function trackWith(id: string, mobile: string) {
     setBusy(true);
     try {
@@ -136,6 +144,7 @@ export function Sahayak() {
     if (!input) return;
     setMessages((m) => [...m, { id: nextId.current++, from: "me", text: input }]);
     setText("");
+    const { tr, reply } = inLanguageOf(input);
 
     const idMatch = input.match(ID_PATTERN);
     const mobileMatch = input.match(MOBILE_PATTERN);
@@ -144,10 +153,10 @@ export function Sahayak() {
     if (id && mobileMatch) return trackWith(id, mobileMatch[1]);
     if (idMatch) {
       setPendingId(id);
-      return say({ text: t(`Thanks. What is the mobile number used to register ${id}?`, `धन्यवाद। ${id} किस मोबाइल नंबर से दर्ज की गई थी?`) });
+      return reply({ text: tr(`Thanks. What is the mobile number used to register ${id}?`, `धन्यवाद। ${id} किस मोबाइल नंबर से दर्ज की गई थी?`) });
     }
     if (pendingId && /\d{6,}/.test(input)) {
-      return say({ text: t("That doesn't look like a 10-digit mobile number. Please type it again.", "यह 10 अंकों का मोबाइल नंबर नहीं लगता। कृपया फिर से लिखें।") });
+      return reply({ text: tr("That doesn't look like a 10-digit mobile number. Please type it again.", "यह 10 अंकों का मोबाइल नंबर नहीं लगता। कृपया फिर से लिखें।") });
     }
 
     // With a language model available, Sahayak answers in the citizen's own language, within strict limits.
@@ -155,16 +164,16 @@ export function Sahayak() {
       setBusy(true);
       try {
         const history = [...messages, { from: "me" as const, text: input }].slice(-8).map((m) => ({ from: m.from, text: m.text }));
-        const out = await api.assistant(history, locale);
+        const out = await api.assistant(history, inLanguageOf(input).chatLang);
         if (out.kind === "complaint") {
           setBusy(false);
           return triageAndOffer(input);
         }
         const actions: Action[] = [];
-        if (out.kind === "emergency") actions.push({ label: t("Call 112", "112 पर कॉल करें"), run: () => (window.location.href = "tel:112") });
-        if (out.route && out.route !== "none") actions.push({ label: t("Open page", "पेज खोलें"), run: () => { navigate(out.route!); close(); } });
+        if (out.kind === "emergency") actions.push({ label: tr("Call 112", "112 पर कॉल करें"), run: () => (window.location.href = "tel:112") });
+        if (out.route && out.route !== "none") actions.push({ label: tr("Open page", "पेज खोलें"), run: () => { navigate(out.route!); close(); } });
         if (out.kind === "refuse") actions.push(...starters.slice(0, 2));
-        return say({ text: out.reply, actions, native: true });
+        return reply({ text: out.reply, actions, native: true });
       } catch {
         // Fall through to the built-in answers.
       } finally {
@@ -176,55 +185,56 @@ export function Sahayak() {
     const isShortQuestion = input.length < 60 || /\?$/.test(input);
 
     if (intent === "track" && isShortQuestion) {
-      return say({ text: t("Sure. Type your complaint number, like CMH-2026-004512. It is in the SMS you received.", "ज़रूर। अपनी शिकायत संख्या लिखें, जैसे CMH-2026-004512। यह आपको मिले SMS में है।") });
+      return reply({ text: tr("Sure. Type your complaint number, like CMH-2026-004512. It is in the SMS you received.", "ज़रूर। अपनी शिकायत संख्या लिखें, जैसे CMH-2026-004512। यह आपको मिले SMS में है।") });
     }
     if (intent === "register" && isShortQuestion) {
-      return say({ text: t("Tell me what is wrong, where, and since when. For example: \"No water in Ward 4, Khirsu for 10 days\". You can press the mic and speak.", "बताइए क्या समस्या है, कहाँ और कब से। जैसे: \"खिर्सू वार्ड 4 में 10 दिन से पानी नहीं\"। आप माइक दबाकर बोल भी सकते हैं।") });
+      return reply({ text: tr("Tell me what is wrong, where, and since when. For example: \"No water in Ward 4, Khirsu for 10 days\". You can press the mic and speak.", "बताइए क्या समस्या है, कहाँ और कब से। जैसे: \"खिर्सू वार्ड 4 में 10 दिन से पानी नहीं\"। आप माइक दबाकर बोल भी सकते हैं।") });
     }
     if (intent === "time" && isShortQuestion) {
-      return say({ text: t("The first officer has 15 days. If it is not resolved, it moves up automatically: district officer, head of department, then Secretary. You can always see who has it and the deadline.", "प्रथम अधिकारी के पास 15 दिन होते हैं। निस्तारण न होने पर यह स्वतः ऊपर जाती है: जनपद अधिकारी, विभागाध्यक्ष, फिर सचिव। आप हमेशा देख सकते हैं कि यह किसके पास है और समय सीमा क्या है।") });
+      return reply({ text: tr("The first officer has 15 days. If it is not resolved, it moves up automatically: district officer, head of department, then Secretary. You can always see who has it and the deadline.", "प्रथम अधिकारी के पास 15 दिन होते हैं। निस्तारण न होने पर यह स्वतः ऊपर जाती है: जनपद अधिकारी, विभागाध्यक्ष, फिर सचिव। आप हमेशा देख सकते हैं कि यह किसके पास है और समय सीमा क्या है।") });
     }
     if (intent === "reminder" && isShortQuestion) {
-      return say({ text: t("You can send a reminder 7 days after registering, then every 3 days. Reminders are visible to the Chief Minister's Office. Sign in and open the complaint to send one.", "दर्ज करने के 7 दिन बाद, फिर हर 3 दिन में अनुस्मारक भेज सकते हैं। यह मुख्यमंत्री कार्यालय को भी दिखता है। साइन इन करके शिकायत खोलें।") });
+      return reply({ text: tr("You can send a reminder 7 days after registering, then every 3 days. Reminders are visible to the Chief Minister's Office. Sign in and open the complaint to send one.", "दर्ज करने के 7 दिन बाद, फिर हर 3 दिन में अनुस्मारक भेज सकते हैं। यह मुख्यमंत्री कार्यालय को भी दिखता है। साइन इन करके शिकायत खोलें।") });
     }
     if (intent === "reopen" && isShortQuestion) {
-      return say({ text: t("If it was marked resolved but the problem remains, rate it 'Not satisfied' and reopen within 30 days. It goes to a higher officer.", "यदि निस्तारित दिखाया गया पर समस्या बनी है, तो 'असंतुष्ट' रेट करें और 30 दिन में पुनः खोलें। यह उच्च अधिकारी को जाएगी।") });
+      return reply({ text: tr("If it was marked resolved but the problem remains, rate it 'Not satisfied' and reopen within 30 days. It goes to a higher officer.", "यदि निस्तारित दिखाया गया पर समस्या बनी है, तो 'असंतुष्ट' रेट करें और 30 दिन में पुनः खोलें। यह उच्च अधिकारी को जाएगी।") });
     }
     if (intent === "human" && isShortQuestion) {
-      return say({ text: t("Call 1905 free from any phone and an operator will register it for you. In an emergency call 112.", "किसी भी फ़ोन से 1905 पर निःशुल्क कॉल करें, ऑपरेटर शिकायत दर्ज करेंगे। आपात स्थिति में 112 पर कॉल करें।"), actions: [{ label: t("Call 1905", "1905 पर कॉल करें"), run: () => (window.location.href = "tel:1905") }] });
+      return reply({ text: tr("Call 1905 free from any phone and an operator will register it for you. In an emergency call 112.", "किसी भी फ़ोन से 1905 पर निःशुल्क कॉल करें, ऑपरेटर शिकायत दर्ज करेंगे। आपात स्थिति में 112 पर कॉल करें।"), actions: [{ label: tr("Call 1905", "1905 पर कॉल करें"), run: () => (window.location.href = "tel:1905") }] });
     }
     if (intent === "hello" && input.length < 25) {
-      return say({ text: t("Namaste! What can I help you with?", "नमस्ते! मैं आपकी क्या सहायता करूँ?"), actions: starters });
+      return reply({ text: tr("Namaste! What can I help you with?", "नमस्ते! मैं आपकी क्या सहायता करूँ?"), actions: starters });
     }
 
     if (input.length < 15) {
-      return say({ text: t("Tell me a little more: what is wrong, where, and since when?", "थोड़ा और बताइए: क्या समस्या है, कहाँ और कब से?"), actions: starters });
+      return reply({ text: tr("Tell me a little more: what is wrong, where, and since when?", "थोड़ा और बताइए: क्या समस्या है, कहाँ और कब से?"), actions: starters });
     }
 
     return triageAndOffer(input);
   }
 
   async function triageAndOffer(input: string) {
+    const { tr, reply } = inLanguageOf(input);
     setBusy(true);
     try {
       const triage = await api.triage(input);
       const dept = department(triage.departmentId);
       const cat = dept?.categories.find((c) => c.id === triage.categoryId);
       const parts = [
-        t(`This looks like a matter for ${dept ? dept.name.en : "the department"}${cat ? ` (${cat.name.en})` : ""}.`, `यह ${dept ? dept.name.hi : "विभाग"}${cat ? ` (${cat.name.hi})` : ""} का विषय लगता है।`),
-        triage.urgency === "high" ? t("I have marked it urgent. If anyone is in danger now, call 112.", "मैंने इसे अत्यावश्यक चिह्नित कर दिया है। यदि कोई अभी खतरे में है, तो 112 पर कॉल करें।") : "",
-        triage.centralMatter ? t("Note: it may be a central government matter, which goes to CPGRAMS.", "ध्यान दें: यह केंद्र सरकार का विषय हो सकता है, जिसकी शिकायत CPGRAMS पर होती है।") : "",
-        t("Shall I open the form with this filled in? You will check everything before it is registered.", "क्या मैं यह भरकर फ़ॉर्म खोल दूँ? दर्ज होने से पहले आप सब कुछ जाँच सकेंगे।"),
+        tr(`This looks like a matter for ${dept ? dept.name.en : "the department"}${cat ? ` (${cat.name.en})` : ""}.`, `यह ${dept ? dept.name.hi : "विभाग"}${cat ? ` (${cat.name.hi})` : ""} का विषय लगता है।`),
+        triage.urgency === "high" ? tr("I have marked it urgent. If anyone is in danger now, call 112.", "मैंने इसे अत्यावश्यक चिह्नित कर दिया है। यदि कोई अभी खतरे में है, तो 112 पर कॉल करें।") : "",
+        triage.centralMatter ? tr("Note: it may be a central government matter, which goes to CPGRAMS.", "ध्यान दें: यह केंद्र सरकार का विषय हो सकता है, जिसकी शिकायत CPGRAMS पर होती है।") : "",
+        tr("Shall I open the form with this filled in? You will check everything before it is registered.", "क्या मैं यह भरकर फ़ॉर्म खोल दूँ? दर्ज होने से पहले आप सब कुछ जाँच सकेंगे।"),
       ].filter(Boolean);
-      say({
+      reply({
         text: parts.join(" "),
         actions: [
-          { label: t("Yes, continue", "हाँ, आगे बढ़ें"), run: () => { navigate("/register", { state: { description: input } }); close(); } },
-          { label: t("No, it's something else", "नहीं, कुछ और है"), run: () => say({ text: t("No problem. Describe it differently, or open the form and choose the department yourself.", "कोई बात नहीं। इसे अलग तरीके से बताइए, या फ़ॉर्म खोलकर विभाग स्वयं चुनें।") }) },
+          { label: tr("Yes, continue", "हाँ, आगे बढ़ें"), run: () => { navigate("/register", { state: { description: input } }); close(); } },
+          { label: tr("No, it's something else", "नहीं, कुछ और है"), run: () => reply({ text: tr("No problem. Describe it differently, or open the form and choose the department yourself.", "कोई बात नहीं। इसे अलग तरीके से बताइए, या फ़ॉर्म खोलकर विभाग स्वयं चुनें।") }) },
         ],
       });
     } catch {
-      say({ text: t("I could not reach the server. You can still register on the form, or call 1905.", "सर्वर से संपर्क नहीं हो सका। आप फ़ॉर्म से दर्ज कर सकते हैं या 1905 पर कॉल करें।") });
+      reply({ text: tr("I could not reach the server. You can still register on the form, or call 1905.", "सर्वर से संपर्क नहीं हो सका। आप फ़ॉर्म से दर्ज कर सकते हैं या 1905 पर कॉल करें।") });
     } finally {
       setBusy(false);
     }
@@ -296,7 +306,7 @@ export function Sahayak() {
               className="sahayak__input"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={speech.listening ? t("Listening…", "सुन रहे हैं…") : t("Type your problem or complaint number", "समस्या या शिकायत संख्या लिखें")}
+              placeholder={speech.busy ? t("Understanding…", "समझ रही हूँ…") : speech.listening ? t("Listening… tap the mic when done", "सुन रही हूँ… पूरा होने पर माइक दबाएँ") : t("Type your problem or complaint number", "समस्या या शिकायत संख्या लिखें")}
               autoComplete="off"
               maxLength={1000}
             />

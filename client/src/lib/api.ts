@@ -36,7 +36,7 @@ async function request<T>(path: string, init: RequestInit & { json?: unknown } =
 
 const post = <T>(path: string, json?: unknown) => request<T>(path, { method: "POST", json: json ?? {} });
 
-export type AiStatus = { enabled: boolean; speech: boolean };
+export type AiStatus = { enabled: boolean; speech: boolean; listen?: boolean };
 export type AssistantReply = { kind: "answer" | "complaint" | "track" | "emergency" | "refuse"; reply: string; route?: string };
 
 export type Assist = { isGrievance: boolean; clearer: string; questions: { ask: string; options: string[] }[]; phrases: string[] };
@@ -50,6 +50,8 @@ export const api = {
   waSend: (mobile: string, text: string) => post<{ ok: true }>("/whatsapp/inbound", { mobile, text }),
   officerNote: (text: string, lang: "en" | "hi") => post<{ report: string }>("/officer/ai/note", { text, lang }),
   aiStatus: (signal?: AbortSignal) => request<AiStatus>("/ai/status", { signal }),
+  /** A mic recording to text (any Indian language). */
+  listen: (audio: Blob) => request<{ text: string; language?: string }>("/ai/listen", { method: "POST", body: audio, headers: { "Content-Type": audio.type.split(";")[0] || "audio/webm" } }),
   draft: (text: string, lang: string) => post<{ isGrievance: boolean; subject: string; description: string }>("/ai/draft", { text, lang }),
   assist: (text: string, lang: string, signal?: AbortSignal) => request<Assist>("/ai/assist", { method: "POST", json: { text, lang }, signal }),
   assistant: (messages: { from: "me" | "bot"; text: string }[], lang: string) => post<AssistantReply>("/ai/assistant", { messages, lang }),

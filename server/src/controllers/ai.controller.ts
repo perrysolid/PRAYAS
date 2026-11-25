@@ -3,6 +3,11 @@ import * as ai from "../services/ai.service.js";
 
 // Express 4 does not forward rejected promises, so pass failures to next() explicitly.
 
+export function listen(req: Request, res: Response, next: NextFunction) {
+  const audio = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);
+  ai.listen(audio, req.get("content-type") ?? "audio/webm").then((r) => res.json(r), next);
+}
+
 export function status(_req: Request, res: Response) {
   res.json(ai.status());
 }
