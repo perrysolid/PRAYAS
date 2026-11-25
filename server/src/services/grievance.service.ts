@@ -212,6 +212,17 @@ export function reopen(session: CitizenSession, id: string, reason: string) {
  * Open complaints about the same thing in the same place. Shown before registering so a citizen can
  * add their voice to an existing complaint instead of filing a duplicate that splits the officer's attention.
  */
+/** The citizen's own photo of the problem, sent after registering (e.g. on WhatsApp after a phone call). */
+export function addCitizenPhoto(id: string, mobile: string, photo: Omit<Photo, "at">) {
+  const g = store.grievances.find(id);
+  if (!g || (g.citizenMobile !== mobile && !g.supporters?.includes(mobile))) throw notFound("Complaint not found");
+  const now = new Date().toISOString();
+  g.photos = { ...g.photos, before: { ...photo, at: now } };
+  g.timeline.push({ at: now, event: "photo", by: "Citizen", level: g.level, note: "Photo of the problem added on WhatsApp" });
+  store.grievances.save(g);
+  return g;
+}
+
 export function similar(q: { departmentId: string; districtId: string; categoryId?: string; block?: string }) {
   return store.grievances
     .all()

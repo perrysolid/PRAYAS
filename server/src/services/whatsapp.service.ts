@@ -89,8 +89,8 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
     case "assigned":
       return {
         text: hi
-          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन 1905 पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
-          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline 1905.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}\n\nYou'll get every update here. Reply *STATUS* any time.`,
+          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन 1905 पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
+          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline 1905.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}\n\nYou'll get every update here. Reply *STATUS* any time.`,
       };
     case "note":
       return { toSupporters: true, text: hi ? `📝 *${g.id}* पर अद्यतन\n${e.by}: “${e.note}”` : `📝 Update on *${g.id}*\n${e.by}: “${e.note}”` };
@@ -156,8 +156,8 @@ store.onChange(onGrievanceChange);
 /* Replies from citizens                                               */
 /* ------------------------------------------------------------------ */
 
-type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm" };
-const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[] }>();
+type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm"; photo?: string };
+const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string }>();
 
 const isHindi = (s: string) => /[ऀ-ॿ]/.test(s);
 // \b only knows English letters, so the end of a word is spelled out to work for Hindi too.
@@ -210,6 +210,50 @@ function errorText(err: unknown, hi: boolean) {
   return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 1905 पर कॉल करें।" : "That didn't work right now. Please try again, or call 1905.";
 }
 
+/**
+ * A photo from the citizen. While a complaint is being drafted it goes with it; otherwise it is added to
+ * their latest open complaint from the last 15 days (e.g. one just registered on a phone call).
+ */
+export async function handleInboundPhoto(mobile: string, bytes: Buffer, mime: string, caption: string, profileName?: string) {
+  const conv = conversations.get(mobile) ?? { history: [] };
+  conversations.set(mobile, conv);
+  const hi = isHindi(caption) || (conv.pending?.hi ?? true);
+  if (bytes.length > 3_000_000) return reply(mobile, hi ? "फ़ोटो बहुत बड़ी है। कृपया छोटी फ़ोटो भेजें।" : "That photo is too large. Please send a smaller one.");
+  const dataUrl = `data:${/^image\/(jpeg|png|webp)$/.test(mime) ? mime : "image/jpeg"};base64,${bytes.toString("base64")}`;
+  store.whatsapp.insert({ id: randomUUID(), mobile, dir: "in", text: caption || "📷", image: dataUrl, at: new Date().toISOString(), status: "received" });
+
+  if (conv.pending) {
+    conv.pending.photo = dataUrl;
+    if (caption) return handleInbound(mobile, caption, profileName);
+    return reply(mobile, conv.pending.hi ? "📷 फ़ोटो मिल गई, शिकायत के साथ जुड़ जाएगी।" : "📷 Got the photo; it will go with the complaint.");
+  }
+  const since = Date.now() - 15 * 86_400_000;
+  const g = store.grievances
+    .all()
+    .filter((x) => (x.citizenMobile === mobile || x.supporters?.includes(mobile)) && x.status !== "resolved" && x.status !== "closed" && new Date(x.submittedAt).getTime() > since)
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+  if (!g) {
+    if (caption.length >= 25) {
+      // A photo with the problem written under it: start the complaint and keep the photo for it.
+      conv.photo = dataUrl;
+      return handleInbound(mobile, caption, profileName);
+    }
+    conv.photo = dataUrl;
+    return reply(mobile, hi ? "📷 फ़ोटो मिली। अब समस्या लिखकर या बोलकर बताइए, मैं शिकायत दर्ज करूँगी और यह फ़ोटो उसमें जोड़ दूँगी।" : "📷 Got the photo. Now tell me the problem in a message or voice note; I'll register it with this photo.");
+  }
+  try {
+    grievances.addCitizenPhoto(g.id, mobile, { dataUrl });
+  } catch (err) {
+    return reply(mobile, errorText(err, hi));
+  }
+  return reply(
+    mobile,
+    hi
+      ? `📷 फ़ोटो शिकायत *${g.id}* में जोड़ दी गई है। ${levels[g.level].title.hi} इसे देख सकेंगे।\nस्थिति जानने हेतु *STATUS* लिखें।`
+      : `📷 Photo added to complaint *${g.id}*. The ${levels[g.level].title.en} can now see it.\nReply *STATUS* any time.`,
+  );
+}
+
 export async function handleInbound(mobile: string, raw: string, profileName?: string) {
   const text = raw.trim().slice(0, 1000);
   if (!text) return;
@@ -240,7 +284,12 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
       try {
         // Same problem at the same place already open: join it instead of registering it again.
         const dup = await findDuplicate({ mobile, departmentId: p.departmentId, districtId: p.districtId!, categoryId: p.categoryId, text: p.formal ? `${p.formal.subject}. ${p.formal.description}\n${p.description}` : p.description });
-        if (dup) return reply(mobile, duplicateMessage(dup, joinDuplicate(session, dup), p.hi));
+        if (dup) {
+          const joined = joinDuplicate(session, dup);
+          // The citizen's photo still helps the officer if that complaint has none.
+          if (p.photo && !dup.photos?.before) grievances.addCitizenPhoto(dup.id, mobile, { dataUrl: p.photo });
+          return reply(mobile, duplicateMessage(dup, joined, p.hi));
+        }
         grievances.create(
           session,
           {
@@ -254,6 +303,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
             triage: { source: aiEnabled() ? "ai" : "rules", confidence: 0.8, urgency: p.urgency },
             whatsapp: true,
             lang: p.hi ? "hi" : "en",
+            photo: p.photo ? { dataUrl: p.photo } : undefined,
           },
           "whatsapp",
         );
@@ -333,6 +383,8 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
   }
   const p: Pending = { description: text, formal, departmentId: route.departmentId, categoryId: route.categoryId, urgency: route.urgency, districtId: findDistrict(text), hi, stage: "confirm" };
   if (!p.districtId) p.stage = "district";
+  // A photo sent before the problem was described goes with this complaint.
+  if (conv.photo) (p.photo = conv.photo), (conv.photo = undefined);
   conv.pending = p;
   return reply(mobile, p.stage === "district" ? (hi ? `समझ गई। यह ${deptName(p.departmentId, true)} का विषय है।\n\nयह किस जनपद में है?` : `Understood. This is for ${deptName(p.departmentId, false)}.\n\nWhich district is this in?`) : confirmText(p));
 }

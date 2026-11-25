@@ -49,8 +49,9 @@ export class Listener extends EventEmitter<ListenerEvents> {
       sample_rate: String(this.sampleRate),
       // Phone callers pause mid-sentence; 700 ms is snappy without cutting them off.
       silence_duration_ms: "700",
-      min_speech_duration_ms: "250",
-      threshold: "0.35",
+      // Phone lines carry traffic, wind and TV: a firmer threshold ignores them but still hears a soft "हाँ".
+      min_speech_duration_ms: "300",
+      threshold: "0.5",
     });
     if (this.keyterms.length) q.set("keyterms", JSON.stringify(this.keyterms.slice(0, 50).map((k) => k.slice(0, 64))));
     const ws = new WebSocket(`wss://api.sarvam.ai/speech-to-text-realtime/ws?${q}`, { headers: headers() });
@@ -193,7 +194,8 @@ export class Speaker {
           data: {
             language_code: lang === "en" ? "en-IN" : "hi-IN",
             speaker: lang === "en" ? config.voice.speakerEn : config.voice.speakerHi,
-            pace: 1.05,
+            // Sarvam's recommended pace for conversational agents.
+            pace: 1.0,
             speech_sample_rate: this.sampleRate,
             output_audio_codec: "linear16",
             // Start speaking after the first short phrase, not a whole paragraph.

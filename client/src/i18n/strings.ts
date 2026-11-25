@@ -23,6 +23,7 @@ export const eventLabels: Record<TimelineEntry["event"], Bilingual> = {
   reopened: { en: "Reopened by you", hi: "आपके द्वारा पुनः खोली गई" },
   closed: { en: "Closed", hi: "बंद की गई" },
   supported: { en: "Others joined", hi: "अन्य नागरिक जुड़े" },
+  photo: { en: "Citizen added a photo", hi: "नागरिक ने फ़ोटो जोड़ी" },
 };
 
 export const typeLabels: Record<"complaint" | "demand" | "suggestion", Bilingual> = {

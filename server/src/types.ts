@@ -22,7 +22,7 @@ export type Level = 1 | 2 | 3 | 4;
 
 export type TimelineEntry = {
   at: string;
-  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported";
+  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported" | "photo";
   by: string;
   note?: string;
   level?: Level;

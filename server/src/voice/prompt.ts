@@ -128,11 +128,17 @@ export function spokenNumber(id: string, lang: "hi" | "en") {
 
 const fmt = (iso: string, lang: "hi" | "en") => new Date(iso).toLocaleDateString(lang === "en" ? "en-IN" : "hi-IN", { day: "numeric", month: "long", timeZone: "Asia/Kolkata" });
 
+/** Spoken once the complaint is saved: its number, who has it, the deadline, what happens next, and the photo option. */
 export function registeredLine(g: Pick<Grievance, "id" | "levelDueAt">, lang: "hi" | "en", whatsapp: boolean) {
   const n = spokenNumber(g.id, lang);
+  const title = (l: 1 | 2) => (lang === "en" ? levels[l].title.en : levels[l].title.hi).replace(" / ", lang === "en" ? " or " : " या ");
   return lang === "en"
-    ? `Your complaint is registered. Your complaint number ends in ${n}. The block officer must act by ${fmt(g.levelDueAt, "en")}. ${whatsapp ? "I have sent the full number and every update to this number on WhatsApp." : ""} Is there anything else?`
-    : `आपकी शिकायत दर्ज हो गई है। आपकी शिकायत संख्या है ${n}। ${fmt(g.levelDueAt, "hi")} तक अधिकारी को कार्यवाही करनी है। ${whatsapp ? "पूरी जानकारी और हर अपडेट इसी नंबर पर व्हाट्सऐप पर भेज दी है।" : ""} क्या और कुछ बताना है?`;
+    ? `Your complaint is registered. Your complaint number ends in ${n}. It has gone to the ${title(1)}, who must act by ${fmt(g.levelDueAt, "en")}. If it is not resolved by then, it moves automatically to the ${title(2)}. ${
+        whatsapp ? "I have sent the details to this number on WhatsApp. If you have a photo of the problem, send it there and it will be added to your complaint. Every update will also come on WhatsApp." : ""
+      } Is there anything else?`
+    : `आपकी शिकायत दर्ज हो गई है। आपकी शिकायत संख्या है ${n}। यह ${title(1)} के पास भेज दी गई है, जिन्हें ${fmt(g.levelDueAt, "hi")} तक कार्यवाही करनी है। अगर तब तक समाधान नहीं हुआ, तो शिकायत अपने आप ${title(2)} के पास चली जाएगी। ${
+        whatsapp ? "शिकायत की जानकारी आपके व्हाट्सऐप पर भेज दी है। अगर समस्या की फ़ोटो हो, तो उसी व्हाट्सऐप पर भेज दीजिए, वह आपकी शिकायत में जुड़ जाएगी। हर अपडेट भी वहीं आएगा।" : ""
+      } क्या और कुछ बताना है?`;
 }
 
 export function confirmLine(s: Slots, lang: "hi" | "en") {

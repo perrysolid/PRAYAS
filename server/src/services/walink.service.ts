@@ -5,7 +5,7 @@ import { pino } from "pino";
 import { config } from "../config.js";
 import { pgKv, postgresEnabled } from "../lib/postgres.js";
 import { transcribeFile } from "../voice/sarvam.js";
-import { handleInbound, useLinkedSender } from "./whatsapp.service.js";
+import { handleInbound, handleInboundPhoto, useLinkedSender } from "./whatsapp.service.js";
 
 /*
  * WhatsApp on an ordinary number, without a Meta Business account: the server links to the number
@@ -223,7 +223,11 @@ async function handle(sock: Socket, b: Baileys, m: any) {
   await sock.readMessages([m.key]).catch(() => {});
   await sock.sendPresenceUpdate("composing", jid).catch(() => {});
   try {
-    const text: string = (x.conversation ?? x.extendedTextMessage?.text ?? x.imageMessage?.caption ?? "").trim();
+    if (x.imageMessage) {
+      const data = (await b.downloadMediaMessage(m, "buffer", {})) as Buffer;
+      return await handleInboundPhoto(mobile, data, x.imageMessage.mimetype ?? "image/jpeg", (x.imageMessage.caption ?? "").trim(), name);
+    }
+    const text: string = (x.conversation ?? x.extendedTextMessage?.text ?? "").trim();
     if (text) return await handleInbound(mobile, text, name);
     if (x.audioMessage) {
       const data = (await b.downloadMediaMessage(m, "buffer", {})) as Buffer;
@@ -232,7 +236,7 @@ async function handle(sock: Socket, b: Baileys, m: any) {
       await sock.sendMessage(jid, { text: "माफ़ कीजिए, आवाज़ समझ नहीं आई। कृपया लिखकर भेजें या दोबारा बोलें।\nSorry, I couldn't make out the voice note. Please type it or try again." });
       return;
     }
-    await sock.sendMessage(jid, { text: "मैं लिखे संदेश और वॉइस नोट समझ सकती हूँ। अपनी समस्या लिखें या बोलकर भेजें।\nI can read text and voice notes. Please describe your problem." });
+    await sock.sendMessage(jid, { text: "मैं लिखे संदेश, वॉइस नोट और फ़ोटो समझ सकती हूँ। अपनी समस्या लिखें या बोलकर भेजें।\nI can read text, voice notes and photos. Please describe your problem." });
   } finally {
     await sock.sendPresenceUpdate("paused", jid).catch(() => {});
   }

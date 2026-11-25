@@ -51,6 +51,13 @@ export const callsInProgress = () => activeCalls;
 /** District names help speech recognition with place names it would otherwise mishear. */
 const KEYTERMS = [...districts.flatMap((d) => [d.name.hi, d.name.en]), "उत्तराखंड", "मुख्यमंत्री हेल्पलाइन", "जल संस्थान", "यूपीसीएल"];
 
+const letters = (s: string) => s.replace(/[\s.,।?!'"-]/g, "").length;
+/** "हाँ", "जी", "अच्छा": the caller is listening, not taking the turn. */
+const BACKCHANNEL = /^(हाँ|हां|हा|जी|हाँ जी|जी हाँ|हम्म*|हूँ|अच्छा|अच्छा जी|ठीक है|ठीक|ओके|ok|okay|yes|yeah|हेलो|हैलो|hello|नहीं|नही|no)[\s.,।?!]*$/iu;
+const YES_NO = /^(हाँ|हां|हा|जी|हाँ जी|जी हाँ|ठीक है|ओके|ok|okay|yes|नहीं|नही|no)[\s.,।?!]*$/iu;
+/** While the agent is talking, only clear speech counts as the caller taking the turn; a cough, a horn or a short "हाँ" does not. */
+const takesTurn = (s: string) => !BACKCHANNEL.test(s.trim()) && ((letters(s) >= 6 && s.trim().split(/\s+/).length >= 2) || letters(s) >= 9);
+
 export class CallAgent {
   private listener: Listener;
   private speaker: Speaker;
@@ -61,6 +68,8 @@ export class CallAgent {
   private history: Anthropic.MessageParam[] = [];
   private transcript: CallLine[] = [];
   private heard = "";
+  /** A yes or no said over the read-back, answered once the agent finishes. */
+  private queued?: string;
   private turn = 0;
   private abort?: AbortController;
   /** Audio has been sent that the caller has not finished hearing. */
@@ -96,8 +105,8 @@ export class CallAgent {
     });
     this.listener.on("partial", (text) => {
       this.clearSilence();
-      // A real word or two, not line noise: the caller is talking over the agent.
-      if (text.replace(/[\s.,।?!]/g, "").length >= 3 && (this.speaking || this.abort)) this.interrupt();
+      // Over the agent's voice only clear words interrupt; while it is still thinking, any words do.
+      if (this.speaking ? takesTurn(text) : this.abort && letters(text) >= 3) this.interrupt();
       this.t.event?.({ type: "caption", who: "citizen", text, final: false });
     });
     this.listener.on("final", (text) => void this.onFinal(text));
@@ -143,6 +152,9 @@ export class CallAgent {
     if (name !== `t${this.turn}`) return;
     this.speaking = false;
     if (this.endAfterPlayback) return this.finish();
+    const q = this.queued;
+    this.queued = undefined;
+    if (q) return void this.onFinal(q);
     this.armSilence();
   }
 
@@ -189,6 +201,7 @@ export class CallAgent {
     if (this.speaking) this.t.clear();
     this.speaking = false;
     this.endAfterPlayback = false;
+    this.queued = undefined;
   }
 
   /* ------------------------------------------------------------------ */
@@ -197,6 +210,12 @@ export class CallAgent {
 
   private async onFinal(text: string) {
     if (this.ended || !text) return;
+    if (this.speaking && !takesTurn(text)) {
+      // Noise or a backchannel while the agent talks: keep talking. A "हाँ" over the read-back still counts once it ends.
+      if (this.lastAction === "confirm" && YES_NO.test(text.trim())) this.queued = text;
+      note(`kept talking over: ${text.slice(0, 40)}`);
+      return;
+    }
     this.silentPrompts = 0;
     this.log("citizen", text);
     note(`heard: ${text.slice(0, 80)}`);

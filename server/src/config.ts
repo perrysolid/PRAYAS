@@ -57,8 +57,9 @@ export const config = {
   voice: {
     sarvamKey: process.env.SARVAM_API_KEY ?? "",
     model: process.env.VOICE_MODEL || process.env.CLAUDE_MODEL || "claude-haiku-5-5",
-    speakerHi: process.env.SARVAM_SPEAKER_HI || "ritu_hi_customer_warm",
-    speakerEn: process.env.SARVAM_SPEAKER_EN || "ishita_enhi_customer",
+    // Sarvam's top picks for Hindi and English customer care.
+    speakerHi: process.env.SARVAM_SPEAKER_HI || "aparna_hi_customer",
+    speakerEn: process.env.SARVAM_SPEAKER_EN || "aparna_en_companion",
     /** Shared secret in the Exotel Voicebot URL (?secret=…). Required in production. */
     streamSecret: process.env.PHONE_STREAM_SECRET ?? "",
     /** Garhwali speech recognition (Meta Omnilingual ASR, see garhwali-asr/). Optional. */
