@@ -1,3 +1,4 @@
+import { isSensitive } from "./triage.service.js";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { config } from "../config.js";
 import { departments, levels, MAX_OPEN_GRIEVANCES } from "../data/catalog.js";
@@ -119,6 +120,7 @@ export function create(session: CitizenSession, input: CreateGrievanceInput, cha
     block: input.block,
     village: input.village,
     urgency: input.triage?.urgency ?? "normal",
+    sensitive: isSensitive(`${input.subject} ${input.description}`) || undefined,
     status: "registered",
     level: 1,
     levelDueAt: addDays(now, levels[1].days),
@@ -266,7 +268,7 @@ export function setLocation(id: string, who: { token?: string; mobile?: string }
 export function similar(q: { departmentId: string; districtId: string; categoryId?: string; block?: string }) {
   return store.grievances
     .all()
-    .filter((g) => isOpen(g) && g.departmentId === q.departmentId && g.districtId === q.districtId)
+    .filter((g) => isOpen(g) && !g.sensitive && g.departmentId === q.departmentId && g.districtId === q.districtId)
     .map((g) => ({ g, score: (q.categoryId && g.categoryId === q.categoryId ? 2 : 0) + (q.block && g.block === q.block ? 3 : 0) + Math.min(2, supportCount(g) / 10) }))
     .filter((x) => x.score >= 2)
     .sort((a, b) => b.score - a.score || b.g.submittedAt.localeCompare(a.g.submittedAt))
@@ -287,7 +289,7 @@ export function similar(q: { departmentId: string; districtId: string; categoryI
 /** "I face this too": adds the citizen's voice to an open complaint. More supporters move it up the officer's queue. */
 export function support(session: CitizenSession, id: string) {
   const g = store.grievances.find(id);
-  if (!g) throw notFound("No complaint with that number");
+  if (!g || g.sensitive) throw notFound("No complaint with that number");
   if (!isOpen(g)) throw conflict("ALREADY_RESOLVED", "This complaint is already resolved. If the problem is back, register a new complaint.");
   if (g.citizenMobile === session.mobile) throw conflict("OWN_COMPLAINT", "You registered this complaint yourself");
   g.supporters ??= [];

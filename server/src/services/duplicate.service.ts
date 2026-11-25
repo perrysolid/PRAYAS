@@ -1,3 +1,4 @@
+import { isSensitive } from "./triage.service.js";
 import { districts, levels } from "../data/catalog.js";
 import { store } from "../data/store.js";
 import { aiEnabled, generateJson } from "../lib/llm.js";
@@ -20,7 +21,7 @@ function candidates(q: DuplicateQuery) {
   const since = Date.now() - 60 * DAY;
   return store.grievances
     .all()
-    .filter((g) => isOpen(g) && g.departmentId === q.departmentId && g.districtId === q.districtId && new Date(g.submittedAt).getTime() > since)
+    .filter((g) => isOpen(g) && !g.sensitive && g.departmentId === q.departmentId && g.districtId === q.districtId && new Date(g.submittedAt).getTime() > since)
     .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
     .slice(0, 15);
 }
@@ -31,6 +32,8 @@ function byRules(q: DuplicateQuery, list: Grievance[]) {
 }
 
 export async function findDuplicate(q: DuplicateQuery): Promise<Grievance | null> {
+  // A sensitive complaint is always the citizen's own: never merged into someone else's.
+  if (isSensitive(q.text)) return null;
   const list = candidates(q);
   if (!list.length) return null;
   if (!aiEnabled()) return byRules(q, list);

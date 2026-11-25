@@ -296,3 +296,5 @@ main:focus { outline: none; }
 .signin:hover { background: var(--brand-tint); }
 .signin__short { display: none; }
 @media (max-width: 560px) { .signin__long { display: none; } .signin__short { display: inline; } .signin { padding: 0 14px; } .burger { width: 42px; height: 42px; } }
+
+.tag--sensitive { display: inline-flex; align-items: center; gap: 4px; background: #f3e8ff; color: #5b21b6; border-color: #ddd6fe; }

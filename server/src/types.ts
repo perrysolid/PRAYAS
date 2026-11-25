@@ -60,6 +60,8 @@ export type Grievance = {
   /** Citizen's photo of the problem, and the officer's photo proving it was fixed. */
   photos?: { before?: Photo; after?: Photo };
   /** The exact spot, pinned by the citizen on the map or shared on WhatsApp. */
+  /** Women's safety, children, corruption, threats: never shown publicly, never merged or supported by others. */
+  sensitive?: boolean;
   location?: GeoPin;
   /** Mobiles of other citizens who said "I face this too" instead of filing a duplicate. */
   supporters?: string[];

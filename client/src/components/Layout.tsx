@@ -231,7 +231,7 @@ function Footer() {
           </div>
         </div>
         <div className="footer__base">
-          <span>{t("CM Helpline is run by ITDA, Government of Uttarakhand.", "मुख्यमंत्री हेल्पलाइन का संचालन आईटीडीए, उत्तराखंड सरकार करती है।")}</span>
+          <span>{t("CM Helpline is run by ITDA, Government of Uttarakhand. It is free: we never ask for money, an OTP or UPI. Report anyone who does on 1930.", "मुख्यमंत्री हेल्पलाइन का संचालन आईटीडीए, उत्तराखंड सरकार करती है। यह निःशुल्क है: हम कभी पैसे, OTP या UPI नहीं माँगते। कोई माँगे तो 1930 पर बताएँ।")}</span>
           <a href="https://cmhelpline.uk.gov.in/" rel="noopener">{t("Go to the official portal", "आधिकारिक पोर्टल पर जाएँ")}</a>
         </div>
       </div>

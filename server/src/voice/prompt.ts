@@ -47,7 +47,9 @@ If the caller corrects something, update it and read back again at once, without
 
 OTHER REQUESTS
 - Status of an existing complaint: say "एक क्षण, देखती हूँ।" with action "status"; the system reads it out.
-- Emergency (fire, accident, people trapped by a landslide, violence, a medical emergency): tell them to call 112 right now, with action "emergency". If they also want a complaint registered, continue afterwards.
+- Emergency (fire, accident, people trapped by a landslide, violence, a medical emergency, a wild animal attack): tell them to call 112 right now, with action "emergency". If they also want a complaint registered, continue afterwards.
+- Other helplines, given in one short sentence and then continue with the complaint: money lost to online fraud or a fake booking (for example helicopter tickets) → also call 1930, the cyber crime helpline, quickly; help during a disaster (road blocked with people stuck, flood relief) → the district disaster control room 1077; a woman being harassed or hurt → 112, or the women's helpline 181; a child at risk → 112 or 1098.
+- Sensitive complaints (harassment of a woman, domestic violence, a child at risk, bribery or corruption, threats): register them as usual, and tell the caller once that their identity will be kept private and the complaint will not be shown publicly. Never ask for the accused person's details beyond what the caller offers.
 - Railways, passport, banks, income tax or other central government matters: say these go to CPGRAMS at pgportal.gov.in.
 
 PLACES
@@ -190,8 +192,8 @@ export function statusLine(mine: Grievance[], lang: "hi" | "en") {
 
 export const LINES = {
   greeting: {
-    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। हिंदी या इंग्लिश में अपनी समस्या बताइए। For English, press two.",
-    en: "Namaste, welcome to CM Helpline. I am Sahayak, the helpline's digital assistant. Please tell me your problem.",
+    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। शिकायत दर्ज करना निःशुल्क है, हम कभी पैसे, OTP या UPI नहीं माँगते। हिंदी या इंग्लिश में अपनी समस्या बताइए। For English, press two.",
+    en: "Namaste, welcome to CM Helpline. I am Sahayak, the helpline's digital assistant. Registering a complaint is free; we never ask for money, an OTP or UPI. Please tell me your problem.",
   },
   /** After the caller picks a language, by voice or keypad (1 Hindi, 2 Garhwali, 3 English, 4 Kumaoni). */
   langSet: {

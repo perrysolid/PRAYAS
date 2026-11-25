@@ -157,6 +157,7 @@ function Detail({ id }: { id: string }) {
       <div>
         <div className="detail-status">
           <StatusTag status={g.status} /> {g.urgency === "high" && <StatusTag status="urgent" />}
+          {g.sensitive && <span className="tag tag--sensitive">{t("Private: not shown publicly", "गोपनीय: सार्वजनिक नहीं")}</span>}
           {g.supportCount > 0 && <span className="pill"><Users size={16} aria-hidden="true" /> {t(`${g.supportCount} others joined`, `${g.supportCount} अन्य जुड़े`)}</span>}
           {g.photos?.after && <span className="pill pill--ok"><BadgeCheck size={16} aria-hidden="true" /> {t("Photo proof", "फ़ोटो प्रमाण")}</span>}
           <ReadAloud

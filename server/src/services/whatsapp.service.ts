@@ -1,3 +1,4 @@
+import { isSafetyMatter } from "./triage.service.js";
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { config } from "../config.js";
 import { departments, districts, levels } from "../data/catalog.js";
@@ -100,10 +101,17 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
         ? `\n\n🌐 हमारी वेबसाइट: ${config.siteUrl}\nयहाँ आप अपनी सभी शिकायतें और बाकी सारी जानकारी देख सकते हैं (इसी मोबाइल नंबर से साइन इन करें)।`
         : `\n\n🌐 Our website: ${config.siteUrl}\nSee all your complaints and everything else there (sign in with this mobile number).`;
       const where = [g.village, g.block].filter(Boolean).join(", ");
+      const safety = isSafetyMatter(`${g.subject} ${g.description}`);
+      const privacy = g.sensitive
+        ? hi
+          ? `\n\n🔒 यह संवेदनशील शिकायत है: आपकी पहचान गोपनीय रहेगी और यह कहीं सार्वजनिक नहीं दिखेगी।${safety ? " तत्काल खतरा हो तो 112, महिला हेल्पलाइन 181, बच्चों के लिए 1098।" : ""}`
+          : `\n\n🔒 This is a sensitive complaint: your identity stays private and it is never shown publicly.${safety ? " In immediate danger call 112; women's helpline 181; for a child, 1098." : ""}`
+        : "";
+      const safe = hi ? "\n\n🛡️ शिकायत दर्ज करना और उसका निस्तारण निःशुल्क है। हम कभी पैसे, OTP या UPI नहीं माँगते; कोई माँगे तो 1930 पर बताएँ।" : "\n\n🛡️ Registering and resolving complaints is free. We never ask for money, an OTP or UPI; if anyone does, report it on 1930.";
       return {
         text: hi
-          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${askBlock}${site}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
-          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${askBlock}${site}\n\nYou'll get every update here. Reply *STATUS* any time.`,
+          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${privacy}${askBlock}${site}${safe}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
+          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${privacy}${askBlock}${site}${safe}\n\nYou'll get every update here. Reply *STATUS* any time.`,
       };
     }
     case "note":
@@ -120,8 +128,8 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
         toSupporters: true,
         image: g.photos?.after?.dataUrl,
         text: hi
-          ? `✅ *${g.id}* निस्तारित: “${e.note}”\nफ़ोटो प्रमाण संलग्न है।\n\nसमाधान से कितने संतुष्ट हैं? *1* से *5* लिखें। समस्या बनी है तो *REOPEN* लिखें।`
-          : `✅ *${g.id}* is resolved: “${e.note}”\nPhoto proof attached.\n\nHow satisfied are you? Reply *1* to *5*. If the problem remains, reply *REOPEN*.`,
+          ? `✅ *${g.id}* निस्तारित: “${e.note}”\nफ़ोटो प्रमाण संलग्न है।\n\nक्या समस्या सच में ठीक हो गई है? *हाँ* या *नहीं* लिखें।\n(नहीं लिखने पर शिकायत अपने आप दोबारा खुल जाएगी और ऊपर के अधिकारी को जाएगी।)`
+          : `✅ *${g.id}* is resolved: “${e.note}”\nPhoto proof attached.\n\nIs the problem really fixed? Reply *YES* or *NO*.\n(If you reply NO, the complaint reopens and goes to the next senior officer.)`,
       };
     case "reminder":
       return { text: hi ? `🔔 *${g.id}* हेतु आपका अनुस्मारक ${officer} को भेज दिया गया है। यह मुख्यमंत्री कार्यालय को भी दिखता है।` : `🔔 Your reminder for *${g.id}* has gone to the ${officer}. The CM Office can see it too.` };
@@ -209,8 +217,8 @@ function statusLines(mobile: string, hi: boolean) {
 
 const menu = (hi: boolean) =>
   hi
-    ? `नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112\n\n🌐 वेबसाइट: ${config.siteUrl} — अपनी सभी शिकायतें और बाकी सारी जानकारी वहाँ देखें।`
-    : `Namaste! I'm Sahayak from CM Helpline. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112\n\n🌐 Website: ${config.siteUrl} — see all your complaints and everything else there.`;
+    ? `नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112\n\n🌐 वेबसाइट: ${config.siteUrl} — अपनी सभी शिकायतें और बाकी सारी जानकारी वहाँ देखें।\n🛡️ यह सेवा निःशुल्क है। हम कभी पैसे, OTP या UPI नहीं माँगते।`
+    : `Namaste! I'm Sahayak from CM Helpline. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112\n\n🌐 Website: ${config.siteUrl} — see all your complaints and everything else there.\n🛡️ This service is free. We never ask for money, an OTP or UPI.`;
 
 const LANG_MENU = "🌐 भाषा चुनें / Choose your language:\n\n1️⃣ हिंदी\n2️⃣ English\n3️⃣ गढ़वळि (Garhwali)\n4️⃣ कुमाऊँनी (Kumaoni)\n\nनंबर लिखकर भेजें / Reply with the number.";
 const LANG_SET: Record<ChatLang, string> = {
@@ -444,6 +452,23 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
       .filter((g) => g.citizenMobile === mobile && (open ? g.status !== "resolved" && g.status !== "closed" : g.status === "resolved"))
       .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
 
+  // "Is it really fixed?" — asked when the officer marks a complaint resolved, answered within a week.
+  const justResolved = latest(false);
+  if (justResolved && !justResolved.feedback && justResolved.resolvedAt && Date.now() - new Date(justResolved.resolvedAt).getTime() < 7 * 86_400_000) {
+    if (NO.test(text)) {
+      try {
+        grievances.reopen(session, justResolved.id, "Citizen says the problem is not fixed (replied NO on WhatsApp)");
+        return;
+      } catch (err) {
+        return reply(mobile, errorText(err, hi));
+      }
+    }
+    if (YES.test(text)) {
+      return reply(mobile, hi ? "बहुत अच्छा, धन्यवाद! 🙏 समाधान से कितने संतुष्ट हैं? *1* से *5* लिखें।" : "Glad to hear it, thank you! 🙏 How satisfied are you with the fix? Reply *1* to *5*.");
+    }
+  }
+  // A bare "yes" or "no" with nothing to answer is not a new complaint.
+  if (YES.test(text) || NO.test(text)) return reply(mobile, menu(hi));
   if (/^[1-5]$/.test(word) && latest(false)) {
     try {
       grievances.giveFeedback(session, latest(false)!.id, Number(word));

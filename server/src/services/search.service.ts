@@ -56,7 +56,7 @@ export function search(rawQuery: string) {
 
   const cases = store.grievances
     .all()
-    .filter((g) => done(g) && g.resolvedAt)
+    .filter((g) => done(g) && g.resolvedAt && !g.sensitive)
     .map((g) => {
       const text = `${g.subject} ${g.description}`.toLowerCase();
       const overlap = words.filter((w) => text.includes(w)).length;

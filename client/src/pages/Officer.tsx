@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import {
-  AlarmClock, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X,
-} from "lucide-react";
+import { AlarmClock, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, Lock, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { LocationCard } from "../components/LocationCard";
 import { ErrorSummary, Field, TextArea, describedBy } from "../components/Form";
@@ -133,6 +131,7 @@ function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance
       <div className="ws__tags">
         <StatusTag status={g.status} />
         {g.urgency === "high" && <StatusTag status="urgent" />}
+        {g.sensitive && <span className="tag tag--sensitive" title={t("Keep the complainant's identity private. Do not discuss it with the people named.", "शिकायतकर्ता की पहचान गोपनीय रखें। नामित व्यक्तियों से इस पर चर्चा न करें।")}><Lock size={13} aria-hidden="true" /> {t("Sensitive: identity private", "संवेदनशील: पहचान गोपनीय")}</span>}
         {isOpen(g) && <span className={`ws__due${due < 0 ? " is-overdue" : due <= 2 ? " is-soon" : ""}`}><Clock3 size={14} aria-hidden="true" /> L{g.level} · {due >= 0 ? t(`${due} days left`, `${due} दिन शेष`) : t(`${-due} days overdue`, `${-due} दिन विलंब`)}</span>}
         {g.supportCount > 0 && <span className="people"><Users size={14} aria-hidden="true" /> +{g.supportCount}</span>}
       </div>

@@ -19,6 +19,29 @@ const urgentWords = [
   "children in danger", "current lag", "करंट", "electrocut", "collapsed", "गिर गया", "no water for", "dying",
 ];
 
+/**
+ * Complaints where the complainant could be harmed if others learn of them: women's safety, children,
+ * corruption or bribery, threats, caste atrocities. Kept private and handled with the identity hidden.
+ */
+const sensitiveWords = [
+  "harass", "molest", "stalk", "eve teas", "rape", "sexual", "domestic violence", "dowry", "beats me", "husband beats",
+  "छेड़छाड़", "छेड़खानी", "उत्पीड़न", "यौन", "बलात्कार", "दुष्कर्म", "घरेलू हिंसा", "दहेज", "पीछा करता", "मारपीट करता", "पति मारता",
+  "child abuse", "child marriage", "child labour", "बाल विवाह", "बाल श्रम", "बच्चे के साथ गलत",
+  "bribe", "corruption", "corrupt", "रिश्वत", "घूस", "भ्रष्टाचार", "पैसे माँग", "पैसे मांग",
+  "threat", "धमकी", "जान से मारने", "जातिसूचक", "caste abuse", "atrocity",
+];
+export const isSensitive = (text: string) => {
+  const t = text.toLowerCase();
+  return sensitiveWords.some((w) => t.includes(w));
+};
+
+const corruptionWords = ["bribe", "corruption", "corrupt", "रिश्वत", "घूस", "भ्रष्टाचार", "पैसे माँग", "पैसे मांग"];
+/** A sensitive complaint about someone's safety (women, children, threats) rather than only about corruption. */
+export const isSafetyMatter = (text: string) => {
+  const t = text.toLowerCase();
+  return sensitiveWords.some((w) => !corruptionWords.includes(w) && t.includes(w));
+};
+
 const normalise = (text: string) => text.toLowerCase().replace(/\s+/g, " ");
 
 function scoreKeywords(text: string, keywords: string[]) {

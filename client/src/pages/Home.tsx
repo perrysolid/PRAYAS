@@ -295,7 +295,7 @@ export function Home() {
               <a href="tel:08047291964" className="hero__number" aria-label={t("Call 080 4729 1964", "080 4729 1964 पर कॉल करें")}>
                 <Phone size={28} aria-hidden="true" /> 080 4729 1964
               </a>
-              <p className="hero__call-text">{t("Speak in Hindi, English, Garhwali or Kumaoni. Your complaint is registered on the call.", "हिंदी, अंग्रेज़ी, गढ़वाली या कुमाऊँनी में बात करें। शिकायत कॉल पर ही दर्ज हो जाती है।")}</p>
+              <p className="hero__call-text">{t("Speak in Hindi or English. Your complaint is registered on the call. It is free: we never ask for money, an OTP or UPI.", "हिंदी या अंग्रेज़ी में बात करें। शिकायत कॉल पर ही दर्ज हो जाती है। यह निःशुल्क है: हम कभी पैसे, OTP या UPI नहीं माँगते।")}</p>
               <a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" className="hero__wa" rel="noopener">
                 <MessageCircle size={18} aria-hidden="true" /> {t("WhatsApp 83184 01662", "व्हाट्सऐप 83184 01662")}
               </a>

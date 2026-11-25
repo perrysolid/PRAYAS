@@ -59,6 +59,8 @@ export type Grievance = {
   photos?: { before?: Photo; after?: Photo };
   /** The exact spot, marked by the citizen on the map or shared on WhatsApp. */
   location?: GeoPin;
+  /** Women's safety, children, corruption, threats: kept private. */
+  sensitive?: boolean;
   supportCount: number;
   whatsapp?: boolean;
   channel?: "web" | "phone" | "app" | "whatsapp";
