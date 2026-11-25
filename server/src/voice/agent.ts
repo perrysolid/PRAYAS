@@ -82,6 +82,8 @@ export class CallAgent {
   private history: Anthropic.MessageParam[] = [];
   private transcript: CallLine[] = [];
   private heard = "";
+  /** When each stage of the current reply started, for the diagnostics page. */
+  private timing: { id: number; start: number; words?: number; sentence?: number; audio?: number } = { id: 0, start: 0 };
   /** A yes or no said over the read-back, answered once the agent finishes. */
   private queued?: string;
   private turn = 0;
@@ -278,6 +280,7 @@ export class CallAgent {
     const id = ++this.turn;
     const abort = new AbortController();
     this.abort = abort;
+    this.timing = { id, start: Date.now() };
     const user: Anthropic.MessageParam = { role: "user", content: turnMessage(heard, this.slots, this.lastAction, this.lang, this.local, localText) };
     const out = await this.speaker.begin(this.lang, (pcm) => this.audioOut(id, pcm)).catch((e: Error) => (note(`text-to-speech failed: ${e.message}`), null));
     if (!out) return this.say(LINES.sorry[this.lang], { end: true });
@@ -301,6 +304,7 @@ export class CallAgent {
         if (abort.signal.aborted) return;
         if (ev.type !== "content_block_delta" || ev.delta.type !== "text_delta") continue;
         raw += ev.delta.text;
+        this.timing.words ??= Date.now();
         const cut = raw.indexOf("###");
         // Hold back a trailing "#" or "##" that may be the start of the separator.
         const speechSoFar = cut >= 0 ? raw.slice(0, cut) : raw.replace(/#{1,2}$/, "");
@@ -308,7 +312,10 @@ export class CallAgent {
         spokenUpTo = speechSoFar.length;
         const { ready, rest } = takeSentences(pending);
         pending = rest;
-        for (const s of ready) out.say(s);
+        for (const s of ready) {
+          this.timing.sentence ??= Date.now();
+          out.say(s);
+        }
       }
     } catch (err) {
       if (abort.signal.aborted) return;
@@ -343,7 +350,9 @@ export class CallAgent {
       this.history.push({ role: "user", content: `<system_note>${extra.note}</system_note>` }, { role: "assistant", content: `${extra.line}\n###\n${JSON.stringify({ action: "ask" })}` });
     }
     // A register the system turned into a read-back counts as a confirm; one that lacked details does not.
-    this.lastAction = action === "register" && !this.registeredId ? (extra.readBack ? "confirm" : "ask") : action;
+    // A "confirm" only counts as the read-back when it asked to register ("…दर्ज कर दूँ?"), not when it checked one detail.
+    const askedToRegister = action === "confirm" && /दर्ज|register/i.test(speech);
+    this.lastAction = action === "register" && !this.registeredId ? (extra.readBack ? "confirm" : "ask") : action === "confirm" && !askedToRegister ? "ask" : action;
     if (action === "end") this.endAfterPlayback = true;
     out.end();
     await out.finished.catch(() => {});
@@ -448,6 +457,12 @@ export class CallAgent {
 
   private audioOut(id: number, pcm: Buffer) {
     if (this.ended || id !== this.turn || !pcm.length) return;
+    if (this.timing.id === id && !this.timing.audio) {
+      const t = (this.timing.audio = Date.now()) - this.timing.start;
+      const w = this.timing.words ? this.timing.words - this.timing.start : -1;
+      const s = this.timing.sentence ? this.timing.sentence - this.timing.start : -1;
+      note(`turn ${id} timing: model's first words ${w} ms, first sentence ${s} ms, first audio ${t} ms after hearing the caller`);
+    }
     this.speaking = true;
     this.t.sendAudio(pcm);
   }
