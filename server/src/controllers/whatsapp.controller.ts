@@ -2,10 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
 import { forbidden } from "../lib/httpError.js";
 import { store } from "../data/store.js";
+import { DEMO_MOBILES } from "../services/auth.service.js";
 import * as wa from "../services/whatsapp.service.js";
 
-/** Numbers anyone may use in the demo phone. Other numbers need that citizen to be signed in. */
-const DEMO_MOBILES = ["9876543210", "9876500001"];
+/* Numbers anyone may use in the demo phone (DEMO_MOBILES). Other numbers need that citizen to be signed in. */
 
 function allowedMobile(req: Request, mobile: string) {
   const s = req.session;

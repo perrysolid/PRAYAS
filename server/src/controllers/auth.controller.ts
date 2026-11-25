@@ -1,9 +1,9 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import * as auth from "../services/auth.service.js";
 import { cookieOptions, SESSION_COOKIE, signSession } from "../lib/tokens.js";
 
-export function sendOtp(req: Request, res: Response) {
-  res.json(auth.sendOtp(req.body.mobile));
+export function sendOtp(req: Request, res: Response, next: NextFunction) {
+  auth.sendOtp(req.body.mobile).then((r) => res.json(r), next);
 }
 
 export function verifyOtp(req: Request, res: Response) {

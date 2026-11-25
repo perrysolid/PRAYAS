@@ -8,7 +8,25 @@ const otps = new Map<string, OtpEntry>();
 
 const hashOtp = (mobile: string, otp: string) => scryptSync(`${mobile}:${otp}`, config.jwtSecret, 32).toString("hex");
 
-export function sendOtp(mobile: string): { resendInSeconds: number; devOtp?: string } {
+/** Fictional numbers for the walkthrough: their OTP is shown on screen, never texted. */
+export const DEMO_MOBILES = ["9876543210", "9876500001"];
+export const smsEnabled = () => Boolean(config.twoFactorKey);
+
+/** Texts the OTP through 2Factor.in (its own DLT-approved OTP template). */
+async function textOtp(mobile: string, otp: string) {
+  const url = `https://2factor.in/API/V1/${encodeURIComponent(config.twoFactorKey)}/SMS/91${mobile}/${otp}`;
+  try {
+    const res = await fetch(url, { method: "POST", signal: AbortSignal.timeout(10_000) });
+    const body = (await res.json().catch(() => ({}))) as { Status?: string; Details?: string };
+    if (res.ok && body.Status === "Success") return;
+    console.warn(`[sms] 2Factor refused the OTP (${res.status}: ${body.Details ?? "no detail"})`);
+  } catch (err) {
+    console.warn(`[sms] 2Factor unreachable (${(err as Error).message})`);
+  }
+  throw new HttpError(502, "SMS_FAILED", "We could not send the OTP by SMS just now. Please try again in a minute.");
+}
+
+export async function sendOtp(mobile: string): Promise<{ resendInSeconds: number; devOtp?: string; sms?: boolean }> {
   const existing = otps.get(mobile);
   const now = Date.now();
   if (existing && now - existing.sentAt < config.otpResendMs) {
@@ -17,7 +35,17 @@ export function sendOtp(mobile: string): { resendInSeconds: number; devOtp?: str
   }
   const otp = String(randomInt(100000, 1000000));
   otps.set(mobile, { hash: hashOtp(mobile, otp), expiresAt: now + config.otpTtlMs, sentAt: now, attempts: 0 });
-  // Production sends this through the state SMS gateway. The prototype returns it so the demo works offline.
+  const demo = config.showDemoOtp && DEMO_MOBILES.includes(mobile);
+  if (smsEnabled() && !demo) {
+    try {
+      await textOtp(mobile, otp);
+    } catch (err) {
+      otps.delete(mobile); // let them ask again straight away
+      throw err;
+    }
+    return { resendInSeconds: config.otpResendMs / 1000, sms: true };
+  }
+  // Without an SMS gateway (or for the demo numbers) the prototype shows the OTP on screen.
   return { resendInSeconds: config.otpResendMs / 1000, devOtp: config.showDemoOtp ? otp : undefined };
 }
 

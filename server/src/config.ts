@@ -78,6 +78,8 @@ export const config = {
   },
   /** Return the OTP in the API response. Never enable with a real SMS gateway. */
   showDemoOtp: !isProd || process.env.SHOW_DEMO_OTP === "true",
+  /** 2Factor.in API key: citizens' login OTPs go out by SMS when it is set. */
+  twoFactorKey: process.env.TWOFACTOR_API_KEY ?? "",
   otpTtlMs: 5 * 60 * 1000,
   otpResendMs: 30 * 1000,
   dataFile: resolve(process.cwd(), "data.json"),

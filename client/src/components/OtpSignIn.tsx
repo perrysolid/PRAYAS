@@ -93,7 +93,7 @@ export function OtpSignIn({ onDone, initialMobile = "" }: { onDone?: () => void;
       </p>
       {devOtp && (
         <p className="notice notice--warning small">
-          {t("Prototype only: no SMS is sent. Your OTP is", "केवल प्रोटोटाइप: SMS नहीं भेजा जाता। आपका OTP है")} <strong>{devOtp}</strong>
+          {t("Demo number: no SMS is sent. Your OTP is", "डेमो नंबर: SMS नहीं भेजा जाता। आपका OTP है")} <strong>{devOtp}</strong>
         </p>
       )}
       <Field id="otp" label={t("Enter OTP", "OTP दर्ज करें")} error={errors.otp}>

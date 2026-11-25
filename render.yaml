@@ -16,6 +16,9 @@ services:
         value: "2"
       - key: SHOW_DEMO_OTP
         value: "true"
+      # 2Factor.in API key for SMS login OTPs.
+      - key: TWOFACTOR_API_KEY
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGINS
