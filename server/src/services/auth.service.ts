@@ -79,6 +79,8 @@ const officers: Officer[] = [
   makeOfficer("je.jal.khirsu", "Junior Engineer, Jal Sansthan", "water", 1),
   makeOfficer("sdo.upcl.srinagar", "Sub Divisional Officer, UPCL", "energy", 1),
   makeOfficer("ee.pwd.pauri", "Executive Engineer, PWD", "pwd", 2),
+  // For demonstrations: an L1 officer who sees and acts on complaints of every department ("*").
+  makeOfficer("l1.demo", "Block / tehsil officer (all departments)", "*", 1),
 ];
 
 export const demoOfficerUsernames = officers.map((o) => o.username);

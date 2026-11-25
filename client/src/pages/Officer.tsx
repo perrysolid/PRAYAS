@@ -224,8 +224,11 @@ function Console() {
   const radarMax = Math.max(1, ...radar.map((r) => r.n));
 
   const dept = session?.role === "officer" ? department(session.departmentId) : undefined;
-  const byCategory = (dept?.categories ?? [])
-    .map((c) => ({ c, n: open.filter((g) => g.categoryId === c.id).length }))
+  // The demo officer for all departments ("*") sees open complaints by department instead of by issue.
+  const allDepts = session?.role === "officer" && session.departmentId === "*";
+  const byCategory = (allDepts
+    ? (meta?.departments ?? []).map((d) => ({ c: { id: d.id, name: d.name }, n: open.filter((g) => g.departmentId === d.id).length }))
+    : (dept?.categories ?? []).map((c) => ({ c, n: open.filter((g) => g.departmentId === dept?.id && g.categoryId === c.id).length })))
     .filter((x) => x.n > 0)
     .sort((a, b) => b.n - a.n)
     .slice(0, 5);
@@ -264,7 +267,7 @@ function Console() {
           <div className="oc-hero__text">
             <p className="oc-hero__kicker"><ShieldCheck size={15} aria-hidden="true" /> {t("Officer console", "अधिकारी कंसोल")} · L{session.level}</p>
             <h1 className="oc-hero__title">{session.name}</h1>
-            <p className="oc-hero__sub">{dept ? pick(dept.name) : ""} · {new Date().toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
+            <p className="oc-hero__sub">{dept ? pick(dept.name) : allDepts ? t("All departments", "सभी विभाग") : ""} · {new Date().toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "long", day: "numeric", month: "long" })}</p>
           </div>
           <p className="oc-hero__note">
             <MessageCircle size={16} aria-hidden="true" /> {t("Citizens get every update on WhatsApp", "नागरिकों को हर अद्यतन व्हाट्सऐप पर")}
@@ -311,7 +314,7 @@ function Console() {
               <p className="small muted">{t("Unresolved complaints move up a level automatically at the deadline.", "समय सीमा पर अनिस्तारित शिकायतें स्वतः ऊपर जाती हैं।")}</p>
             </section>
             <section className="card" aria-labelledby="oc-cat-title">
-              <h2 id="oc-cat-title" className="oc-h2">{t("Open, by issue", "खुली, विषयवार")}</h2>
+              <h2 id="oc-cat-title" className="oc-h2">{allDepts ? t("Open, by department", "खुली, विभागवार") : t("Open, by issue", "खुली, विषयवार")}</h2>
               {byCategory.length ? (
                 <ul className="oc-bars">
                   {byCategory.map(({ c, n }) => (

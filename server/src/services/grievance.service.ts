@@ -267,7 +267,7 @@ export function support(session: CitizenSession, id: string) {
 export function listForOfficer(officer: OfficerSession, filter: { status?: string }) {
   return store.grievances
     .all()
-    .filter((g) => g.departmentId === officer.departmentId && g.level <= officer.level + 1)
+    .filter((g) => (officer.departmentId === "*" || g.departmentId === officer.departmentId) && g.level <= officer.level + 1)
     .filter((g) => (filter.status === "open" ? isOpen(g) : filter.status ? g.status === filter.status : true))
     .sort((a, b) => {
       const overdue = (g: Grievance) => (isOpen(g) && new Date(g.levelDueAt).getTime() < Date.now() + 2 * 24 * HOUR ? 1 : 0);
@@ -285,7 +285,7 @@ export function listForOfficer(officer: OfficerSession, filter: { status?: strin
 export function officerAct(officer: OfficerSession, id: string, action: "note" | "resolve", note: string, photo?: Omit<Photo, "at">) {
   const g = store.grievances.find(id);
   if (!g) throw notFound("No complaint with that number");
-  if (g.departmentId !== officer.departmentId) throw forbidden("This complaint belongs to another department");
+  if (officer.departmentId !== "*" && g.departmentId !== officer.departmentId) throw forbidden("This complaint belongs to another department");
   if (!isOpen(g)) throw conflict("ALREADY_RESOLVED", "This complaint is already resolved");
   const now = new Date().toISOString();
   if (action === "resolve") {
