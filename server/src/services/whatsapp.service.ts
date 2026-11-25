@@ -14,7 +14,7 @@ import { transcribeFile } from "../voice/sarvam.js";
 import { duplicateMessage, findDuplicate, joinDuplicate } from "./duplicate.service.js";
 
 /*
- * WhatsApp channel for CM Helpline 1905.
+ * WhatsApp channel for CM Helpline.
  * - Every update on a complaint (registered, officer note, escalation, resolution with photo, reminder,
  *   reopening, neighbours joining) is sent to the citizen on WhatsApp.
  * - Citizens can reply: ask for status, send a reminder, rate, reopen, or describe a new problem.
@@ -92,8 +92,8 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
     case "assigned":
       return {
         text: hi
-          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन 1905 पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
-          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline 1905.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}\n\nYou'll get every update here. Reply *STATUS* any time.`,
+          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
+          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}\n\nYou'll get every update here. Reply *STATUS* any time.`,
       };
     case "note":
       return { toSupporters: true, text: hi ? `📝 *${g.id}* पर अद्यतन\n${e.by}: “${e.note}”` : `📝 Update on *${g.id}*\n${e.by}: “${e.note}”` };
@@ -198,8 +198,8 @@ function statusLines(mobile: string, hi: boolean) {
 
 const menu = (hi: boolean) =>
   hi
-    ? "नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन 1905 की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112"
-    : "Namaste! I'm Sahayak from CM Helpline 1905. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112";
+    ? "नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112"
+    : "Namaste! I'm Sahayak from CM Helpline. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112";
 
 const LANG_MENU = "🌐 भाषा चुनें / Choose your language:\n\n1️⃣ हिंदी\n2️⃣ English\n3️⃣ गढ़वळि (Garhwali)\n4️⃣ कुमाऊँनी (Kumaoni)\n\nनंबर लिखकर भेजें / Reply with the number.";
 const LANG_SET: Record<ChatLang, string> = {
@@ -229,7 +229,7 @@ async function reply(mobile: string, text: string) {
 
 function errorText(err: unknown, hi: boolean) {
   if (err instanceof HttpError) return err.message;
-  return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 1905 पर कॉल करें।" : "That didn't work right now. Please try again, or call 1905.";
+  return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 080 4729 1964 पर कॉल करें।" : "That didn't work right now. Please try again, or call 080 4729 1964.";
 }
 
 /**

@@ -12,7 +12,7 @@ const questions: { q: Text; a: Text }[] = [
   },
   {
     q: { en: "How do I register a complaint?", hi: "शिकायत कैसे दर्ज करें?" },
-    a: { en: "Describe the problem in your own words on this page, in writing or by voice. We suggest the department for your confirmation. You can also call 1905 or message us on WhatsApp.", hi: "इसी पृष्ठ पर अपनी समस्या अपने शब्दों में, लिखकर या बोलकर बताएँ। हम पुष्टि हेतु विभाग सुझाते हैं। आप 1905 पर कॉल या व्हाट्सऐप पर संदेश भी कर सकते हैं।" },
+    a: { en: "Describe the problem in your own words on this page, in writing or by voice. We suggest the department for your confirmation. You can also call 080 4729 1964 or message us on WhatsApp.", hi: "इसी पृष्ठ पर अपनी समस्या अपने शब्दों में, लिखकर या बोलकर बताएँ। हम पुष्टि हेतु विभाग सुझाते हैं। आप 080 4729 1964 पर कॉल या व्हाट्सऐप पर संदेश भी कर सकते हैं।" },
   },
   {
     q: { en: "How long will it take to get a response?", hi: "समाधान में कितना समय लगेगा?" },
@@ -60,7 +60,7 @@ export function Faq() {
           ))}
         </Reveal>
         <p className="faqs__more">
-          <Phone size={16} aria-hidden="true" /> {t("Still have a question? Call", "अब भी प्रश्न है? कॉल करें")} <a href="tel:1905"><strong>1905</strong></a> {t("or see", "या देखें")} <Link to="/help">{t("all help topics", "सभी सहायता विषय")}</Link>.
+          <Phone size={16} aria-hidden="true" /> {t("Still have a question? Call", "अब भी प्रश्न है? कॉल करें")} <a href="tel:08047291964"><strong>080 4729 1964</strong></a> {t("or see", "या देखें")} <Link to="/help">{t("all help topics", "सभी सहायता विषय")}</Link>.
         </p>
       </div>
     </section>

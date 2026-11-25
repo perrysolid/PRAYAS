@@ -34,7 +34,6 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
     ...(session?.role === "officer" ? [] : [{ to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User }]),
-    { to: "/call", label: t("Talk to the voice agent", "वॉइस एजेंट से बात करें"), Icon: Phone },
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/demo", label: t("Watch it work", "देखें कैसे काम करता है"), Icon: PlayCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
@@ -92,7 +91,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
         {session?.role === "officer" && (
           <li><NavLink to="/officer" onClick={onClose}><ShieldCheck size={18} aria-hidden="true" />{t("Officer console", "अधिकारी कंसोल")}</NavLink></li>
         )}
-        <li><a href="tel:1905"><Phone size={18} aria-hidden="true" />{t("Call 1905, toll free", "1905 पर कॉल करें, निःशुल्क")}</a></li>
+        <li><a href="tel:08047291964"><Phone size={18} aria-hidden="true" />{t("Call 080 4729 1964", "080 4729 1964 पर कॉल करें")}</a></li>
         {session && (
           <li>
             <button type="button" onClick={() => { logout(); onClose(); }}><LogOut size={18} aria-hidden="true" />{t("Sign out", "साइन आउट")}</button>
@@ -139,7 +138,7 @@ function Header() {
           <Link to="/" className="brand">
             <StateSeal className="brand__seal" />
             <span className="brand__text">
-              <span className="brand__name">{t("CM Helpline 1905", "मुख्यमंत्री हेल्पलाइन 1905")}</span>
+              <span className="brand__name">{t("CM Helpline", "मुख्यमंत्री हेल्पलाइन")}</span>
               <span className="brand__name-alt" lang={lang === "en" ? "hi" : "en"}>{lang === "en" ? "मुख्यमंत्री हेल्पलाइन" : "CM Helpline"}</span>
               <span className="brand__sub">{t("Government of Uttarakhand", "उत्तराखंड सरकार")}</span>
             </span>
@@ -185,15 +184,15 @@ function Footer() {
         <div className="footer__brand">
           <img src="/img/seal.png" alt="" width="56" height="56" />
           <span>
-            <strong>{t("CM Helpline 1905", "मुख्यमंत्री हेल्पलाइन 1905")}</strong>
-            {t("Government of Uttarakhand · Toll free from any phone", "उत्तराखंड सरकार · किसी भी फ़ोन से निःशुल्क")}
+            <strong>{t("CM Helpline", "मुख्यमंत्री हेल्पलाइन")}</strong>
+            {t("Government of Uttarakhand", "उत्तराखंड सरकार")}
           </span>
         </div>
         <div className="footer__grid">
           <div>
             <h2>{t("Register a complaint", "शिकायत दर्ज करें")}</h2>
             <ul>
-              <li><a href="tel:1905">{t("Call 1905 (toll free)", "1905 पर कॉल करें (निःशुल्क)")}</a></li>
+              <li><a href="tel:08047291964">{t("Call 080 4729 1964", "080 4729 1964 पर कॉल करें")}</a></li>
               <li><Link to="/register">{t("Online, in Hindi or English", "ऑनलाइन, हिंदी या अंग्रेज़ी में")}</Link></li>
               <li><a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" rel="noopener">{t("WhatsApp +91 83184 01662", "व्हाट्सऐप +91 83184 01662")}</a></li>
               <li><a href="https://play.google.com/store/apps/details?id=com.itda" rel="noopener">{t("Android app", "एंड्रॉइड ऐप")}</a></li>
@@ -232,7 +231,7 @@ function Footer() {
           </div>
         </div>
         <div className="footer__base">
-          <span>{t("CM Helpline 1905 is run by ITDA, Government of Uttarakhand.", "मुख्यमंत्री हेल्पलाइन 1905 का संचालन आईटीडीए, उत्तराखंड सरकार करती है।")}</span>
+          <span>{t("CM Helpline is run by ITDA, Government of Uttarakhand.", "मुख्यमंत्री हेल्पलाइन का संचालन आईटीडीए, उत्तराखंड सरकार करती है।")}</span>
           <a href="https://cmhelpline.uk.gov.in/" rel="noopener">{t("Go to the official portal", "आधिकारिक पोर्टल पर जाएँ")}</a>
         </div>
       </div>

@@ -46,7 +46,7 @@ function Slip({ id }: { id: string }) {
           <img src="/img/seal.png" alt="" />
           <div>
             <h2 id="receipt-title">{t("Acknowledgement of complaint", "शिकायत की पावती")}</h2>
-            <p>{t("CM Helpline 1905 · Government of Uttarakhand", "मुख्यमंत्री हेल्पलाइन 1905 · उत्तराखंड सरकार")}</p>
+            <p>{t("CM Helpline · Government of Uttarakhand", "मुख्यमंत्री हेल्पलाइन · उत्तराखंड सरकार")}</p>
           </div>
         </header>
         <div className="receipt__body">
@@ -71,8 +71,8 @@ function Slip({ id }: { id: string }) {
         </div>
         <p className="receipt__foot">
           {t(
-            "If it is not resolved by the date above, it moves to a higher officer automatically. Send a reminder after 7 days. Call 1905 (toll free) with this number for help. This is a computer-generated acknowledgement and needs no signature.",
-            "उपरोक्त तिथि तक निस्तारण न होने पर यह स्वतः उच्च अधिकारी को जाएगी। 7 दिन बाद अनुस्मारक भेजें। सहायता हेतु इस संख्या के साथ 1905 (निःशुल्क) पर कॉल करें। यह कंप्यूटर जनित पावती है, हस्ताक्षर आवश्यक नहीं।",
+            "If it is not resolved by the date above, it moves to a higher officer automatically. Send a reminder after 7 days. Call 080 4729 1964 with this number for help. This is a computer-generated acknowledgement and needs no signature.",
+            "उपरोक्त तिथि तक निस्तारण न होने पर यह स्वतः उच्च अधिकारी को जाएगी। 7 दिन बाद अनुस्मारक भेजें। सहायता हेतु इस संख्या के साथ 080 4729 1964 पर कॉल करें। यह कंप्यूटर जनित पावती है, हस्ताक्षर आवश्यक नहीं।",
           )}
         </p>
       </article>

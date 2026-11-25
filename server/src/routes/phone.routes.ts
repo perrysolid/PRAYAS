@@ -32,7 +32,7 @@ export const phoneRoutes = Router()
   })
   /** A practice call is registered to the signed-in citizen's mobile, or to the demo mobile. */
   .post("/browser-token", callLimiter, (req, res, next) => {
-    if (!voiceReady()) return next(new HttpError(503, "VOICE_UNAVAILABLE", "The voice agent is not switched on right now. Call 1905 or use WhatsApp."));
+    if (!voiceReady()) return next(new HttpError(503, "VOICE_UNAVAILABLE", "The voice agent is not switched on right now. Call 080 4729 1964 or use WhatsApp."));
     const s = req.session;
     const mobile = s?.role === "citizen" ? s.mobile : config.showDemoOtp ? DEMO_MOBILE : null;
     if (!mobile) return next(unauthorized("Sign in with your mobile number to try a call"));

@@ -6,6 +6,6 @@ export function useDocumentTitle(en: string, hi: string) {
   const { t } = useI18n();
   const title = t(en, hi);
   useEffect(() => {
-    document.title = `${title} – ${t("CM Helpline 1905, Uttarakhand", "मुख्यमंत्री हेल्पलाइन 1905, उत्तराखंड")}`;
+    document.title = `${title} – ${t("CM Helpline, Uttarakhand", "मुख्यमंत्री हेल्पलाइन, उत्तराखंड")}`;
   }, [title, t]);
 }

@@ -37,7 +37,7 @@ const faqs = [
   },
   {
     q: ["Can I write in Garhwali or Kumaoni?", "क्या गढ़वाली या कुमाऊँनी में लिख सकते हैं?"],
-    a: ["Yes. Write the way you speak. If we can't place the department, you can choose it yourself, or call 1905.", "हाँ। जैसे बोलते हैं वैसे लिखें। विभाग पता न चले तो आप स्वयं चुन सकते हैं या 1905 पर कॉल करें।"],
+    a: ["Yes. Write the way you speak. If we can't place the department, you can choose it yourself, or call 080 4729 1964.", "हाँ। जैसे बोलते हैं वैसे लिखें। विभाग पता न चले तो आप स्वयं चुन सकते हैं या 080 4729 1964 पर कॉल करें।"],
   },
 ] as const;
 
@@ -57,7 +57,7 @@ export function Help() {
         </div>
         <aside className="aside-card aside-card--plain">
           <h3>{t("Still stuck?", "अब भी समस्या है?")}</h3>
-          <p>{t("Call", "कॉल करें")} <a href="tel:1905"><strong>1905</strong></a> {t("or", "या")} <Link to="/contact">{t("write to us", "हमें लिखें")}</Link>.</p>
+          <p>{t("Call", "कॉल करें")} <a href="tel:08047291964"><strong>080 4729 1964</strong></a> {t("or", "या")} <Link to="/contact">{t("write to us", "हमें लिखें")}</Link>.</p>
         </aside>
       </div>
     </>
@@ -92,7 +92,7 @@ export function Contact() {
 
   return (
     <>
-      <PageHead en="Contact us" hi="संपर्क करें" lead={t("For problems with this website. To register a complaint about a department, use Register complaint or call 1905.", "इस वेबसाइट से जुड़ी समस्याओं के लिए। किसी विभाग की शिकायत के लिए 'शिकायत दर्ज करें' का उपयोग करें या 1905 पर कॉल करें।")} />
+      <PageHead en="Contact us" hi="संपर्क करें" lead={t("For problems with this website. To register a complaint about a department, use Register complaint or call 080 4729 1964.", "इस वेबसाइट से जुड़ी समस्याओं के लिए। किसी विभाग की शिकायत के लिए 'शिकायत दर्ज करें' का उपयोग करें या 080 4729 1964 पर कॉल करें।")} />
       <div className="container grid-2-1">
         <div>
           {sent ? (
@@ -118,7 +118,7 @@ export function Contact() {
         </div>
         <aside className="aside-card aside-card--plain">
           <h3>{t("Offices", "कार्यालय")}</h3>
-          <p><strong>{t("CM Helpline 1905", "मुख्यमंत्री हेल्पलाइन 1905")}</strong><br />{t("Uttarakhand Secretariat, New Building, 4th Floor, Subhash Road, Dehradun 248001", "उत्तराखंड सचिवालय, नया भवन, चौथी मंज़िल, सुभाष रोड, देहरादून 248001")}</p>
+          <p><strong>{t("CM Helpline", "मुख्यमंत्री हेल्पलाइन")}</strong><br />{t("Uttarakhand Secretariat, New Building, 4th Floor, Subhash Road, Dehradun 248001", "उत्तराखंड सचिवालय, नया भवन, चौथी मंज़िल, सुभाष रोड, देहरादून 248001")}</p>
           <p><strong>ITDA</strong><br />{t("IT Bhawan, Plot IT-07, Sahastradhara Road, IT Park, Dehradun 248013", "आईटी भवन, प्लॉट IT-07, सहस्त्रधारा रोड, आईटी पार्क, देहरादून 248013")}</p>
           <p><a href="mailto:cm-helpline@uk.gov.in">cm-helpline@uk.gov.in</a></p>
         </aside>
@@ -131,9 +131,9 @@ export function About() {
   const { t } = useI18n();
   return (
     <>
-      <PageHead en="About CM Helpline 1905" hi="मुख्यमंत्री हेल्पलाइन 1905 के बारे में" />
+      <PageHead en="About CM Helpline" hi="मुख्यमंत्री हेल्पलाइन के बारे में" />
       <div className="container prose">
-        <p className="lead">{t("CM Helpline 1905 is the Government of Uttarakhand's single place to raise complaints, demands and suggestions about any state department, by phone, website, app or WhatsApp.", "मुख्यमंत्री हेल्पलाइन 1905 उत्तराखंड सरकार का एकल मंच है, जहाँ किसी भी राज्य विभाग से जुड़ी शिकायत, मांग या सुझाव फ़ोन, वेबसाइट, ऐप या व्हाट्सऐप से दर्ज किए जा सकते हैं।")}</p>
+        <p className="lead">{t("CM Helpline is the Government of Uttarakhand's single place to raise complaints, demands and suggestions about any state department, by phone, website, app or WhatsApp.", "मुख्यमंत्री हेल्पलाइन उत्तराखंड सरकार का एकल मंच है, जहाँ किसी भी राज्य विभाग से जुड़ी शिकायत, मांग या सुझाव फ़ोन, वेबसाइट, ऐप या व्हाट्सऐप से दर्ज किए जा सकते हैं।")}</p>
         <h2>{t("What it promises", "इसका वादा")}</h2>
         <ul>
           <li>{t("Every complaint reaches the officer responsible, with a deadline.", "हर शिकायत ज़िम्मेदार अधिकारी तक, समय सीमा के साथ पहुँचती है।")}</li>
@@ -168,7 +168,7 @@ export function Accessibility() {
           <li>{t("Speak your complaint instead of typing, in Hindi or English", "टाइप करने के बजाय हिंदी या अंग्रेज़ी में बोलकर शिकायत दर्ज करें")}</li>
           <li>{t("Press Listen to hear your complaint's status read aloud, or ask Sahayak with your voice", "‘सुनें’ दबाकर शिकायत की स्थिति सुनें, या आवाज़ से सहायक से पूछें")}</li>
           <li>{t("The photo slideshow on the home page can be paused, and never moves if your device is set to reduce motion", "मुखपृष्ठ का फ़ोटो स्लाइड शो रोका जा सकता है, और ‘कम गति’ सेटिंग पर कभी नहीं चलता")}</li>
-          <li>{t("Register by phone on 1905 if the website doesn't work for you", "वेबसाइट उपयोगी न हो तो 1905 पर फ़ोन से दर्ज करें")}</li>
+          <li>{t("Register by phone on 080 4729 1964 if the website doesn't work for you", "वेबसाइट उपयोगी न हो तो 080 4729 1964 पर फ़ोन से दर्ज करें")}</li>
         </ul>
         <h2>{t("Known limitations", "ज्ञात सीमाएँ")}</h2>
         <ul>

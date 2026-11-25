@@ -214,7 +214,7 @@ async function handle(sock: Socket, b: Baileys, m: any) {
   // Complaints are tied to an Indian mobile number.
   const mobile = phone?.startsWith("91") && phone.length === 12 ? phone.slice(2) : undefined;
   if (!mobile) {
-    await sock.sendMessage(jid, { text: "CM Helpline 1905 serves Indian mobile numbers. Please call 1905." }).catch(() => {});
+    await sock.sendMessage(jid, { text: "CM Helpline serves Indian mobile numbers. Please call 080 4729 1964." }).catch(() => {});
     return;
   }
   const x = m.message;

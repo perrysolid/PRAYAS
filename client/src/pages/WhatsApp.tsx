@@ -142,7 +142,7 @@ export function WhatsApp() {
             <header className="wa-head">
               <span className="wa-head__avatar"><SahayakAvatar size={40} speaking={waiting} /></span>
               <span className="wa-head__titles">
-                <strong>CM Helpline 1905 <BadgeCheck size={15} aria-hidden="true" /></strong>
+                <strong>CM Helpline <BadgeCheck size={15} aria-hidden="true" /></strong>
                 <span>{waiting ? t("typing…", "लिख रही हैं…") : t("Government of Uttarakhand · Sahayak", "उत्तराखंड सरकार · सहायक")}</span>
               </span>
               <span className="wa-head__badge">{status?.mode === "cloud" || status?.mode === "linked" ? "Live" : t("Demo", "डेमो")}</span>

@@ -45,13 +45,13 @@
 
 .hero__call { background: rgba(6, 22, 48, .5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.22); border-radius: var(--radius-lg); padding: var(--s5); max-width: 26rem; }
 .hero__call-title { color: #fff; font-size: var(--fs-lg); margin-bottom: var(--s2); }
-.hero__number { display: inline-flex; align-items: center; gap: var(--s3); font-family: var(--font-display); font-weight: 700; color: #fff !important; text-decoration: none; font-size: clamp(3.25rem, 7vw, 5rem); line-height: 1; letter-spacing: -0.02em; margin-bottom: var(--s3); }
-.hero__number svg { width: .5em; height: .5em; background: var(--saffron); color: #1b1300; border-radius: 50%; padding: .1em; }
+.hero__number { display: inline-flex; align-items: center; gap: var(--s3); font-family: var(--font-display); font-weight: 700; color: #fff !important; text-decoration: none; font-size: clamp(1.6rem, 2.3vw, 2.1rem); line-height: 1.1; letter-spacing: 0; white-space: nowrap; margin-bottom: var(--s3); }
+.hero__number svg { flex: none; box-sizing: border-box; width: 38px; height: 38px; padding: 9px; background: var(--saffron); color: #1b1300; border-radius: 50%; }
 .hero__number:hover { color: #ffd9a8 !important; }
 .hero__call-text { color: #e4ebf5; max-width: 32ch; }
-.hero__channels { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--s2); }
-.hero__channels li { display: flex; align-items: center; gap: var(--s2); color: #c9d6e8; }
-.hero__channels a, .hero__link-btn { color: #fff !important; font-weight: 600; }
+.hero__wa { display: inline-flex; align-items: center; gap: var(--s2); margin-top: var(--s2); padding: 10px 18px; border-radius: 999px; background: #fff; color: var(--navy) !important; font-weight: 600; text-decoration: none; white-space: nowrap; justify-content: center; align-self: stretch; }
+.hero__wa svg { flex: none; color: #128c4a; }
+.hero__wa:hover { background: #ffd9a8; }
 .hero__link-btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: .18em; cursor: pointer; }
 @media (max-width: 999px) { .hero__call { max-width: none; } }
 
@@ -646,10 +646,10 @@ details summary { cursor: pointer; font-weight: 700; color: var(--link); padding
 
 /* ---------------- Hero: bottom wash and a tall, cornered call card ---------------- */
 .hero::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 120px; z-index: 1; pointer-events: none; background: linear-gradient(180deg, transparent, var(--surface)); }
-.hero__panels { grid-template-columns: minmax(0, 1fr) 272px; max-width: 80rem; gap: clamp(var(--s5), 7vw, 7rem); justify-content: space-between; }
+.hero__panels { grid-template-columns: minmax(0, 1fr) 320px; max-width: 80rem; gap: clamp(var(--s5), 7vw, 7rem); justify-content: space-between; }
 .hero__panels .describe { max-width: 40rem; justify-self: start; width: 100%; }
 .hero__panels .hero__call { padding: var(--s6) var(--s5); }
-.hero__panels .hero__number { font-size: clamp(2.6rem, 3.3vw, 3.2rem); }
+.hero__panels .hero__number { font-size: clamp(1.5rem, 2vw, 1.75rem); }
 .hero__panels > * { animation: rise .9s cubic-bezier(.2, .7, .2, 1) backwards; }
 .hero__panels > :nth-child(2) { animation-delay: .18s; }
 @media (max-width: 999px) { .hero__panels { grid-template-columns: minmax(0, 1fr); } .hero__panels .describe { max-width: none; } }
@@ -1008,10 +1008,6 @@ html.intro-played .carousel { animation: none; filter: none; }
 .watch__icon::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid rgba(242,140,27,.7); animation: watch-ring 2.2s ease-out infinite; }
 @keyframes watch-ring { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.45); opacity: 0; } }
 .watch__time { padding: 3px 10px; border-radius: 999px; background: rgba(6,22,48,.45); font-size: var(--fs-xs); font-weight: 600; }
-.langs { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(6,22,48,.42); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(10px); }
-.langs button { font: inherit; font-size: var(--fs-sm); color: #e6eef8; background: none; border: 0; padding: 5px 12px; border-radius: 999px; cursor: pointer; }
-.langs button:hover { background: rgba(255,255,255,.12); }
-.langs button[aria-pressed="true"] { background: #fff; color: var(--brand-deep, #0a2650); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .watch__icon::after, .hero__extras { animation: none; } }
 
 /* ---------- Home: government schemes ---------- */
@@ -1152,7 +1148,7 @@ html.intro-played .carousel { animation: none; filter: none; }
 /* ---------------- Search ---------------- */
 .home-search { padding: var(--s6) 0 var(--s2); text-align: center; }
 .home-search__title { margin: 0 0 var(--s3); font-family: var(--font-display); font-size: var(--fs-xl); color: var(--navy); }
-.home-search__hint { margin: var(--s3) 0 0; font-size: var(--fs-sm); color: var(--muted); }
+.home-search__hint { margin: var(--s3) auto 0; max-width: 40rem; font-size: var(--fs-sm); color: var(--muted); }
 .searchbar { display: flex; align-items: center; gap: var(--s3); max-width: 40rem; margin: 0 auto; padding: 6px 8px 6px var(--s4); background: var(--paper); border: 1.5px solid var(--line); border-radius: 999px; box-shadow: var(--shadow-sm); color: var(--navy); transition: border-color .2s ease, box-shadow .2s ease; }
 .searchbar:focus-within { border-color: var(--navy); box-shadow: var(--shadow); }
 .searchbar input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font: inherit; font-size: var(--fs-base); color: var(--ink); padding: 8px 0; }

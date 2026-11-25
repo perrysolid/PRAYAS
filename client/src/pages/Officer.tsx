@@ -138,7 +138,7 @@ function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance
       <dl className="ws__facts">
         <div><dt><MapPin size={14} aria-hidden="true" /> {t("Where", "कहाँ")}</dt><dd>{[g.village, g.block, district(g.districtId) && pick(district(g.districtId)!.name)].filter(Boolean).join(", ")}</dd></div>
         <div><dt><Phone size={14} aria-hidden="true" /> {t("Citizen", "नागरिक")}</dt><dd>{g.citizenName} · {g.citizenMobile}</dd></div>
-        <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Call 1905", "कॉल 1905") : t("Website", "वेबसाइट")}</dd></div>
+        <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Phone call", "फ़ोन कॉल") : t("Website", "वेबसाइट")}</dd></div>
       </dl>
       {g.escalationBrief && (
         <section className="ws-brief ws-brief--esc" aria-label={t("Why this reached you", "यह आपके पास क्यों आई")}>

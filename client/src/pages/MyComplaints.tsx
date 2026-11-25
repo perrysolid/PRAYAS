@@ -91,7 +91,7 @@ export function MyComplaints() {
         <aside>
           <div className="aside-card aside-card--plain">
             <h3>{t("Register a new grievance", "नई शिकायत दर्ज करें")}</h3>
-            <p className="small muted">{t("For a problem not already registered with CM Helpline 1905.", "ऐसी समस्या हेतु जो सीएम हेल्पलाइन 1905 पर पहले से दर्ज नहीं है।")}</p>
+            <p className="small muted">{t("For a problem not already registered with CM Helpline.", "ऐसी समस्या हेतु जो सीएम हेल्पलाइन पर पहले से दर्ज नहीं है।")}</p>
             <Link className="btn" to="/register">{t("Register a complaint", "शिकायत दर्ज करें")}</Link>
           </div>
         </aside>

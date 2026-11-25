@@ -268,7 +268,7 @@ export function Register() {
             </div>
             <aside className="aside-card">
               <h3>{t("Keep this number", "यह संख्या संभाल कर रखें")}</h3>
-              <p>{t("You need it with your mobile number to check the status without signing in, or when you call 1905.", "बिना साइन इन स्थिति देखने या 1905 पर कॉल करते समय मोबाइल नंबर के साथ इसकी आवश्यकता होगी।")}</p>
+              <p>{t("You need it with your mobile number to check the status without signing in, or when you call 080 4729 1964.", "बिना साइन इन स्थिति देखने या 080 4729 1964 पर कॉल करते समय मोबाइल नंबर के साथ इसकी आवश्यकता होगी।")}</p>
             </aside>
           </div>
         </div>
@@ -587,7 +587,7 @@ export function Register() {
             <div className="aside-card aside-card--plain">
               <h3>{t("Rather talk to someone?", "किसी से बात करना चाहते हैं?")}</h3>
               <p>
-                {t("Call", "कॉल करें")} <a href="tel:1905"><strong>1905</strong></a> {t("free from any phone.", "किसी भी फ़ोन से निःशुल्क।")}
+                {t("Call", "कॉल करें")} <a href="tel:08047291964"><strong>080 4729 1964</strong></a> {t("from any phone.", "किसी भी फ़ोन से।")}
               </p>
               <p className="small muted">{t("What you type is saved in this browser until you register, so you won't lose it if the connection drops.", "दर्ज करने तक आपका लिखा इसी ब्राउज़र में सुरक्षित रहता है, कनेक्शन टूटने पर भी नहीं खोता।")}</p>
             </div>

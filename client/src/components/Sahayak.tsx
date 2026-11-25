@@ -132,7 +132,7 @@ export function Sahayak() {
         actions: [{ label: t("Open full status", "पूरी स्थिति देखें"), run: () => { navigate(`/track?${new URLSearchParams({ id: g.id, mobile })}`); close(); } }],
       });
     } catch (err) {
-      say({ text: err instanceof ApiError ? err.message : t("I could not check that right now. Try again, or call 1905.", "अभी जाँच नहीं हो सकी। फिर से प्रयास करें या 1905 पर कॉल करें।") });
+      say({ text: err instanceof ApiError ? err.message : t("I could not check that right now. Try again, or call 080 4729 1964.", "अभी जाँच नहीं हो सकी। फिर से प्रयास करें या 080 4729 1964 पर कॉल करें।") });
     } finally {
       setBusy(false);
       setPendingId(null);
@@ -200,7 +200,7 @@ export function Sahayak() {
       return reply({ text: tr("If it was marked resolved but the problem remains, rate it 'Not satisfied' and reopen within 30 days. It goes to a higher officer.", "यदि निस्तारित दिखाया गया पर समस्या बनी है, तो 'असंतुष्ट' रेट करें और 30 दिन में पुनः खोलें। यह उच्च अधिकारी को जाएगी।") });
     }
     if (intent === "human" && isShortQuestion) {
-      return reply({ text: tr("Call 1905 free from any phone and an operator will register it for you. In an emergency call 112.", "किसी भी फ़ोन से 1905 पर निःशुल्क कॉल करें, ऑपरेटर शिकायत दर्ज करेंगे। आपात स्थिति में 112 पर कॉल करें।"), actions: [{ label: tr("Call 1905", "1905 पर कॉल करें"), run: () => (window.location.href = "tel:1905") }] });
+      return reply({ text: tr("Call 080 4729 1964 from any phone and your complaint is registered on the call. In an emergency call 112.", "किसी भी फ़ोन से 080 4729 1964 पर कॉल करें, कॉल पर ही शिकायत दर्ज हो जाएगी। आपात स्थिति में 112 पर कॉल करें।"), actions: [{ label: tr("Call 080 4729 1964", "080 4729 1964 पर कॉल करें"), run: () => (window.location.href = "tel:08047291964") }] });
     }
     if (intent === "hello" && input.length < 25) {
       return reply({ text: tr("Namaste! What can I help you with?", "नमस्ते! मैं आपकी क्या सहायता करूँ?"), actions: starters });
@@ -234,7 +234,7 @@ export function Sahayak() {
         ],
       });
     } catch {
-      reply({ text: tr("I could not reach the server. You can still register on the form, or call 1905.", "सर्वर से संपर्क नहीं हो सका। आप फ़ॉर्म से दर्ज कर सकते हैं या 1905 पर कॉल करें।") });
+      reply({ text: tr("I could not reach the server. You can still register on the form, or call 080 4729 1964.", "सर्वर से संपर्क नहीं हो सका। आप फ़ॉर्म से दर्ज कर सकते हैं या 080 4729 1964 पर कॉल करें।") });
     } finally {
       setBusy(false);
     }

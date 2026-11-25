@@ -72,7 +72,7 @@ export function Forms() {
           ))}
         </ul>
         {!rows.length && <p className="muted">{t("No form matches. Try other words.", "कोई फ़ॉर्म नहीं मिला। अन्य शब्द आज़माएँ।")}</p>}
-        <p className="small muted">{t("Forms are not stored here, so you always get the latest version. If a link does not open, call 1905.", "फ़ॉर्म यहाँ संग्रहीत नहीं हैं, इसलिए आपको हमेशा नवीनतम संस्करण मिलता है। लिंक न खुले तो 1905 पर कॉल करें।")}</p>
+        <p className="small muted">{t("Forms are not stored here, so you always get the latest version. If a link does not open, call 080 4729 1964.", "फ़ॉर्म यहाँ संग्रहीत नहीं हैं, इसलिए आपको हमेशा नवीनतम संस्करण मिलता है। लिंक न खुले तो 080 4729 1964 पर कॉल करें।")}</p>
       </div>
     </>
   );

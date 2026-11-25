@@ -21,7 +21,6 @@ import { useScrollScrub, type Rule } from "../hooks/useScrollScrub";
 import { useInView } from "../hooks/useInView";
 import { useSpeechInput } from "../hooks/useSpeechInput";
 import { api } from "../lib/api";
-import { languages, localLanguages } from "../lib/languages";
 import { formatDateTime, formatNumber } from "../lib/format";
 
 const quickStarts = [
@@ -35,10 +34,9 @@ const quickStarts = [
   { dept: "revenue", en: "Certificate delayed", hi: "प्रमाण पत्र में देरी" },
 ];
 
-/** The guided demonstration, and one-tap switching to the languages of Uttarakhand. */
+/** The guided demonstration. */
 function HeroExtras() {
-  const { t, locale, setLocale } = useI18n();
-  const options = [languages[0], languages[1], ...localLanguages];
+  const { t } = useI18n();
   return (
     <div className="hero__extras">
       <Link to="/demo" className="watch">
@@ -46,11 +44,6 @@ function HeroExtras() {
         {t("Watch it work", "देखें कैसे काम करता है")}
         <span className="watch__time">{t("60 sec", "60 सेकंड")}</span>
       </Link>
-      <div className="langs" role="group" aria-label={t("Language", "भाषा")} data-no-translate>
-        {options.map((l) => (
-          <button key={l.code} type="button" lang={l.code} aria-pressed={locale === l.code} onClick={() => setLocale(l.code)}>{l.native}</button>
-        ))}
-      </div>
     </div>
   );
 }
@@ -299,20 +292,13 @@ export function Home() {
             <DescribeBox />
             <aside className="hero__call" aria-labelledby="call-title">
               <h2 id="call-title" className="hero__call-title">{t("Prefer to talk?", "बात करना पसंद है?")}</h2>
-              <a href="tel:1905" className="hero__number" aria-label={t("Call 1905, toll free", "1905 पर निःशुल्क कॉल करें")}>
-                <Phone size={28} aria-hidden="true" /> 1905
+              <a href="tel:08047291964" className="hero__number" aria-label={t("Call 080 4729 1964", "080 4729 1964 पर कॉल करें")}>
+                <Phone size={28} aria-hidden="true" /> 080 4729 1964
               </a>
-              <p className="hero__call-text">{t("Toll free from any phone. An operator registers it for you.", "किसी भी फ़ोन से निःशुल्क। ऑपरेटर आपके लिए दर्ज करेंगे।")}</p>
-              <ul className="hero__channels">
-              <li>
-                <Mic size={18} aria-hidden="true" />
-                <Link to="/call">{t("Talk to the AI voice agent now", "AI वॉइस एजेंट से अभी बात करें")}</Link>
-              </li>
-              <li>
-                <MessageCircle size={18} aria-hidden="true" />
-                <a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" rel="noopener">{t("WhatsApp +91 83184 01662", "व्हाट्सऐप +91 83184 01662")}</a>
-              </li>
-            </ul>
+              <p className="hero__call-text">{t("Speak in Hindi, English, Garhwali or Kumaoni. Your complaint is registered on the call.", "हिंदी, अंग्रेज़ी, गढ़वाली या कुमाऊँनी में बात करें। शिकायत कॉल पर ही दर्ज हो जाती है।")}</p>
+              <a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" className="hero__wa" rel="noopener">
+                <MessageCircle size={18} aria-hidden="true" /> {t("WhatsApp 83184 01662", "व्हाट्सऐप 83184 01662")}
+              </a>
             </aside>
           </div>
         </div>

@@ -21,7 +21,7 @@ export type TurnJson = Partial<Slots> & { lang?: "hi" | "en" | "gbm" | "kfy"; ac
 export const emptySlots = (): Slots => ({ name: null, problem: null, since: null, districtId: null, block: null, village: null, departmentId: null, urgent: false, subject: null, summary: null });
 
 /** The fixed part of the prompt. It never changes during a call, so it can be cached. */
-export const SYSTEM = `You are "Sahayak", the voice agent that answers CM Helpline 1905, the Government of Uttarakhand's grievance helpline. You are on a live phone call, in place of the call-centre operator who registers complaints.
+export const SYSTEM = `You are "Sahayak", the voice agent that answers CM Helpline, the Government of Uttarakhand's grievance helpline. You are on a live phone call, in place of the call-centre operator who registers complaints.
 
 HOW YOU SPEAK
 - Spoken words only: no lists, emoji, markdown, brackets or symbols. One or two short sentences, under 25 words in total.
@@ -185,8 +185,8 @@ export function statusLine(mine: Grievance[], lang: "hi" | "en") {
 
 export const LINES = {
   greeting: {
-    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन उन्नीस सौ पाँच में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। हिंदी, इंग्लिश, गढ़वाली या कुमाऊँनी, किसी भी भाषा में अपनी समस्या बताइए।",
-    en: "Namaste, welcome to CM Helpline 1905. I am Sahayak, the helpline's digital assistant. Please tell me your problem.",
+    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। हिंदी, इंग्लिश, गढ़वाली या कुमाऊँनी, किसी भी भाषा में अपनी समस्या बताइए।",
+    en: "Namaste, welcome to CM Helpline. I am Sahayak, the helpline's digital assistant. Please tell me your problem.",
   },
   /** After the caller picks a language, by voice or keypad (1 Hindi, 2 Garhwali, 3 English, 4 Kumaoni). */
   langSet: {

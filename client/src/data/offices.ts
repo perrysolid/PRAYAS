@@ -18,10 +18,10 @@ export const offices: Office[] = [
   // ---- Offices connected with the Chief Minister and the helpline ----
   {
     id: "cm-helpline-1905", kind: "building",
-    name: { en: "CM Helpline 1905 office", hi: "मुख्यमंत्री हेल्पलाइन 1905" },
+    name: { en: "CM Helpline office", hi: "मुख्यमंत्री हेल्पलाइन" },
     role: { en: "The public grievance system, run by the IT Development Agency", hi: "जन शिकायत प्रणाली, सूचना प्रौद्योगिकी विकास अभिकरण द्वारा संचालित" },
     address: "Uttarakhand Secretariat, New Building, 4th Floor, Subhash Road", city: "Dehradun 248001",
-    phone: ["1905", "+91 73022 54182 (WhatsApp)"], email: ["cm-helpline@uk.gov.in"], website: "https://cmhelpline.uk.gov.in/",
+    phone: ["080 4729 1964", "+91 83184 01662 (WhatsApp)"], email: ["cm-helpline@uk.gov.in"], website: "https://cmhelpline.uk.gov.in/",
   },
   {
     id: "cm-office", kind: "building",

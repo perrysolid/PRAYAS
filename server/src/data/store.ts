@@ -80,7 +80,7 @@ function seed(): Db {
       submittedAt,
       timeline: [
         { at: submittedAt, event: "registered", by: "Citizen" },
-        { at: addDays(submittedAt, 0.1), event: "assigned", by: "CM Helpline 1905", level: 1, note: `Assigned to ${levels[1].title.en}, ${district.name.en}` },
+        { at: addDays(submittedAt, 0.1), event: "assigned", by: "CM Helpline", level: 1, note: `Assigned to ${levels[1].title.en}, ${district.name.en}` },
       ],
       remindersSent: 0,
       triage: { source: "rules", confidence: 0.8 },
@@ -137,7 +137,7 @@ function seed(): Db {
     submittedAt: demoStart,
     timeline: [
       { at: demoStart, event: "registered", by: "Citizen" },
-      { at: addDays(demoStart, 0.1), event: "assigned", by: "CM Helpline 1905", level: 1, note: "Assigned to Junior Engineer, Jal Sansthan, Khirsu" },
+      { at: addDays(demoStart, 0.1), event: "assigned", by: "CM Helpline", level: 1, note: "Assigned to Junior Engineer, Jal Sansthan, Khirsu" },
       { at: addDays(demoStart, 3), event: "note", by: "Junior Engineer, Jal Sansthan", level: 1, note: "Site inspected. Pipe replacement estimate sent for approval." },
       { at: addDays(demoStart, 5), event: "supported", by: "Citizens", level: 1, note: "23 other citizens face the same problem" },
     ],
@@ -170,7 +170,7 @@ function seed(): Db {
     resolvedAt: addDays(resolvedStart, 4),
     timeline: [
       { at: resolvedStart, event: "registered", by: "Citizen" },
-      { at: addDays(resolvedStart, 0.1), event: "assigned", by: "CM Helpline 1905", level: 1, note: "Assigned to Sub Divisional Officer, UPCL Srinagar" },
+      { at: addDays(resolvedStart, 0.1), event: "assigned", by: "CM Helpline", level: 1, note: "Assigned to Sub Divisional Officer, UPCL Srinagar" },
       { at: addDays(resolvedStart, 4), event: "resolved", by: "Sub Divisional Officer, UPCL", level: 1, note: "New 63 kVA transformer installed and supply restored." },
     ],
     remindersSent: 0,

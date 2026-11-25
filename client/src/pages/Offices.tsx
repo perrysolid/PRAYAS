@@ -54,7 +54,7 @@ export function Offices() {
         <div className="notice offices-emergency">
           <p>
             <Phone size={16} aria-hidden="true" /> <strong>{t("Emergency and helplines:", "आपात और हेल्पलाइन:")}</strong>{" "}
-            <a href="tel:112">112</a> {t("emergency", "आपात")} · <a href="tel:108">108</a> {t("ambulance", "एम्बुलेंस")} · <a href="tel:1905">1905</a> {t("CM Helpline", "सीएम हेल्पलाइन")} · <a href="tel:1070">1070</a> {t("disaster control", "आपदा नियंत्रण")} · <a href="tel:1930">1930</a> {t("cyber fraud", "साइबर धोखाधड़ी")}
+            <a href="tel:112">112</a> {t("emergency", "आपात")} · <a href="tel:108">108</a> {t("ambulance", "एम्बुलेंस")} · <a href="tel:08047291964">080 4729 1964</a> {t("CM Helpline", "सीएम हेल्पलाइन")} · <a href="tel:1070">1070</a> {t("disaster control", "आपदा नियंत्रण")} · <a href="tel:1930">1930</a> {t("cyber fraud", "साइबर धोखाधड़ी")}
           </p>
         </div>
 
@@ -91,8 +91,8 @@ export function Offices() {
             </li>
           ))}
         </ul>
-        {!rows.length && <p className="muted">{t("Nothing matches. Try fewer words, or call 1905.", "कुछ नहीं मिला। कम शब्द आज़माएँ, या 1905 पर कॉल करें।")}</p>}
-        <p className="small muted">{t("Details were taken from official government websites. Offices can change numbers; if one does not answer, call 1905.", "विवरण आधिकारिक सरकारी वेबसाइटों से लिए गए हैं। कार्यालय नंबर बदल सकते हैं; उत्तर न मिले तो 1905 पर कॉल करें।")}</p>
+        {!rows.length && <p className="muted">{t("Nothing matches. Try fewer words, or call 080 4729 1964.", "कुछ नहीं मिला। कम शब्द आज़माएँ, या 080 4729 1964 पर कॉल करें।")}</p>}
+        <p className="small muted">{t("Details were taken from official government websites. Offices can change numbers; if one does not answer, call 080 4729 1964.", "विवरण आधिकारिक सरकारी वेबसाइटों से लिए गए हैं। कार्यालय नंबर बदल सकते हैं; उत्तर न मिले तो 080 4729 1964 पर कॉल करें।")}</p>
       </div>
     </>
   );

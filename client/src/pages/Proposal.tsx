@@ -23,13 +23,13 @@ export function Proposal() {
   const { t } = useI18n();
   return (
     <>
-      <PageHead en="About this redesign" hi="इस नए डिज़ाइन के बारे में" lead="A proposal to make CM Helpline 1905 simpler, smarter and accessible to every citizen of Uttarakhand." />
+      <PageHead en="About this redesign" hi="इस नए डिज़ाइन के बारे में" lead="A proposal to make CM Helpline simpler, smarter and accessible to every citizen of Uttarakhand." />
       <div className="container prose" lang="en">
         <p className="notice small">{t("This page is in English for the hackathon jury.", "यह पृष्ठ हैकाथॉन निर्णायकों हेतु अंग्रेज़ी में है।")}</p>
 
         <h2>1. Identified citizen problem statement</h2>
         <p>
-          A villager in Pauri whose water supply has stopped needs three things from CM Helpline 1905: to say what is wrong in their own words, to know who is
+          A villager in Pauri whose water supply has stopped needs three things from CM Helpline: to say what is wrong in their own words, to know who is
           now responsible, and to see that something will happen by a known date. The current portal makes all three hard.
         </p>
         <p>We audited cmhelpline.uk.gov.in line by line on 27 October 2026. Main findings:</p>
@@ -87,7 +87,7 @@ export function Proposal() {
           <li><strong>WhatsApp channel</strong> – every update (registration, officer notes, escalation, resolution photo, reminders, reopening) goes to the citizen on WhatsApp. Citizens can register a complaint by chatting – AI writes it formally, routes it and asks for the district – and reply STATUS, REMIND, 1–5 or REOPEN. Works with the WhatsApp Business Cloud API, or in a built-in demo phone.</li>
           <li><strong>Supabase (Postgres)</strong> – optional database with row-level security, generated columns for dashboards, and write-through from the API.</li>
           <li><strong>Privacy by default</strong> – public tracking needs both complaint number and mobile; officers see masked numbers; httpOnly session cookies; rate-limited OTP; enforcement of the 10-open-complaints rule from the GO.</li>
-          <li><strong>Mobile-first and resilient</strong> – works on a 360px phone, form drafts survive a dropped connection, and a no-JavaScript fallback gives the 1905 number.</li>
+          <li><strong>Mobile-first and resilient</strong> – works on a 360px phone, form drafts survive a dropped connection, and a no-JavaScript fallback gives the helpline number.</li>
         </ul>
         <p>Design inspiration: GOV.UK Design System (one thing per page, error summary, focus style), USA.gov and Canada.ca (photo-led home page with the main task on top, task tiles), India's UX4G and GIGW 3.0, Singapore's plain-language LifeSG, the US Web Design System's official-site banner, and Indian state-portal conventions (state emblem, Chief Minister's portrait, tricolour, “What's new” strip, all made accessible).</p>
 

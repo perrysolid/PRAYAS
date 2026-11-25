@@ -100,7 +100,7 @@ export function create(session: CitizenSession, input: CreateGrievanceInput, cha
 
   const open = store.grievances.all().filter((g) => g.citizenMobile === session.mobile && isOpen(g)).length;
   if (open >= MAX_OPEN_GRIEVANCES) {
-    throw conflict("OPEN_LIMIT", `You already have ${open} unresolved complaints. Government rules allow ${MAX_OPEN_GRIEVANCES} at a time. Wait for one to be resolved, or call 1905.`);
+    throw conflict("OPEN_LIMIT", `You already have ${open} unresolved complaints. Government rules allow ${MAX_OPEN_GRIEVANCES} at a time. Wait for one to be resolved, or call 080 4729 1964.`);
   }
 
   const now = new Date().toISOString();
@@ -123,7 +123,7 @@ export function create(session: CitizenSession, input: CreateGrievanceInput, cha
     submittedAt: now,
     timeline: [
       { at: now, event: "registered", by: "Citizen" },
-      { at: now, event: "assigned", by: "CM Helpline 1905", level: 1, note: `Assigned to ${levels[1].title.en}, ${dept.name.en}` },
+      { at: now, event: "assigned", by: "CM Helpline", level: 1, note: `Assigned to ${levels[1].title.en}, ${dept.name.en}` },
     ],
     remindersSent: 0,
     triage: input.triage ? { source: input.triage.source, confidence: input.triage.confidence } : { source: "citizen", confidence: 1 },

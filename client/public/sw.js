@@ -1,4 +1,4 @@
-// CM Helpline 1905 service worker: makes the site installable and usable on patchy hill networks.
+// CM Helpline service worker: makes the site installable and usable on patchy hill networks.
 // Pages and assets: network first, falling back to the last copy. API calls are never cached,
 // so a citizen never sees a stale complaint status presented as current.
 const CACHE = "cmh-1905-v1";

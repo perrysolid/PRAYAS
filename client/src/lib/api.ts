@@ -23,7 +23,7 @@ async function request<T>(path: string, init: RequestInit & { json?: unknown } =
     });
   } catch (err) {
     if ((err as Error).name === "AbortError") throw err;
-    throw new ApiError(0, "NETWORK", "You appear to be offline. Check your connection, or call 1905 to register by phone.");
+    throw new ApiError(0, "NETWORK", "You appear to be offline. Check your connection, or call 080 4729 1964 to register by phone.");
   }
   const body = await res.json().catch(() => null);
   if (!res.ok) {

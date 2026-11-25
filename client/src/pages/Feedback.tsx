@@ -12,7 +12,7 @@ const uses: { id: string; label: Text }[] = [
   { id: "track", label: { en: "Tracking a complaint", hi: "शिकायत की स्थिति देखना" } },
   { id: "schemes", label: { en: "Government schemes", hi: "सरकारी योजनाएँ" } },
   { id: "dashboard", label: { en: "Map and dashboard", hi: "मानचित्र और डैशबोर्ड" } },
-  { id: "whatsapp", label: { en: "WhatsApp or 1905", hi: "व्हाट्सऐप या 1905" } },
+  { id: "whatsapp", label: { en: "WhatsApp or phone call", hi: "व्हाट्सऐप या फ़ोन कॉल" } },
   { id: "other", label: { en: "Just browsing", hi: "केवल देख रहा/रही था" } },
 ];
 

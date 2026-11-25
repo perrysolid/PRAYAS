@@ -135,7 +135,7 @@ export function Intro() {
   if (!show) return null;
 
   return (
-    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label={t("Welcome to CM Helpline 1905", "सीएम हेल्पलाइन 1905 में आपका स्वागत है")}>
+    <div ref={root} className="intro" role="dialog" aria-modal="true" aria-label={t("Welcome to CM Helpline", "सीएम हेल्पलाइन में आपका स्वागत है")}>
       {uk && (
         <div ref={stage} className="intro__stage" aria-hidden="true">
           <svg className="intro__map">

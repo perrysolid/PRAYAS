@@ -24,7 +24,7 @@ export function Orders() {
 
   return (
     <>
-      <PageHead en="Government orders and meeting minutes" hi="शासनादेश एवं बैठक कार्यवृत्त" lead={t("Rules that govern how CM Helpline 1905 works, newest first.", "मुख्यमंत्री हेल्पलाइन 1905 के संचालन से जुड़े नियम, नवीनतम पहले।")} />
+      <PageHead en="Government orders and meeting minutes" hi="शासनादेश एवं बैठक कार्यवृत्त" lead={t("Rules that govern how CM Helpline works, newest first.", "मुख्यमंत्री हेल्पलाइन के संचालन से जुड़े नियम, नवीनतम पहले।")} />
       <div className="container">
         <div className="filters">
           <Field id="order-search" label={t("Search", "खोजें")}>

@@ -20,7 +20,7 @@ type Group = "start" | "whatsapp" | "website" | "officer" | "citizen" | "end";
 type Scene = { id: string; group: Group; min: number; en: string; hi: string };
 
 const scenes: Scene[] = [
-  { id: "intro", group: "start", min: 7000, en: "Here's how a citizen's problem gets solved on CM Helpline 1905. There are two simple ways to report it: WhatsApp, or the website.", hi: "देखिए, सीएम हेल्पलाइन 1905 पर नागरिक की समस्या कैसे हल होती है। समस्या बताने के दो आसान तरीके हैं: व्हाट्सऐप, या वेबसाइट।" },
+  { id: "intro", group: "start", min: 7000, en: "Here's how a citizen's problem gets solved on CM Helpline. There are two simple ways to report it: WhatsApp, or the website.", hi: "देखिए, सीएम हेल्पलाइन पर नागरिक की समस्या कैसे हल होती है। समस्या बताने के दो आसान तरीके हैं: व्हाट्सऐप, या वेबसाइट।" },
   { id: "wa-send", group: "whatsapp", min: 7000, en: "First, WhatsApp. Ramesh from Pauri types his problem in his own words. A landslide has blocked his village road.", hi: "पहला, व्हाट्सऐप। पौड़ी के रमेश अपने शब्दों में समस्या लिखते हैं। भूस्खलन से गाँव की सड़क बंद है।" },
   { id: "wa-ai", group: "whatsapp", min: 7000, en: "The AI understands it, picks the right department, Public Works, and asks only for the district.", hi: "AI इसे समझता है, सही विभाग, लोक निर्माण विभाग, चुनता है, और केवल जनपद पूछता है।" },
   { id: "wa-done", group: "whatsapp", min: 7500, en: "It writes the complaint formally. Ramesh replies yes, and gets his complaint number right away.", hi: "वह शिकायत औपचारिक भाषा में लिखता है। रमेश हाँ कहते हैं, और उन्हें तुरंत शिकायत संख्या मिल जाती है।" },
@@ -31,7 +31,7 @@ const scenes: Scene[] = [
   { id: "escalate", group: "officer", min: 7000, en: "If nothing happens in fifteen days, the complaint moves up to a senior officer automatically.", hi: "अगर पंद्रह दिन में कार्यवाही नहीं होती, तो शिकायत अपने आप वरिष्ठ अधिकारी तक चली जाती है।" },
   { id: "resolve", group: "officer", min: 9000, en: "The officer writes quick notes. AI turns them into a proper report, and a photo of the fix is required to close it.", hi: "अधिकारी छोटे नोट्स लिखते हैं। AI उन्हें सही रिपोर्ट बनाता है, और बंद करने के लिए समाधान की फ़ोटो ज़रूरी है।" },
   { id: "citizen", group: "citizen", min: 7500, en: "Ramesh gets the photo on WhatsApp and rates the work. If it isn't fixed, he can reopen it.", hi: "रमेश को फ़ोटो व्हाट्सऐप पर मिलती है और वे काम को रेटिंग देते हैं। समस्या बनी रहे तो वे इसे फिर खोल सकते हैं।" },
-  { id: "end", group: "end", min: 7000, en: "That's CM Helpline 1905. Simple for citizens, accountable for officers. Taking you back to the home page.", hi: "यह है सीएम हेल्पलाइन 1905। नागरिकों के लिए आसान, अधिकारियों के लिए जवाबदेह। अब आपको होम पेज पर ले चलते हैं।" },
+  { id: "end", group: "end", min: 7000, en: "That's CM Helpline. Simple for citizens, accountable for officers. Taking you back to the home page.", hi: "यह है सीएम हेल्पलाइन। नागरिकों के लिए आसान, अधिकारियों के लिए जवाबदेह। अब आपको होम पेज पर ले चलते हैं।" },
 ];
 
 const voices = [
@@ -83,7 +83,7 @@ function Phone({ msgs, scene, t, draft, typing }: { msgs: Msg[]; scene: number; 
         <header className="wa-head">
           <span className="wa-head__avatar"><SahayakAvatar size={40} speaking={Boolean(isTyping)} /></span>
           <span className="wa-head__titles">
-            <strong>CM Helpline 1905 <BadgeCheck size={15} aria-hidden="true" /></strong>
+            <strong>CM Helpline <BadgeCheck size={15} aria-hidden="true" /></strong>
             <span>{isTyping ? tr("typing…", "लिख रही हैं…") : tr("Government of Uttarakhand", "उत्तराखंड सरकार")}</span>
           </span>
         </header>
@@ -209,7 +209,7 @@ function SceneView({ id, index, t, photos }: { id: string; index: number; t: num
         <div className="dm-split">
           <Browser url="/">
             <div className="dm-site">
-              <div className="dm-site__head"><StateSeal className="dm-site__seal" /> <strong>CM Helpline 1905</strong></div>
+              <div className="dm-site__head"><StateSeal className="dm-site__seal" /> <strong>CM Helpline</strong></div>
               <div className="dm-site__hero">
                 <h3>{tr("Tell us the problem.", "समस्या बताइए।")}</h3>
                 <div className="dm-site__box">
@@ -280,7 +280,7 @@ function SceneView({ id, index, t, photos }: { id: string; index: number; t: num
           </svg>
           <div className="dm-node dm-node--wa" style={show(t, 100)}><MessageCircle size={22} /><span><b>WhatsApp</b>{WA}</span></div>
           <div className="dm-node dm-node--web" style={show(t, 300)}><Globe size={22} /><span><b>{tr("Website", "वेबसाइट")}</b>{WEB}</span></div>
-          <div className="dm-hub" style={show(t, 1300, 700)}><StateSeal className="dm-hub__seal" /><b>CM Helpline 1905</b><span>{tr("Routes to the officer", "अधिकारी तक भेजती है")}</span></div>
+          <div className="dm-hub" style={show(t, 1300, 700)}><StateSeal className="dm-hub__seal" /><b>CM Helpline</b><span>{tr("Routes to the officer", "अधिकारी तक भेजती है")}</span></div>
           <div className="dm-node dm-node--pwd" style={show(t, 2900)}><ShieldCheck size={22} /><span><b>{tr("Public Works", "लोक निर्माण")}</b>{tr("Pauri", "पौड़ी")}</span></div>
           <div className="dm-node dm-node--jal" style={show(t, 3200)}><ShieldCheck size={22} /><span><b>{tr("Jal Sansthan", "जल संस्थान")}</b>{tr("Almora", "अल्मोड़ा")}</span></div>
         </div>
@@ -522,7 +522,7 @@ export function Demo() {
   return (
     <div className="dm">
       <header className="dm-top">
-        <div className="dm-brand"><StateSeal className="dm-brand__seal" /><span><b>CM Helpline 1905</b><small>{tr("How it works", "यह कैसे काम करता है")}</small></span></div>
+        <div className="dm-brand"><StateSeal className="dm-brand__seal" /><span><b>CM Helpline</b><small>{tr("How it works", "यह कैसे काम करता है")}</small></span></div>
         {stage === "playing" && (
           <ol className="dm-tabs" aria-label={tr("Steps", "चरण")}>
             {groups.map((g, i) => {

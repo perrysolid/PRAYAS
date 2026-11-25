@@ -79,7 +79,7 @@ const TriageSchema = z.object({
   suggestedSubject: z.string(),
 });
 
-const systemPrompt = `You route citizen grievances for CM Helpline 1905, the Government of Uttarakhand's grievance portal.
+const systemPrompt = `You route citizen grievances for CM Helpline, the Government of Uttarakhand's grievance portal.
 Citizens write in English, Hindi, Garhwali, Kumaoni or Hinglish, often briefly and informally.
 
 Choose exactly one departmentId and one categoryId from this catalogue (use "other"/"general" only when nothing fits):

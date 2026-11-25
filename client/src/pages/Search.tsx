@@ -69,7 +69,7 @@ export function Search() {
 
         <div aria-live="polite">
           {state === "loading" && <p className="muted">{t("Searching…", "खोज रहे हैं…")}</p>}
-          {state === "error" && <p className="field__error">{t("Search is not available right now. Please try again, or call 1905.", "खोज अभी उपलब्ध नहीं है। कृपया पुनः प्रयास करें, या 1905 पर कॉल करें।")}</p>}
+          {state === "error" && <p className="field__error">{t("Search is not available right now. Please try again, or call 080 4729 1964.", "खोज अभी उपलब्ध नहीं है। कृपया पुनः प्रयास करें, या 080 4729 1964 पर कॉल करें।")}</p>}
           {empty && state === "idle" && (
             <div className="notice">
               <p>{t("We found nothing close to that. Try other words, or describe the problem and we will find the department for you.", "इसके पास कुछ नहीं मिला। अन्य शब्द आज़माएँ, या समस्या लिखें और हम विभाग खोज देंगे।")}</p>
