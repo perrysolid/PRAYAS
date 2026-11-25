@@ -89,12 +89,23 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
   const officer = hi ? lvl.title.hi : lvl.title.en;
   const due = fmtDate(g.levelDueAt, hi);
   switch (e.event) {
-    case "assigned":
+    case "assigned": {
+      // Photo and exact spot help the officer; asked for together, only what is still missing.
+      const asks = [
+        g.photos?.before ? "" : hi ? "📷 समस्या की फ़ोटो — यहीं भेज दें" : "📷 A photo of the problem — send it here",
+        g.location ? "" : hi ? `📍 नक्शे पर सही जगह — ${grievances.pinUrl(g)}\n   (या यहीं 📎 → लोकेशन भेजें)` : `📍 The exact spot on the map — ${grievances.pinUrl(g)}\n   (or share it here: 📎 → Location)`,
+      ].filter(Boolean);
+      const askBlock = asks.length ? (hi ? `\n\nअधिकारी जल्दी और सही जगह पहुँचें, इसके लिए अब ये भेज दीजिए:\n${asks.join("\n")}` : `\n\nTo help the officer reach the right place quickly, please send:\n${asks.join("\n")}`) : "";
+      const site = hi
+        ? `\n\n🌐 हमारी वेबसाइट: ${config.siteUrl}\nयहाँ आप अपनी सभी शिकायतें और बाकी सारी जानकारी देख सकते हैं (इसी मोबाइल नंबर से साइन इन करें)।`
+        : `\n\n🌐 Our website: ${config.siteUrl}\nSee all your complaints and everything else there (sign in with this mobile number).`;
+      const where = [g.village, g.block].filter(Boolean).join(", ");
       return {
         text: hi
-          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}${g.location ? "" : `\n\n📍 समस्या की सही जगह नक्शे पर बताएँ: ${grievances.pinUrl(g)}\n(या यहीं 📎 → लोकेशन भेजें)`}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
-          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}${g.location ? "" : `\n\n📍 Mark the exact spot on the map: ${grievances.pinUrl(g)}\n(or share your location here: 📎 → Location)`}\n\nYou'll get every update here. Reply *STATUS* any time.`,
+          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${askBlock}${site}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
+          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}${where ? `\n📍 ${where}` : ""}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${askBlock}${site}\n\nYou'll get every update here. Reply *STATUS* any time.`,
       };
+    }
     case "note":
       return { toSupporters: true, text: hi ? `📝 *${g.id}* पर अद्यतन\n${e.by}: “${e.note}”` : `📝 Update on *${g.id}*\n${e.by}: “${e.note}”` };
     case "escalated":
@@ -159,7 +170,7 @@ store.onChange(onGrievanceChange);
 /* Replies from citizens                                               */
 /* ------------------------------------------------------------------ */
 
-type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm"; photo?: string; location?: { lat: number; lng: number } };
+type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "place" | "confirm"; place?: string; photo?: string; location?: { lat: number; lng: number } };
 const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string; location?: { lat: number; lng: number }; askLang?: boolean }>();
 
 const isHindi = (s: string) => /[ऀ-ॿ]/.test(s);
@@ -198,8 +209,8 @@ function statusLines(mobile: string, hi: boolean) {
 
 const menu = (hi: boolean) =>
   hi
-    ? "नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112"
-    : "Namaste! I'm Sahayak from CM Helpline. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112";
+    ? `नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112\n\n🌐 वेबसाइट: ${config.siteUrl} — अपनी सभी शिकायतें और बाकी सारी जानकारी वहाँ देखें।`
+    : `Namaste! I'm Sahayak from CM Helpline. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112\n\n🌐 Website: ${config.siteUrl} — see all your complaints and everything else there.`;
 
 const LANG_MENU = "🌐 भाषा चुनें / Choose your language:\n\n1️⃣ हिंदी\n2️⃣ English\n3️⃣ गढ़वळि (Garhwali)\n4️⃣ कुमाऊँनी (Kumaoni)\n\nनंबर लिखकर भेजें / Reply with the number.";
 const LANG_SET: Record<ChatLang, string> = {
@@ -247,6 +258,10 @@ export async function handleInboundLocation(mobile: string, lat: number, lng: nu
   }
   if (conv.pending) {
     conv.pending.location = { lat, lng };
+    if (conv.pending.stage === "place") {
+      conv.pending.stage = "confirm";
+      return reply(mobile, confirmText(conv.pending));
+    }
     return reply(mobile, hi ? "📍 लोकेशन मिल गई, शिकायत के साथ जुड़ जाएगी।" : "📍 Got the location; it will go with the complaint.");
   }
   const since = Date.now() - 30 * 86_400_000;
@@ -374,6 +389,12 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
       const d = findDistrict(text);
       if (!d) return reply(mobile, p.hi ? "जनपद का नाम समझ नहीं आया। कृपया जनपद लिखें, जैसे: पौड़ी, अल्मोड़ा, देहरादून।" : "I couldn't find that district. Please type the district, for example: Pauri, Almora, Dehradun.");
       p.districtId = d;
+      p.stage = p.place || p.location ? "confirm" : "place";
+      return reply(mobile, p.stage === "place" ? askPlace(p) : confirmText(p));
+    }
+    if (p.stage === "place") {
+      if (letters(text) < 2) return reply(mobile, askPlace(p));
+      p.place = text.trim().slice(0, 120);
       p.stage = "confirm";
       return reply(mobile, confirmText(p));
     }
@@ -398,6 +419,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
             subject: (p.formal?.subject || p.description).slice(0, 118).padEnd(5, "."),
             description: (p.formal?.description || p.description).padEnd(20, "."),
             districtId: p.districtId!,
+            village: p.place,
             triage: { source: aiEnabled() ? "ai" : "rules", confidence: 0.8, urgency: p.urgency },
             whatsapp: true,
             lang: pref ?? (p.hi ? "hi" : "en"),
@@ -482,19 +504,38 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
   }
   const p: Pending = { description: text, formal, departmentId: route.departmentId, categoryId: route.categoryId, urgency: route.urgency, districtId: findDistrict(text), hi, stage: "confirm" };
   if (!p.districtId) p.stage = "district";
+  else if (!mentionsPlace(text, p.districtId) && !conv.location) p.stage = "place";
   // A photo sent before the problem was described goes with this complaint.
   if (conv.photo) (p.photo = conv.photo), (conv.photo = undefined);
   if (conv.location) (p.location = conv.location), (conv.location = undefined);
   conv.pending = p;
+  if (p.stage === "place") return reply(mobile, `${hi ? `समझ गई। यह ${deptName(p.departmentId, true)} का विषय है।` : `Understood. This is for ${deptName(p.departmentId, false)}.`}\n\n${askPlace(p)}`);
   return reply(mobile, p.stage === "district" ? (hi ? `समझ गई। यह ${deptName(p.departmentId, true)} का विषय है।\n\nयह किस जनपद में है?` : `Understood. This is for ${deptName(p.departmentId, false)}.\n\nWhich district is this in?`) : confirmText(p));
+}
+
+/** The exact place: village, ward or locality, with a landmark. A shared location also answers it. */
+function askPlace(p: Pending) {
+  return p.hi
+    ? "समस्या की सही जगह बताइए: गाँव / मोहल्ला / वार्ड, और पास की कोई पहचान (जैसे स्कूल, मंदिर, पुल)।\nया यहीं 📎 → लोकेशन भेज दीजिए।"
+    : "Where exactly is it? Village / locality / ward, and a landmark nearby (a school, temple or bridge).\nOr share your location here: 📎 → Location.";
+}
+
+const letters = (s: string) => s.replace(/[\s.,।?!'"-]/g, "").length;
+
+/** The message already names the spot: a village, ward or locality word, a landmark, or a block of that district. */
+function mentionsPlace(text: string, districtId: string) {
+  if (/(गाँव|गांव|ग्राम|वार्ड|मोहल्ला|मोहल्ले|कॉलोनी|कालोनी|के पास|के सामने|बाज़ार|बाजार|चौक|village|ward|colony|mohalla|near|opposite|market|chowk)/iu.test(text)) return true;
+  const d = districts.find((x) => x.id === districtId);
+  const t = text.toLowerCase();
+  return Boolean(d?.blocks.some((b) => t.includes(b.toLowerCase())));
 }
 
 function confirmText(p: Pending) {
   const d = districts.find((x) => x.id === p.districtId);
   const body = p.formal ? `*${p.formal.subject}*\n${p.formal.description}` : p.description;
   return p.hi
-    ? `मैंने आपकी शिकायत औपचारिक भाषा में लिखी है:\n\n${body}\n\n🏢 ${deptName(p.departmentId, true)}\n📍 ${d?.name.hi ?? ""}${p.urgency === "high" ? "\n⚠️ अत्यावश्यक" : ""}\n\nदर्ज करने हेतु *हाँ* लिखें, या *नहीं*।`
-    : `I've written your complaint formally:\n\n${body}\n\n🏢 ${deptName(p.departmentId, false)}\n📍 ${d?.name.en ?? ""}${p.urgency === "high" ? "\n⚠️ Urgent" : ""}\n\nReply *YES* to register it, or *NO*.`;
+    ? `मैंने आपकी शिकायत औपचारिक भाषा में लिखी है:\n\n${body}\n\n🏢 ${deptName(p.departmentId, true)}\n📍 ${[p.place, d?.name.hi].filter(Boolean).join(", ")}${p.location ? " (नक्शे पर लोकेशन मिली)" : ""}${p.urgency === "high" ? "\n⚠️ अत्यावश्यक" : ""}\n\nदर्ज करने हेतु *हाँ* लिखें, या *नहीं*।`
+    : `I've written your complaint formally:\n\n${body}\n\n🏢 ${deptName(p.departmentId, false)}\n📍 ${[p.place, d?.name.en].filter(Boolean).join(", ")}${p.location ? " (map location received)" : ""}${p.urgency === "high" ? "\n⚠️ Urgent" : ""}\n\nReply *YES* to register it, or *NO*.`;
 }
 
 /* ------------------------------------------------------------------ */
