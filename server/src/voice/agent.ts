@@ -12,6 +12,7 @@ import { duplicateMessage, duplicateSpoken, findDuplicate, joinDuplicate } from 
 import { send } from "../services/whatsapp.service.js";
 import { LINES, SYSTEM, confirmLine, emptySlots, mergeSlots, registeredLine, spokenNumber, splitReply, statusLine, takeSentences, turnMessage, type Action, type Slots } from "./prompt.js";
 import { getLang, setLang } from "../services/prefs.service.js";
+import { LevelMeter } from "./level.js";
 import { note } from "./log.js";
 import { Listener, Speaker } from "./sarvam.js";
 
@@ -43,7 +44,7 @@ export type Transport = {
 type Lang = "hi" | "en";
 
 const MAX_CALL_MS = 7 * 60_000;
-const SILENCE_MS = 9_000;
+const SILENCE_MS = 12_000;
 const greetingCache = new Map<string, Buffer>();
 let activeCalls = 0;
 
@@ -55,7 +56,10 @@ const KEYTERMS = [...districts.flatMap((d) => [d.name.hi, d.name.en]), "उत�
 const letters = (s: string) => s.replace(/[\s.,।?!'"-]/g, "").length;
 /** "हाँ", "जी", "अच्छा": the caller is listening, not taking the turn. */
 const BACKCHANNEL = /^(हाँ|हां|हा|जी|हाँ जी|जी हाँ|हम्म*|हूँ|अच्छा|अच्छा जी|ठीक है|ठीक|ओके|ok|okay|yes|yeah|हेलो|हैलो|hello|नहीं|नही|no)[\s.,।?!]*$/iu;
-const YES_NO = /^(हाँ|हां|हा|जी|हाँ जी|जी हाँ|ठीक है|ओके|ok|okay|yes|नहीं|नही|no)[\s.,।?!]*$/iu;
+/** A short answer to the read-back ("हाँ जी, दर्ज कर दीजिए", "नहीं, गाँव गलत है"), kept if said over it. */
+const CONSENT = /(हाँ|हां|जी|ठीक|सही|दर्ज|नहीं|नही|गलत|yes|no|okay|ok|correct|register)/iu;
+/** Hesitation sounds and stray syllables: never a turn on their own. */
+const FILLER = /^(हम्म*|ह्म्म*|हूं*|अं+|अ+|उम्म*|उं+|आं*|ए|ओ|hmm*|umm*|uh+|ah+|oh)[\s.,।?!]*$/iu;
 /** While the agent is talking, only clear speech counts as the caller taking the turn; a cough, a horn or a short "हाँ" does not. */
 const takesTurn = (s: string) => !BACKCHANNEL.test(s.trim()) && ((letters(s) >= 6 && s.trim().split(/\s+/).length >= 2) || letters(s) >= 9);
 
@@ -71,6 +75,9 @@ function languageNamed(text: string): "hi" | "en" | Pahari | null {
 
 export class CallAgent {
   private listener: Listener;
+  private meter: LevelMeter;
+  /** The last transcript was set aside as someone else in the room. */
+  private backgroundOnce = false;
   private speaker: Speaker;
   private slots: Slots = emptySlots();
   private lang: Lang = "hi";
@@ -111,6 +118,7 @@ export class CallAgent {
     private readonly via: "exotel" | "browser",
   ) {
     this.listener = new Listener(t.sampleRate, KEYTERMS);
+    this.meter = new LevelMeter(t.sampleRate);
     this.speaker = new Speaker(t.sampleRate);
     this.speaker.warm();
     activeCalls += 1;
@@ -121,8 +129,11 @@ export class CallAgent {
     });
     this.listener.on("partial", (text) => {
       this.clearSilence();
-      // Over the agent's voice only clear words interrupt; while it is still thinking, any words do.
-      if (this.speaking ? takesTurn(text) : this.abort && letters(text) >= 3) this.interrupt();
+      // Stop only for the caller really taking the turn: clear words, as loud as the caller, for 0.7 s.
+      // A horn, a cough, a "हाँ" or a voice in the background does not stop the agent.
+      if ((this.speaking || this.abort) && takesTurn(text)) {
+        if (this.meter.recentCallerMs(1500) >= (this.meter.knowsVoice ? 700 : 1000)) this.interrupt();
+      }
       this.t.event?.({ type: "caption", who: "citizen", text, final: false });
     });
     this.listener.on("final", (text) => void this.onFinal(text));
@@ -148,6 +159,7 @@ export class CallAgent {
   feed(pcm: Buffer) {
     if (this.ended) return;
     this.listener.feed(pcm);
+    this.meter.feed(pcm);
     this.audio.push(pcm);
     this.audioBytes += pcm.length;
     const cap = this.t.sampleRate * 2 * 20;
@@ -186,7 +198,7 @@ export class CallAgent {
     if (this.endAfterPlayback) return this.finish();
     const q = this.queued;
     this.queued = undefined;
-    if (q) return void this.onFinal(q);
+    if (q) return void this.onFinal(q, true);
     this.armSilence();
   }
 
@@ -240,17 +252,42 @@ export class CallAgent {
   /* Turns                                                               */
   /* ------------------------------------------------------------------ */
 
-  private async onFinal(text: string) {
+  private async onFinal(text: string, queued = false) {
     if (this.ended || !text) return;
-    if (this.speaking && !takesTurn(text)) {
-      // Noise or a backchannel while the agent talks: keep talking. A "हाँ" over the read-back still counts once it ends.
-      if (this.lastAction === "confirm" && YES_NO.test(text.trim())) this.queued = text;
-      note(`kept talking over: ${text.slice(0, 40)}`);
-      return;
+    const u = queued ? null : this.meter.utterance();
+    if (u) {
+      const quiet = u.ms < 150;
+      // Mostly at the caller's loudness, not a quieter voice with a few loud syllables.
+      if (this.speaking && (!takesTurn(text) || u.callerMs < 700 || u.callerMs < u.ms * 0.5)) {
+        // Noise, a backchannel or a background voice while the agent talks: keep talking. A "हाँ" over the read-back still counts once it ends.
+        if (this.lastAction === "confirm" && CONSENT.test(text) && letters(text) <= 30 && !quiet) this.queued = text;
+        note(`kept talking over: ${text.slice(0, 40)} (${u.callerMs} ms at the caller's loudness)`);
+        return;
+      }
+      if (!this.speaking && (quiet || FILLER.test(text.trim()) || letters(text) < 2)) {
+        note(`ignored as noise: ${text.slice(0, 40)} (${u.ms} ms of clear sound, floor ${this.meter.noiseFloor.toFixed(0)} dB)`);
+        if (!this.abort) this.armSilence();
+        return;
+      }
+      // A sentence mostly quieter than the caller is someone else in the room. Two in a row are taken as the
+      // caller after all (they may have stepped back from the phone), so nobody is ignored for long.
+      if (!this.speaking && this.meter.knowsVoice && u.ms >= 600 && u.callerMs < u.ms * 0.5 && !this.backgroundOnce) {
+        this.backgroundOnce = true;
+        note(`ignored as a background voice: ${text.slice(0, 40)} (${u.callerMs} of ${u.ms} ms at the caller's loudness)`);
+        if (!this.abort) this.armSilence();
+        return;
+      }
+      this.backgroundOnce = false;
+      if (this.abort && !this.speaking && !takesTurn(text)) {
+        // Still working on the answer to what the caller just said: a "हाँ" or "जी" adds nothing.
+        note(`ignored while thinking: ${text.slice(0, 40)}`);
+        return;
+      }
+      this.meter.learn(u.db);
     }
     this.silentPrompts = 0;
     this.log("citizen", text);
-    note(`heard: ${text.slice(0, 80)}`);
+    note(`heard: ${text.slice(0, 80)}${u ? ` (${u.callerMs} of ${u.ms} ms at the caller's loudness)` : ""}`);
     this.t.event?.({ type: "caption", who: "citizen", text, final: true });
     // Several short finals in a row ("हाँ", "पौड़ी में") are answered together.
     this.heard = this.heard ? `${this.heard} ${text}` : text;
