@@ -50,6 +50,52 @@ let activeCalls = 0;
 
 export const callsInProgress = () => activeCalls;
 
+/* ------------------------------------------------------------------ */
+/* All lines busy: no waiting, WhatsApp instead                         */
+/* ------------------------------------------------------------------ */
+
+const BUSY_LINE = "नमस्ते, मुख्यमंत्री हेल्पलाइन। इस समय सभी लाइनें व्यस्त हैं, इसलिए आपको इंतज़ार नहीं करवाएँगे। हमने आपके व्हाट्सऐप पर संदेश भेजा है। वहीं अपनी समस्या लिखकर या बोलकर भेज दीजिए, शिकायत तुरंत दर्ज हो जाएगी। या थोड़ी देर बाद फिर कॉल करें। धन्यवाद।";
+const BUSY_WHATSAPP = "🙏 नमस्ते! आपने अभी मुख्यमंत्री हेल्पलाइन पर कॉल किया था, पर उस समय सभी लाइनें व्यस्त थीं।\n\nइंतज़ार की ज़रूरत नहीं: अपनी समस्या यहीं लिखें या 🎤 बोलकर भेजें, मैं तुरंत आपकी शिकायत दर्ज कर दूँगी।\n\nYou called CM Helpline while all lines were busy. Type your problem here or send a voice note, and I'll register it right away.";
+const busyAudio = new Map<number, Promise<Buffer | null>>();
+
+/** The busy message as audio, made once per sample rate and reused, so an overloaded moment needs no new speech. */
+export function busyLineAudio(rate: 8000 | 16000): Promise<Buffer | null> {
+  let p = busyAudio.get(rate);
+  if (!p) {
+    p = (async () => {
+      const speaker = new Speaker(rate);
+      try {
+        const parts: Buffer[] = [];
+        const out = await speaker.begin("hi", (pcm) => parts.push(pcm));
+        out.say(BUSY_LINE);
+        out.end();
+        await out.finished;
+        return parts.length ? Buffer.concat(parts) : null;
+      } catch (err) {
+        note(`busy line could not be made: ${err instanceof Error ? err.message : err}`);
+        busyAudio.delete(rate);
+        return null;
+      } finally {
+        speaker.close();
+      }
+    })();
+    busyAudio.set(rate, p);
+  }
+  return p;
+}
+
+/**
+ * A caller who arrives when every line is taken: instead of silence or a queue, they hear one short message,
+ * get a WhatsApp message where the bot registers the complaint at once, and the call ends.
+ */
+export async function overflowCall(t: Transport, mobile: string) {
+  note("all lines busy: caller sent to WhatsApp instead of waiting");
+  send(mobile, BUSY_WHATSAPP);
+  const audio = await busyLineAudio(t.sampleRate);
+  if (audio) t.sendAudio(audio);
+  t.mark("busy");
+}
+
 /** District names help speech recognition with place names it would otherwise mishear. */
 const KEYTERMS = [...districts.flatMap((d) => [d.name.hi, d.name.en]), "उत्तराखंड", "मुख्यमंत्री हेल्पलाइन", "जल संस्थान", "यूपीसीएल"];
 

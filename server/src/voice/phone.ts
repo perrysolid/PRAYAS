@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import WebSocket, { WebSocketServer } from "ws";
 import { config } from "../config.js";
 import { claudeEnabled } from "../lib/claude.js";
-import { CallAgent, callsInProgress, type Transport } from "./agent.js";
+import { busyLineAudio, CallAgent, callsInProgress, overflowCall, type Transport } from "./agent.js";
 import { note } from "./log.js";
 import { sarvamEnabled } from "./sarvam.js";
 
@@ -63,7 +63,7 @@ function browserMobile(url: URL): string | null {
 /* Exotel                                                              */
 /* ------------------------------------------------------------------ */
 
-function exotel(ws: WebSocket) {
+function exotel(ws: WebSocket, overflow = false) {
   let agent: CallAgent | undefined;
   let sid = "";
   let outBuf: Buffer = Buffer.alloc(0);
@@ -88,6 +88,7 @@ function exotel(ws: WebSocket) {
   }, 10_000);
   let media = 0;
   let sent = 0;
+  let begun = false;
 
   ws.on("message", (raw, isBinary) => {
     if (isBinary) return;
@@ -99,7 +100,8 @@ function exotel(ws: WebSocket) {
     }
     if (m.event && m.event !== "media") note(`Exotel event: ${m.event}${m.event === "start" ? ` (start keys: ${Object.keys(m.start ?? {}).join(",")}; format ${JSON.stringify((m.start as { media_format?: unknown } | undefined)?.media_format ?? null)})` : ""}`);
     if (m.event === "media" && ++media === 1) note("Exotel: first caller audio received");
-    if (m.event === "start" && !agent) {
+    if (m.event === "start" && !begun) {
+      begun = true;
       clearTimeout(idle);
       const s = m.start ?? {};
       sid = String(s.stream_sid ?? s.streamSid ?? m.stream_sid ?? "");
@@ -130,12 +132,19 @@ function exotel(ws: WebSocket) {
         },
         hangup: () => setTimeout(() => ws.close(1000), 300),
       };
+      if (overflow) {
+        // Every line is taken: a short message, a WhatsApp invitation, and the call ends when it has played.
+        void overflowCall(t, from);
+        setTimeout(() => ws.close(1000), 30_000);
+        return;
+      }
       agent = new CallAgent(t, from, "exotel");
       void agent.start();
     } else if (m.event === "media" && agent && m.media?.payload) agent.feed(Buffer.from(m.media.payload, "base64"));
     else if (m.event === "dtmf" && m.dtmf?.digit) agent?.dtmf(String(m.dtmf.digit));
     else if (m.event === "mark" && m.mark?.name) {
       note(`Exotel: played ${m.mark.name}`);
+      if (overflow && m.mark.name === "busy") return void setTimeout(() => ws.close(1000), 500);
       agent?.played(m.mark.name);
     }
     else if (m.event === "stop") ws.close(1000);
@@ -185,6 +194,8 @@ function browser(ws: WebSocket, mobile: string) {
 
 /** Accepts phone and practice-call WebSockets on the API's HTTP server. */
 export function attachPhone(server: Server) {
+  // Make the "all lines busy" message ahead of time, so it plays instantly when it is needed.
+  if (voiceReady()) setTimeout(() => void busyLineAudio(8000).then(() => busyLineAudio(16000)), 5_000);
   const wss = new WebSocketServer({ noServer: true, maxPayload: 256 * 1024 });
   server.on("upgrade", (req, socket, head) => {
     const url = new URL(req.url ?? "/", "http://localhost");
@@ -199,15 +210,17 @@ export function attachPhone(server: Server) {
       if (isExotel) note("rejected: phone agent off (SARVAM_API_KEY or ANTHROPIC_API_KEY missing)");
       return reject(503, "Service Unavailable");
     }
-    if (callsInProgress() >= config.voice.maxCalls) return reject(503, "Service Unavailable");
+    const full = callsInProgress() >= config.voice.maxCalls;
 
     if (isExotel) {
       if (!exotelAllowed(req, url)) {
         note("rejected: wrong or missing secret");
         return reject(401, "Unauthorized");
       }
-      return wss.handleUpgrade(req, socket, head, (ws) => exotel(ws));
+      // A full house still answers: the caller is pointed to WhatsApp rather than left in silence.
+      return wss.handleUpgrade(req, socket, head, (ws) => exotel(ws, full));
     }
+    if (full) return reject(503, "Service Unavailable");
 
     const origin = req.headers.origin ?? "";
     if (origin && !config.corsOrigins.includes(origin)) return reject(403, "Forbidden");

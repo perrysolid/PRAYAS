@@ -67,7 +67,7 @@ export const config = {
     /** Garhwali speech recognition (Meta Omnilingual ASR, see garhwali-asr/). Optional. */
     garhwaliUrl: (process.env.GARHWALI_ASR_URL ?? "").replace(/\/$/, ""),
     garhwaliToken: process.env.GARHWALI_ASR_TOKEN ?? "",
-    maxCalls: Number(process.env.VOICE_MAX_CALLS ?? 4),
+    maxCalls: Number(process.env.VOICE_MAX_CALLS ?? 10),
   },
   /** Public https address of this API, for the browser practice call and the keep-awake ping. */
   publicUrl: (process.env.PUBLIC_API_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, ""),
