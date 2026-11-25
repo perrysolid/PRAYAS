@@ -8,6 +8,7 @@ import type { CitizenSession, Grievance, TimelineEntry, WhatsAppMessage } from "
 import { assistant, draft, translate, type LangCode } from "./ai.service.js";
 import * as grievances from "./grievance.service.js";
 import { triage } from "./triage.service.js";
+import { duplicateMessage, findDuplicate, joinDuplicate } from "./duplicate.service.js";
 
 /*
  * WhatsApp channel for CM Helpline 1905.
@@ -159,8 +160,10 @@ type Pending = { description: string; formal?: { subject: string; description: s
 const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[] }>();
 
 const isHindi = (s: string) => /[ऀ-ॿ]/.test(s);
-const YES = /^(yes|y|haan|ha|han|ji|ok|okay|हाँ|हां|जी|ठीक)\b/i;
-const NO = /^(no|n|nahi|nahin|cancel|नहीं|रद्द)\b/i;
+// \b only knows English letters, so the end of a word is spelled out to work for Hindi too.
+const END = String.raw`(?=$|[\s.,!?।🙏👍]|जी)`;
+const YES = new RegExp(String.raw`^(yes|y|haan|ha|han|ji|ok|okay|हाँ|हां|हा|जी|ठीक|सही)${END}`, "iu");
+const NO = new RegExp(String.raw`^(no|n|nahi|nahin|cancel|नहीं|नही|ना|रद्द)${END}`, "iu");
 
 function findDistrict(text: string) {
   const t = text.toLowerCase();
@@ -235,6 +238,9 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
     if (p.stage === "confirm" && YES.test(text)) {
       conv.pending = undefined;
       try {
+        // Same problem at the same place already open: join it instead of registering it again.
+        const dup = await findDuplicate({ mobile, departmentId: p.departmentId, districtId: p.districtId!, categoryId: p.categoryId, text: p.formal ? `${p.formal.subject}. ${p.formal.description}\n${p.description}` : p.description });
+        if (dup) return reply(mobile, duplicateMessage(dup, joinDuplicate(session, dup), p.hi));
         grievances.create(
           session,
           {

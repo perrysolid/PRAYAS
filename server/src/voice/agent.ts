@@ -8,7 +8,9 @@ import * as grievances from "../services/grievance.service.js";
 import { triageWithRules } from "../services/triage.service.js";
 import type { CallLine } from "../types.js";
 import { garhwaliEnabled, transcribeGarhwali } from "./garhwali.js";
-import { LINES, SYSTEM, confirmLine, emptySlots, mergeSlots, registeredLine, splitReply, statusLine, takeSentences, turnMessage, type Action, type Slots } from "./prompt.js";
+import { duplicateMessage, duplicateSpoken, findDuplicate, joinDuplicate } from "../services/duplicate.service.js";
+import { send } from "../services/whatsapp.service.js";
+import { LINES, SYSTEM, confirmLine, emptySlots, mergeSlots, registeredLine, spokenNumber, splitReply, statusLine, takeSentences, turnMessage, type Action, type Slots } from "./prompt.js";
 import { Listener, Speaker } from "./sarvam.js";
 
 /*
@@ -65,6 +67,8 @@ export class CallAgent {
   private endAfterPlayback = false;
   private ended = false;
   private registeredId?: string;
+  /** The caller was added to an existing complaint instead of registering a new one. */
+  private joinedExisting = false;
   private silenceTimer?: NodeJS.Timeout;
   private silentPrompts = 0;
   private startedAt = Date.now();
@@ -270,7 +274,8 @@ export class CallAgent {
       if (json.lang === "en" || json.lang === "hi") this.lang = json.lang;
     }
     const action = json?.action ?? "ask";
-    const extra = this.act(action);
+    const extra = await this.act(action);
+    if (abort.signal.aborted) return;
     if (extra.line) {
       out.say(extra.line);
       this.log("agent", extra.line);
@@ -287,7 +292,7 @@ export class CallAgent {
   }
 
   /** Work the agent asked for. Returns a line for the system to speak, with a note for the model. */
-  private act(action: Action): { line?: string; note?: string; readBack?: boolean } {
+  private async act(action: Action): Promise<{ line?: string; note?: string; readBack?: boolean }> {
     if (action === "status") {
       const mine = store.grievances
         .all()
@@ -300,20 +305,37 @@ export class CallAgent {
     if (!this.slots.problem) return { line: LINES.missing.problem[this.lang], note: "Registration needs the problem." };
     if (!this.slots.districtId) return { line: LINES.missing.districtId[this.lang], note: "Registration needs the district." };
     if (this.lastAction !== "confirm") return { line: confirmLine(this.slots, this.lang), note: "The system read the complaint back. Register only after the caller agrees.", readBack: true };
-    return this.register();
+    return await this.register();
   }
 
-  private register(): { line: string; note: string } {
+  private async register(): Promise<{ line: string; note: string }> {
     const s = this.slots;
     const text = [s.problem, s.since, s.summary].filter(Boolean).join(". ");
     const rules = triageWithRules(text);
     const departmentId = s.departmentId ?? rules.departmentId;
     const dept = departments.find((d) => d.id === departmentId)!;
     const categoryId = rules.departmentId === departmentId ? rules.categoryId : dept.categories[0].id;
+    const session = { role: "citizen" as const, mobile: this.mobile, name: s.name ?? undefined };
+
+    // Same problem at the same place already open: join it and tell the caller when it was registered.
+    const dup = await findDuplicate({ mobile: this.mobile, departmentId, districtId: s.districtId!, categoryId, block: s.block ?? undefined, village: s.village ?? undefined, text: [s.subject, text].filter(Boolean).join(". ") }).catch(() => null);
+    if (dup && !this.ended) {
+      try {
+        const r = joinDuplicate(session, dup);
+        this.registeredId = dup.id;
+        this.joinedExisting = true;
+        this.t.event?.({ type: "registered", id: dup.id, existing: true });
+        send(this.mobile, duplicateMessage(dup, r, this.lang !== "en"), { grievanceId: dup.id });
+        console.log(`[voice] caller joined existing ${dup.id}`);
+        return { line: duplicateSpoken(dup, r, this.lang, spokenNumber(dup.id, this.lang)), note: `Already registered as ${dup.id}; the caller was added to it. Do not register again in this call.` };
+      } catch {
+        // Could not join (e.g. it was just resolved): register a new one below.
+      }
+    }
     const description = (s.summary || [s.problem, s.since ? `(${s.since})` : ""].join(" ")).trim();
     try {
       const g = grievances.create(
-        { role: "citizen", mobile: this.mobile, name: s.name ?? undefined },
+        session,
         {
           name: s.name || (this.lang === "en" ? "Citizen" : "नागरिक"),
           type: "complaint",
@@ -401,7 +423,7 @@ export class CallAgent {
 
   /** Lines spoken after registration are added to the stored complaint when the call ends. */
   private attachTranscript() {
-    if (!this.registeredId) return;
+    if (!this.registeredId || this.joinedExisting) return;
     const g = store.grievances.find(this.registeredId);
     if (!g) return;
     g.call = { transcript: this.transcript, language: this.garhwali ? "gbm" : this.lang, seconds: Math.round((Date.now() - this.startedAt) / 1000), via: this.via };
