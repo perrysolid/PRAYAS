@@ -46,7 +46,7 @@ function OfficerForm() {
       </Field>
       <button className="btn" type="submit" disabled={busy}>{t("Sign in", "साइन इन")}</button>
       <p className="small muted" style={{ marginTop: "var(--s4)" }}>
-        {t("Demo officers (password Demo@1905): l1.demo sees every department; je.jal.khirsu, sdo.upcl.srinagar or ee.pwd.pauri see one. In production officers sign in through Jan Parichay.", "डेमो अधिकारी (पासवर्ड Demo@1905): l1.demo सभी विभाग देखता है; je.jal.khirsu, sdo.upcl.srinagar या ee.pwd.pauri एक विभाग। वास्तविक प्रणाली में अधिकारी जन परिचय से साइन इन करते हैं।")}
+        {t("Demo officers, password demo123: l1.demo.all (L1, every department), l1.demo.water, l1.demo.food, l1.demo.energy and so on (L1, one department), l2.demo (L2), l3.demo (L3). In production officers sign in through Jan Parichay.", "डेमो अधिकारी, पासवर्ड demo123: l1.demo.all (L1, सभी विभाग), l1.demo.water, l1.demo.food, l1.demo.energy आदि (L1, एक विभाग), l2.demo (L2), l3.demo (L3)। वास्तविक प्रणाली में अधिकारी जन परिचय से साइन इन करते हैं।")}
       </p>
     </form>
   );

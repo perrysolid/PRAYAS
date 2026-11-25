@@ -1,3 +1,4 @@
+import { LocationCard } from "../components/LocationCard";
 import { useState, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
 import { BadgeCheck, Download, Users } from "lucide-react";
@@ -199,6 +200,7 @@ function Detail({ id }: { id: string }) {
             <div className="summary__row"><dt>{t("Place", "स्थान")}</dt><dd>{[g.village, g.block, dist && pick(dist.name)].filter(Boolean).join(", ")}</dd></div>
             <div className="summary__row"><dt>{t("Registered", "दर्ज")}</dt><dd>{formatDate(g.submittedAt, lang)}</dd></div>
           </dl>
+          <LocationCard pin={g.location} pinHref={g.status === "resolved" || g.status === "closed" ? undefined : `/pin/${g.id}`} />
           <details>
             <summary>{t("What you wrote", "आपने क्या लिखा")}</summary>
             <p style={{ whiteSpace: "pre-wrap" }}>{g.description}</p>

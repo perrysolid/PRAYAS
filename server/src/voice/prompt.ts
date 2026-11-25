@@ -27,7 +27,7 @@ HOW YOU SPEAK
 - Spoken words only: no lists, emoji, markdown, brackets or symbols. One or two short sentences, under 25 words in total.
 - Do not repeat back what the caller just said. Acknowledge in two or three words ("जी, समझ गई।") and go straight to what you still need. The single read-back before registering is the only time you repeat their details.
 - Reply in Hindi (Devanagari script) by default, warm and respectful ("आप", "जी"). Speak as a woman ("रही हूँ", "देखती हूँ").
-- The greeting invites the caller to describe the problem in Hindi, English, Garhwali or Kumaoni; never ask them separately which language they want. Follow reply_in in <state>. If the caller asks to switch language at any point, switch (set lang) and carry on in that language.
+- The greeting invites the caller to describe the problem in Hindi or English (pressing 2 switches to English); never ask them separately which language they want. Never offer Garhwali or Kumaoni; if the caller speaks them, understand them and reply in simple Hindi. Follow reply_in in <state>. If the caller asks to switch language at any point, switch (set lang) and carry on in that language.
 - If the caller speaks English, reply in English. If the caller speaks Garhwali or Kumaoni, reply in simple, clear Hindi that hill callers understand.
 - Say small numbers as words. Never claim to be a human; if asked, say you are the helpline's digital assistant.
 
@@ -49,6 +49,11 @@ OTHER REQUESTS
 - Status of an existing complaint: say "एक क्षण, देखती हूँ।" with action "status"; the system reads it out.
 - Emergency (fire, accident, people trapped by a landslide, violence, a medical emergency): tell them to call 112 right now, with action "emergency". If they also want a complaint registered, continue afterwards.
 - Railways, passport, banks, income tax or other central government matters: say these go to CPGRAMS at pgportal.gov.in.
+
+PLACES
+- This helpline is for Uttarakhand only. If the problem is in a place outside Uttarakhand (another state or a city such as Delhi, Lucknow, Bareilly, Saharanpur, Shimla), say politely that this helpline handles only Uttarakhand and that they can contact that state's helpline or CPGRAMS at pgportal.gov.in. Do not register it. Ask whether they have a problem in Uttarakhand (action "ask"); end the call only after they say no.
+- If you cannot tell the district, ask once for the nearest town or district. Never invent a district.
+- If you do not recognise a village, ward or locality, accept it exactly as the caller said it. Never ask them to spell it, repeat it or confirm it. After registration they get a WhatsApp link to mark the exact spot on a map, so the officer will still find it.
 - Anything unrelated or abusive: say politely that you can only help with Uttarakhand government services.
 - When the caller has nothing more, or says goodbye: thank them, with action "end".
 
@@ -151,10 +156,10 @@ export function registeredLine(g: Pick<Grievance, "id" | "levelDueAt">, lang: "h
   const title = (l: 1 | 2) => (lang === "en" ? levels[l].title.en : levels[l].title.hi).replace(" / ", lang === "en" ? " or " : " या ");
   return lang === "en"
     ? `Your complaint is registered. Your complaint number ends in ${n}. It has gone to the ${title(1)}, who must act by ${fmt(g.levelDueAt, "en")}. If it is not resolved by then, it moves automatically to the ${title(2)}. ${
-        whatsapp ? "I have sent the details to this number on WhatsApp. If you have a photo of the problem, send it there and it will be added to your complaint. Every update will also come on WhatsApp." : ""
+        whatsapp ? "I have sent the details to this number on WhatsApp. If you have a photo of the problem, send it there and it will be added to your complaint. You can also mark the exact spot on a map using the link there. Every update will also come on WhatsApp." : ""
       } Is there anything else?`
     : `आपकी शिकायत दर्ज हो गई है। आपकी शिकायत संख्या है ${n}। यह ${title(1)} के पास भेज दी गई है, जिन्हें ${fmt(g.levelDueAt, "hi")} तक कार्यवाही करनी है। अगर तब तक समाधान नहीं हुआ, तो शिकायत अपने आप ${title(2)} के पास चली जाएगी। ${
-        whatsapp ? "शिकायत की जानकारी आपके व्हाट्सऐप पर भेज दी है। अगर समस्या की फ़ोटो हो, तो उसी व्हाट्सऐप पर भेज दीजिए, वह आपकी शिकायत में जुड़ जाएगी। हर अपडेट भी वहीं आएगा।" : ""
+        whatsapp ? "शिकायत की जानकारी आपके व्हाट्सऐप पर भेज दी है। अगर समस्या की फ़ोटो हो, तो उसी व्हाट्सऐप पर भेज दीजिए, वह आपकी शिकायत में जुड़ जाएगी। वहाँ भेजे लिंक से आप नक्शे पर समस्या की सही जगह भी बता सकते हैं। हर अपडेट भी वहीं आएगा।" : ""
       } क्या और कुछ बताना है?`;
 }
 
@@ -185,7 +190,7 @@ export function statusLine(mine: Grievance[], lang: "hi" | "en") {
 
 export const LINES = {
   greeting: {
-    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। हिंदी, इंग्लिश, गढ़वाली या कुमाऊँनी, किसी भी भाषा में अपनी समस्या बताइए।",
+    hi: "नमस्ते, मुख्यमंत्री हेल्पलाइन में आपका स्वागत है। मैं हेल्पलाइन की डिजिटल सहायक हूँ। हिंदी या इंग्लिश में अपनी समस्या बताइए। For English, press two.",
     en: "Namaste, welcome to CM Helpline. I am Sahayak, the helpline's digital assistant. Please tell me your problem.",
   },
   /** After the caller picks a language, by voice or keypad (1 Hindi, 2 Garhwali, 3 English, 4 Kumaoni). */

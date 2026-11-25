@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { pino } from "pino";
 import { config } from "../config.js";
 import { pgKv, postgresEnabled } from "../lib/postgres.js";
-import { handleInbound, handleInboundPhoto, handleVoiceNote, useLinkedSender } from "./whatsapp.service.js";
+import { handleInbound, handleInboundLocation, handleInboundPhoto, handleVoiceNote, useLinkedSender } from "./whatsapp.service.js";
 
 /*
  * WhatsApp on an ordinary number, without a Meta Business account: the server links to the number
@@ -225,6 +225,10 @@ async function handle(sock: Socket, b: Baileys, m: any) {
     if (x.imageMessage) {
       const data = (await b.downloadMediaMessage(m, "buffer", {})) as Buffer;
       return await handleInboundPhoto(mobile, data, x.imageMessage.mimetype ?? "image/jpeg", (x.imageMessage.caption ?? "").trim(), name);
+    }
+    const loc = x.locationMessage ?? x.liveLocationMessage;
+    if (loc && typeof loc.degreesLatitude === "number" && typeof loc.degreesLongitude === "number") {
+      return await handleInboundLocation(mobile, loc.degreesLatitude, loc.degreesLongitude);
     }
     const text: string = (x.conversation ?? x.extendedTextMessage?.text ?? "").trim();
     if (text) return await handleInbound(mobile, text, name);

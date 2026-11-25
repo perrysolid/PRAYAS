@@ -20,6 +20,8 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   isProd,
   jwtSecret: process.env.JWT_SECRET || "dev-only-secret",
+  /** The citizen website, for links sent on WhatsApp. */
+  siteUrl: (process.env.SITE_URL || (process.env.CORS_ORIGINS ?? "").split(",").map((o) => o.trim()).find((o) => o.startsWith("https://")) || "http://localhost:5173").replace(/\/$/, ""),
   corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:5173").split(",").map((o) => o.trim()),
   anthropicEnabled: Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
   /** Claude model for all app logic (phone and WhatsApp agents, drafting, triage, briefs, translation). Haiku keeps replies fast. */

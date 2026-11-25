@@ -1,4 +1,4 @@
-import type { SearchResult, GovernmentOrder, Grievance, Meta, Photo, PublicGrievance, Session, SimilarGrievance, Stats, Triage } from "./types";
+import type { SearchResult, GeoPin, GovernmentOrder, Grievance, Meta, Photo, PublicGrievance, Session, SimilarGrievance, Stats, Triage } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -42,7 +42,12 @@ export type AssistantReply = { kind: "answer" | "complaint" | "track" | "emergen
 export type Assist = { isGrievance: boolean; clearer: string; questions: { ask: string; options: string[] }[]; phrases: string[] };
 export type WhatsAppMessage = { id: string; mobile: string; dir: "in" | "out"; text: string; at: string; grievanceId?: string; image?: string; status: "simulated" | "sent" | "failed" | "received" };
 
+export type PinInfo = { id: string; subject: string; departmentId: string; districtId: string; block?: string; village?: string; location: GeoPin | null; open: boolean };
+
 export const api = {
+  pinInfo: (id: string, token: string | null, signal?: AbortSignal) =>
+    request<PinInfo>(`/pin/${encodeURIComponent(id)}${token ? `?${new URLSearchParams({ t: token })}` : ""}`, { signal }),
+  savePin: (id: string, token: string | null, lat: number, lng: number) => post<{ location: GeoPin }>(`/pin/${encodeURIComponent(id)}`, { lat, lng, ...(token ? { t: token } : {}) }),
   phoneStatus: (signal?: AbortSignal) => request<{ available: boolean; garhwali: boolean; number: string | null }>("/phone/status", { signal }),
   callToken: () => post<{ token: string; wsUrl: string | null; mobile: string }>("/phone/browser-token"),
   waStatus: (signal?: AbortSignal) => request<{ mode: "cloud" | "linked" | "simulated"; ai: boolean; demoMobiles: string[] }>("/whatsapp/status", { signal }),

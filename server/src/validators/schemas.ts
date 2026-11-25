@@ -6,6 +6,7 @@ const mobile = z.string().trim().regex(/^[6-9]\d{9}$/, "Enter a 10-digit mobile 
 const grievanceId = z.string().trim().toUpperCase().regex(/^CMH-\d{4}-\d{6}$/, "Complaint numbers look like CMH-2026-004512");
 
 export const sendOtpSchema = z.object({ mobile });
+export const pinSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180), t: z.string().max(64).optional() });
 export const verifyOtpSchema = z.object({ mobile, otp: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit OTP") });
 export const officerLoginSchema = z.object({ username: z.string().trim().min(1, "Enter your username"), password: z.string().min(1, "Enter your password") });
 

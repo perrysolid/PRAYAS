@@ -92,8 +92,8 @@ function compose(g: Grievance, e: TimelineEntry, hi: boolean): { text: string; i
     case "assigned":
       return {
         text: hi
-          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
-          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}\n\nYou'll get every update here. Reply *STATUS* any time.`,
+          ? `🙏 नमस्ते ${g.citizenName}। आपकी शिकायत *${g.id}* मुख्यमंत्री हेल्पलाइन पर दर्ज हो गई है।\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, true)} · ${officer} (L1)\n⏳ कार्यवाही की समय सीमा: ${due}${g.photos?.before ? "" : "\n\n📷 समस्या की फ़ोटो हो तो यहीं भेज दें, वह इस शिकायत में जुड़ जाएगी और अधिकारी को दिखेगी।"}${g.location ? "" : `\n\n📍 समस्या की सही जगह नक्शे पर बताएँ: ${grievances.pinUrl(g)}\n(या यहीं 📎 → लोकेशन भेजें)`}\n\nहर अद्यतन यहीं मिलेगा। स्थिति जानने हेतु *STATUS* लिखें।`
+          : `🙏 Namaste ${g.citizenName}. Your complaint *${g.id}* is registered with CM Helpline.\n\n📌 ${g.subject}\n🏢 ${deptName(g.departmentId, false)} · ${officer} (L1)\n⏳ Action due by ${due}${g.photos?.before ? "" : "\n\n📷 Have a photo of the problem? Send it here; it will be added to this complaint for the officer."}${g.location ? "" : `\n\n📍 Mark the exact spot on the map: ${grievances.pinUrl(g)}\n(or share your location here: 📎 → Location)`}\n\nYou'll get every update here. Reply *STATUS* any time.`,
       };
     case "note":
       return { toSupporters: true, text: hi ? `📝 *${g.id}* पर अद्यतन\n${e.by}: “${e.note}”` : `📝 Update on *${g.id}*\n${e.by}: “${e.note}”` };
@@ -159,8 +159,8 @@ store.onChange(onGrievanceChange);
 /* Replies from citizens                                               */
 /* ------------------------------------------------------------------ */
 
-type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm"; photo?: string };
-const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string; askLang?: boolean }>();
+type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm"; photo?: string; location?: { lat: number; lng: number } };
+const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string; location?: { lat: number; lng: number }; askLang?: boolean }>();
 
 const isHindi = (s: string) => /[ऀ-ॿ]/.test(s);
 // \b only knows English letters, so the end of a word is spelled out to work for Hindi too.
@@ -230,6 +230,45 @@ async function reply(mobile: string, text: string) {
 function errorText(err: unknown, hi: boolean) {
   if (err instanceof HttpError) return err.message;
   return hi ? "अभी यह नहीं हो सका। कृपया फिर प्रयास करें या 080 4729 1964 पर कॉल करें।" : "That didn't work right now. Please try again, or call 080 4729 1964.";
+}
+
+/**
+ * A location shared on WhatsApp (📎 → Location): the exact spot of the problem. While a complaint is being drafted
+ * it goes with it; otherwise it is added to the citizen's latest open complaint, or kept for the next one.
+ */
+export async function handleInboundLocation(mobile: string, lat: number, lng: number) {
+  const conv = conversations.get(mobile) ?? { history: [] };
+  conversations.set(mobile, conv);
+  const pref = await getLang(mobile);
+  const hi = pref ? readsHindi(pref) : conv.pending?.hi ?? true;
+  store.whatsapp.insert({ id: randomUUID(), mobile, dir: "in", text: `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`, at: new Date().toISOString(), status: "received" });
+  if (!grievances.inUttarakhand(lat, lng)) {
+    return reply(mobile, hi ? "📍 यह जगह उत्तराखंड से बाहर है। यह हेल्पलाइन केवल उत्तराखंड की समस्याओं के लिए है। समस्या वाली जगह की लोकेशन भेजें।" : "📍 That place is outside Uttarakhand. This helpline handles problems in Uttarakhand only. Please share the location of the problem.");
+  }
+  if (conv.pending) {
+    conv.pending.location = { lat, lng };
+    return reply(mobile, hi ? "📍 लोकेशन मिल गई, शिकायत के साथ जुड़ जाएगी।" : "📍 Got the location; it will go with the complaint.");
+  }
+  const since = Date.now() - 30 * 86_400_000;
+  const g = store.grievances
+    .all()
+    .filter((x) => (x.citizenMobile === mobile || x.supporters?.includes(mobile)) && x.status !== "resolved" && x.status !== "closed" && new Date(x.submittedAt).getTime() > since)
+    .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+  if (!g) {
+    conv.location = { lat, lng };
+    return reply(mobile, hi ? "📍 लोकेशन मिली। अब समस्या लिखकर या बोलकर बताइए, मैं शिकायत दर्ज करूँगी और यह जगह उसमें जोड़ दूँगी।" : "📍 Got the location. Now tell me the problem; I'll register it with this spot.");
+  }
+  try {
+    grievances.setLocation(g.id, { mobile }, lat, lng, "whatsapp");
+  } catch (err) {
+    return reply(mobile, errorText(err, hi));
+  }
+  return reply(
+    mobile,
+    hi
+      ? `📍 सही जगह शिकायत *${g.id}* में जोड़ दी गई है। ${levels[g.level].title.hi} इसे नक्शे पर देख सकेंगे।`
+      : `📍 The exact spot is added to complaint *${g.id}*. The ${levels[g.level].title.en} can now see it on the map.`,
+  );
 }
 
 /**
@@ -349,7 +388,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
           if (p.photo && !dup.photos?.before) grievances.addCitizenPhoto(dup.id, mobile, { dataUrl: p.photo });
           return reply(mobile, duplicateMessage(dup, joined, p.hi));
         }
-        grievances.create(
+        const created = grievances.create(
           session,
           {
             name: profileName || (p.hi ? "नागरिक" : "Citizen"),
@@ -366,6 +405,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
           },
           "whatsapp",
         );
+        if (p.location) grievances.setLocation(created.id, { mobile }, p.location.lat, p.location.lng, "whatsapp");
         // The registration message itself is sent by the change listener.
         return;
       } catch (err) {
@@ -444,6 +484,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
   if (!p.districtId) p.stage = "district";
   // A photo sent before the problem was described goes with this complaint.
   if (conv.photo) (p.photo = conv.photo), (conv.photo = undefined);
+  if (conv.location) (p.location = conv.location), (conv.location = undefined);
   conv.pending = p;
   return reply(mobile, p.stage === "district" ? (hi ? `समझ गई। यह ${deptName(p.departmentId, true)} का विषय है।\n\nयह किस जनपद में है?` : `Understood. This is for ${deptName(p.departmentId, false)}.\n\nWhich district is this in?`) : confirmText(p));
 }

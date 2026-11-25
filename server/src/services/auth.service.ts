@@ -1,5 +1,6 @@
 import { randomInt, scryptSync, timingSafeEqual, randomBytes } from "node:crypto";
 import { config } from "../config.js";
+import { departments } from "../data/catalog.js";
 import { badRequest, HttpError, unauthorized } from "../lib/httpError.js";
 import type { Level, OfficerSession } from "../types.js";
 
@@ -68,19 +69,30 @@ export function verifyOtp(mobile: string, otp: string) {
 
 // Demo officer accounts. A real deployment authenticates officers through Jan Parichay / MeriPehchaan.
 type Officer = Omit<OfficerSession, "role"> & { salt: string; hash: string };
-const DEMO_PASSWORD = "Demo@1905";
+const DEMO_PASSWORD = "demo123";
+// One salted hash shared by every demo account, so start-up stays fast with many accounts.
+const DEMO_SALT = randomBytes(16).toString("hex");
+const DEMO_HASH = scryptSync(DEMO_PASSWORD, DEMO_SALT, 32).toString("hex");
 
 function makeOfficer(username: string, name: string, departmentId: string, level: Level): Officer {
-  const salt = randomBytes(16).toString("hex");
-  return { username, name, departmentId, level, salt, hash: scryptSync(DEMO_PASSWORD, salt, 32).toString("hex") };
+  return { username, name, departmentId, level, salt: DEMO_SALT, hash: DEMO_HASH };
 }
 
+/**
+ * Demo accounts, all with password demo123:
+ * - l1.demo.all: an L1 officer who sees every department, for showing the whole flow.
+ * - l1.demo.<department>: an L1 officer of one department (l1.demo.water, l1.demo.food, ...).
+ * - l2.demo, l3.demo: district officer and head of department, across all departments.
+ * - je.jal.khirsu, sdo.upcl.srinagar, ee.pwd.pauri: the named officers used in the guided demo.
+ */
 const officers: Officer[] = [
+  makeOfficer("l1.demo.all", "Block / tehsil officer (all departments)", "*", 1),
+  ...departments.filter((d) => d.id !== "other").map((d) => makeOfficer(`l1.demo.${d.id}`, `Block / tehsil officer, ${d.name.en}`, d.id, 1)),
+  makeOfficer("l2.demo", "District officer (all departments)", "*", 2),
+  makeOfficer("l3.demo", "Head of department (all departments)", "*", 3),
   makeOfficer("je.jal.khirsu", "Junior Engineer, Jal Sansthan", "water", 1),
   makeOfficer("sdo.upcl.srinagar", "Sub Divisional Officer, UPCL", "energy", 1),
   makeOfficer("ee.pwd.pauri", "Executive Engineer, PWD", "pwd", 2),
-  // For demonstrations: an L1 officer who sees and acts on complaints of every department ("*").
-  makeOfficer("l1.demo", "Block / tehsil officer (all departments)", "*", 1),
 ];
 
 export const demoOfficerUsernames = officers.map((o) => o.username);

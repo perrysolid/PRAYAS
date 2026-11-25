@@ -118,7 +118,7 @@ export function WhatsApp() {
             <ol className="wa-steps">
               <li>{t("Send a problem from the phone, then reply with the district and “yes”.", "फ़ोन से समस्या भेजें, फिर जनपद और “हाँ” लिखें।")}</li>
               <li>
-                {t("Sign in as officer ", "अधिकारी के रूप में साइन इन करें ")}<code>ee.pwd.pauri</code> / <code>Demo@1905</code>{" "}
+                {t("Sign in as officer ", "अधिकारी के रूप में साइन इन करें ")}<code>ee.pwd.pauri</code> / <code>demo123</code>{" "}
                 {t("in a new tab and resolve it with a photo.", "नए टैब में, और फ़ोटो के साथ निस्तारित करें।")} <Link to="/officer" target="_blank">{t("Open officer console", "अधिकारी कंसोल खोलें")}</Link>
               </li>
               <li>{t("Watch the update and photo arrive here, then reply 5.", "अद्यतन और फ़ोटो यहाँ आते देखें, फिर 5 लिखें।")}</li>

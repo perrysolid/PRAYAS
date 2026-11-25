@@ -4,6 +4,7 @@ import {
   AlarmClock, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X,
 } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
+import { LocationCard } from "../components/LocationCard";
 import { ErrorSummary, Field, TextArea, describedBy } from "../components/Form";
 import { PhotoInput } from "../components/PhotoInput";
 import { LoadError, Loading } from "../components/States";
@@ -164,6 +165,7 @@ function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance
         </details>
       )}
       {g.photos?.before && <img className="ws__photo" src={g.photos.before.dataUrl} alt={t("Citizen's photo of the problem", "समस्या की नागरिक द्वारा फ़ोटो")} />}
+      <LocationCard pin={g.location} officer />
       {g.whatsapp !== false && (
         <p className="ws__wa"><MessageCircle size={16} aria-hidden="true" /> {t("The citizen gets your update and photo on WhatsApp automatically.", "नागरिक को आपका अद्यतन और फ़ोटो व्हाट्सऐप पर स्वतः मिलेगा।")}</p>
       )}

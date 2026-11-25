@@ -135,7 +135,7 @@ Open **[cm-helpline-uttarakhand.vercel.app](https://cm-helpline-uttarakhand.verc
 | **Register a complaint** | On the home page, type or speak the problem and press *Find the right department*. The one-time code appears on screen in the demo. |
 | **Track one** | Go to *Track* and enter **CMH-2026-004512** with **9876543210**. |
 | **WhatsApp** | Open `/whatsapp` and message the demo phone, for example *"No water in Khirsu for 4 days"*. |
-| **Officer desk** | Sign in as an officer with **`ee.pwd.pauri`** and **`Demo@1905`**. |
+| **Officer desk** | Sign in as an officer with **`ee.pwd.pauri`** and **`demo123`**. |
 | **Ask Sahayak** | Tap the assistant in the bottom corner and ask about any complaint or service. |
 
 > [!NOTE]

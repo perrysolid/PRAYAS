@@ -24,6 +24,7 @@ export const eventLabels: Record<TimelineEntry["event"], Bilingual> = {
   closed: { en: "Closed", hi: "बंद की गई" },
   supported: { en: "Others joined", hi: "अन्य नागरिक जुड़े" },
   photo: { en: "Citizen added a photo", hi: "नागरिक ने फ़ोटो जोड़ी" },
+  location: { en: "Exact location marked", hi: "सही जगह नक्शे पर दर्ज" },
 };
 
 export const typeLabels: Record<"complaint" | "demand" | "suggestion", Bilingual> = {

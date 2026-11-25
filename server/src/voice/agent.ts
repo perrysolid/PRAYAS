@@ -170,9 +170,9 @@ export class CallAgent {
     }
   }
 
-  /** Keypad: 1 Hindi, 2 Garhwali, 3 English, 4 Kumaoni. */
+  /** Keypad: 1 Hindi, 2 English, as the greeting says. */
   dtmf(digit: string) {
-    const lang = ({ "1": "hi", "2": "gbm", "3": "en", "4": "kfy" } as const)[digit];
+    const lang = ({ "1": "hi", "2": "en" } as const)[digit as "1" | "2"];
     if (lang) this.choose(lang, "keypad");
   }
 

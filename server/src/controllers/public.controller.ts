@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { departments, districts, governmentOrders, levels, MAX_OPEN_GRIEVANCES } from "../data/catalog.js";
 import { store } from "../data/store.js";
 import { config } from "../config.js";
+import { pinInfo, setLocation } from "../services/grievance.service.js";
 import { search as runSearch } from "../services/search.service.js";
 import { publicStats } from "../services/stats.service.js";
 
@@ -14,6 +15,23 @@ export function meta(_req: Request, res: Response) {
     maxOpenGrievances: MAX_OPEN_GRIEVANCES,
     aiTriage: config.anthropicEnabled,
   });
+}
+
+/** Who may pin a complaint's location: the signed link from WhatsApp, or the signed-in citizen. */
+const pinner = (req: Request, token?: unknown) => ({
+  token: typeof token === "string" ? token : undefined,
+  mobile: req.session?.role === "citizen" ? req.session.mobile : undefined,
+});
+
+export function pin(req: Request, res: Response) {
+  res.set("Cache-Control", "no-store");
+  res.json(pinInfo(String(req.params.id).toUpperCase(), pinner(req, req.query.t)));
+}
+
+export function savePin(req: Request, res: Response) {
+  const { lat, lng, t } = req.body as { lat: number; lng: number; t?: string };
+  const g = setLocation(String(req.params.id).toUpperCase(), pinner(req, t), lat, lng, "map");
+  res.json({ location: g.location });
 }
 
 export function stats(_req: Request, res: Response) {

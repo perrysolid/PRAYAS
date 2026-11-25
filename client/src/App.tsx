@@ -1,3 +1,4 @@
+import { Pin } from "./pages/Pin";
 import { WhatsApp } from "./pages/WhatsApp";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Intro } from "./components/Intro";
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: "/register", element: <Register /> },
       { path: "/track", element: <Track /> },
+      { path: "/pin/:id", element: <Pin /> },
       { path: "/my-complaints", element: <MyComplaints /> },
       { path: "/my-complaints/:id", element: <ComplaintDetail /> },
       { path: "/my-complaints/:id/receipt", element: <Receipt /> },

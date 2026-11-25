@@ -22,7 +22,7 @@ export type Level = 1 | 2 | 3 | 4;
 
 export type TimelineEntry = {
   at: string;
-  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported" | "photo";
+  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported" | "photo" | "location";
   by: string;
   note?: string;
   level?: Level;
@@ -30,6 +30,8 @@ export type TimelineEntry = {
 
 /** A compressed photo kept with the record. Production would store it in object storage, not inline. */
 export type Photo = { dataUrl: string; at: string; lat?: number; lon?: number };
+
+export type GeoPin = { lat: number; lng: number; at: string; source: "map" | "whatsapp" };
 
 export type Grievance = {
   id: string;
@@ -57,6 +59,8 @@ export type Grievance = {
   channel: "web" | "phone" | "app" | "whatsapp";
   /** Citizen's photo of the problem, and the officer's photo proving it was fixed. */
   photos?: { before?: Photo; after?: Photo };
+  /** The exact spot, pinned by the citizen on the map or shared on WhatsApp. */
+  location?: GeoPin;
   /** Mobiles of other citizens who said "I face this too" instead of filing a duplicate. */
   supporters?: string[];
   /** Citizen agreed to updates on WhatsApp at the registered mobile. */

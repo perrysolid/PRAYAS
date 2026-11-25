@@ -1247,3 +1247,18 @@ html.intro-played .carousel { animation: none; filter: none; }
 .call-log li strong { display: block; font-size: var(--fs-xs); color: var(--muted); }
 .call-log__citizen { background: var(--brand-tint) !important; }
 .call-log .is-partial { opacity: .7; font-style: italic; }
+
+/* ---------- Exact location ---------- */
+.loc { margin: var(--s4) 0; border: 1px solid var(--line); border-radius: var(--radius-lg, 12px); overflow: hidden; background: var(--paper); }
+.loc__map { display: block; width: 100%; height: 220px; border: 0; }
+.loc__bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s2) var(--s4); padding: var(--s3) var(--s4); }
+.loc__links { display: flex; flex-wrap: wrap; gap: var(--s4); font-weight: 600; }
+.loc__links a { display: inline-flex; align-items: center; gap: 6px; }
+.loc__none { display: flex; align-items: center; gap: 6px; margin: var(--s3) 0; }
+.loc__add { margin: var(--s4) 0; }
+.pin-page { padding-bottom: var(--s8); max-width: 52rem; }
+.pin-page__about { margin: 0 0 var(--s4); }
+.pin-page__actions { display: flex; flex-wrap: wrap; gap: var(--s3); margin-bottom: var(--s3); }
+.pin-page__map { height: min(60vh, 460px); border-radius: var(--radius-lg, 12px); border: 1px solid var(--line); margin-bottom: var(--s2); z-index: 0; }
+.pin-page__done { display: flex; gap: var(--s2); align-items: flex-start; padding: var(--s3) var(--s4); border-radius: 10px; background: #e8f6ee; color: #0f5132; }
+.pin-marker span { display: block; width: 30px; height: 30px; margin: 0 auto; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--saffron, #f28c1b); border: 3px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); }

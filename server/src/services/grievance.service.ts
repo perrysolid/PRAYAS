@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { config } from "../config.js";
 import { departments, levels, MAX_OPEN_GRIEVANCES } from "../data/catalog.js";
 import { addDays, store } from "../data/store.js";
 import { badRequest, conflict, forbidden, notFound } from "../lib/httpError.js";
@@ -219,6 +221,44 @@ export function addCitizenPhoto(id: string, mobile: string, photo: Omit<Photo, "
   const now = new Date().toISOString();
   g.photos = { ...g.photos, before: { ...photo, at: now } };
   g.timeline.push({ at: now, event: "photo", by: "Citizen", level: g.level, note: "Photo of the problem added on WhatsApp" });
+  store.grievances.save(g);
+  return g;
+}
+
+/* ------------------------------------------------------------------ */
+/* Exact location on the map                                           */
+/* ------------------------------------------------------------------ */
+
+/** Uttarakhand's bounding box, with a small margin. */
+export const inUttarakhand = (lat: number, lng: number) => lat >= 28.6 && lat <= 31.6 && lng >= 77.4 && lng <= 81.2;
+
+const pinToken = (id: string, mobile: string) => createHmac("sha256", config.jwtSecret).update(`pin:${id}:${mobile}`).digest("base64url").slice(0, 22);
+
+/** A link the citizen can open without signing in (sent on WhatsApp) to mark the exact spot. */
+export const pinUrl = (g: Pick<Grievance, "id" | "citizenMobile">) => `${config.siteUrl}/pin/${g.id}?t=${pinToken(g.id, g.citizenMobile)}`;
+
+/** The link's token, or a signed-in citizen who filed or joined the complaint. */
+function pinAllowed(g: Grievance, who: { token?: string; mobile?: string }) {
+  if (who.mobile && (g.citizenMobile === who.mobile || g.supporters?.includes(who.mobile))) return true;
+  const want = pinToken(g.id, g.citizenMobile);
+  return Boolean(who.token) && who.token!.length === want.length && timingSafeEqual(Buffer.from(who.token!), Buffer.from(want));
+}
+
+export function pinInfo(id: string, who: { token?: string; mobile?: string }) {
+  const g = store.grievances.find(id);
+  if (!g || !pinAllowed(g, who)) throw notFound("This link is not valid. Open the latest link sent on WhatsApp.");
+  return { id: g.id, subject: g.subject, departmentId: g.departmentId, districtId: g.districtId, block: g.block, village: g.village, location: g.location ?? null, open: isOpen(g) };
+}
+
+export function setLocation(id: string, who: { token?: string; mobile?: string }, lat: number, lng: number, source: "map" | "whatsapp") {
+  const g = store.grievances.find(id);
+  if (!g || !pinAllowed(g, who)) throw notFound("This link is not valid. Open the latest link sent on WhatsApp.");
+  if (!isOpen(g)) throw conflict("ALREADY_RESOLVED", "This complaint is closed, so its location can no longer be changed.");
+  if (!inUttarakhand(lat, lng)) throw badRequest("OUTSIDE_UTTARAKHAND", "That spot is outside Uttarakhand. Move the pin to where the problem is.");
+  const now = new Date().toISOString();
+  const moved = Boolean(g.location);
+  g.location = { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6, at: now, source };
+  g.timeline.push({ at: now, event: "location", by: "Citizen", level: g.level, note: source === "whatsapp" ? "Location shared on WhatsApp" : moved ? "Exact location updated on the map" : "Exact location marked on the map" });
   store.grievances.save(g);
   return g;
 }

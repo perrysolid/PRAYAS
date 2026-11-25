@@ -15,7 +15,7 @@ export type Meta = {
 
 export type TimelineEntry = {
   at: string;
-  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported" | "photo";
+  event: "registered" | "assigned" | "note" | "escalated" | "reminder" | "resolved" | "feedback" | "reopened" | "closed" | "supported" | "photo" | "location";
   by?: string;
   note?: string;
   level?: Level;
@@ -30,6 +30,8 @@ export type Actions = {
 };
 
 export type Photo = { dataUrl: string; at?: string; lat?: number; lon?: number };
+
+export type GeoPin = { lat: number; lng: number; at: string; source: "map" | "whatsapp" };
 
 export type Grievance = {
   id: string;
@@ -55,6 +57,8 @@ export type Grievance = {
   currentOfficer: Bilingual;
   actions: Actions;
   photos?: { before?: Photo; after?: Photo };
+  /** The exact spot, marked by the citizen on the map or shared on WhatsApp. */
+  location?: GeoPin;
   supportCount: number;
   whatsapp?: boolean;
   channel?: "web" | "phone" | "app" | "whatsapp";
