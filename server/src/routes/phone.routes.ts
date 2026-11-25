@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 import { config } from "../config.js";
 import { HttpError, unauthorized } from "../lib/httpError.js";
 import { garhwaliEnabled } from "../voice/garhwali.js";
-import { callToken, voiceReady } from "../voice/phone.js";
+import { callToken, note, phoneLog, secretMatches, voiceReady } from "../voice/phone.js";
 
 const callLimiter = rateLimit({ windowMs: 10 * 60_000, limit: 6, standardHeaders: "draft-7", legacyHeaders: false, message: { error: { code: "RATE_LIMITED", message: "Too many practice calls. Try again in a few minutes." } } });
 
@@ -11,6 +11,22 @@ const callLimiter = rateLimit({ windowMs: 10 * 60_000, limit: 6, standardHeaders
 const DEMO_MOBILE = "9876543210";
 
 export const phoneRoutes = Router()
+  /** Private: recent phone-line events, to see whether Exotel reached the server. */
+  .get("/debug", (req, res) => {
+    if (!secretMatches(String(req.query.key ?? ""))) return res.status(404).json({ error: { code: "NOT_FOUND", message: "Not found" } });
+    res.set("Cache-Control", "no-store").json({ voice: voiceReady(), events: phoneLog() });
+  })
+  /**
+   * Exotel's Voicebot can also be given an https URL that returns the stream address ("dynamic" mode).
+   * Answering here makes either setting work.
+   */
+  .get("/exotel", (req, res) => {
+    const ok = secretMatches(String(req.query.secret ?? ""));
+    note(`plain HTTPS request to /api/phone/exotel (Voicebot in dynamic-URL mode?); secret ${ok ? "ok" : "wrong"}`);
+    if (!ok) return res.status(401).json({ error: "unauthorized" });
+    const host = req.get("host");
+    res.json({ url: `wss://${host}/api/phone/exotel?secret=${encodeURIComponent(String(req.query.secret))}` });
+  })
   .get("/status", (_req, res) => {
     res.json({ available: voiceReady(), garhwali: garhwaliEnabled(), number: process.env.HELPLINE_PHONE_NUMBER || null });
   })
