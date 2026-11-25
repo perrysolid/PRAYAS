@@ -219,8 +219,9 @@ export function Call() {
             {live && (
               <span className="call-card__keys" aria-label={t("Keypad", "कीपैड")}>
                 <button type="button" className="btn btn--secondary" onClick={() => dtmf("1")}>1 · हिंदी</button>
-                {status?.garhwali && <button type="button" className="btn btn--secondary" onClick={() => dtmf("2")}>2 · गढ़वळि</button>}
+                <button type="button" className="btn btn--secondary" onClick={() => dtmf("2")}>2 · गढ़वळि</button>
                 <button type="button" className="btn btn--secondary" onClick={() => dtmf("3")}>3 · English</button>
+                <button type="button" className="btn btn--secondary" onClick={() => dtmf("4")}>4 · कुमाऊँनी</button>
               </span>
             )}
           </div>

@@ -60,6 +60,9 @@ create table if not exists app_state (key text primary key, value jsonb not null
 
 -- Login for the linked WhatsApp number (services/walink.service.ts), one row per key.
 create table if not exists wa_auth (key text primary key, value text not null);
+
+-- Each citizen's chosen language (services/prefs.service.ts).
+create table if not exists citizen_prefs (mobile text primary key, lang text not null check (lang in ('hi', 'en', 'gbm', 'kfy')));
 `;
 
 let schemaReady: Promise<unknown> | undefined;

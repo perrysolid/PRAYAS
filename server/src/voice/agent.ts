@@ -7,10 +7,11 @@ import { HttpError } from "../lib/httpError.js";
 import * as grievances from "../services/grievance.service.js";
 import { triageWithRules } from "../services/triage.service.js";
 import type { CallLine } from "../types.js";
-import { garhwaliEnabled, transcribeGarhwali } from "./garhwali.js";
+import { detectPahari, garhwaliEnabled, transcribeGarhwali, type Pahari } from "./garhwali.js";
 import { duplicateMessage, duplicateSpoken, findDuplicate, joinDuplicate } from "../services/duplicate.service.js";
 import { send } from "../services/whatsapp.service.js";
 import { LINES, SYSTEM, confirmLine, emptySlots, mergeSlots, registeredLine, spokenNumber, splitReply, statusLine, takeSentences, turnMessage, type Action, type Slots } from "./prompt.js";
+import { getLang, setLang } from "../services/prefs.service.js";
 import { note } from "./log.js";
 import { Listener, Speaker } from "./sarvam.js";
 
@@ -58,12 +59,25 @@ const YES_NO = /^(हाँ|हां|हा|जी|हाँ जी|जी ह�
 /** While the agent is talking, only clear speech counts as the caller taking the turn; a cough, a horn or a short "हाँ" does not. */
 const takesTurn = (s: string) => !BACKCHANNEL.test(s.trim()) && ((letters(s) >= 6 && s.trim().split(/\s+/).length >= 2) || letters(s) >= 9);
 
+/** A reply that only names a language, as asked in the greeting. */
+function languageNamed(text: string): "hi" | "en" | Pahari | null {
+  const t = text.trim().toLowerCase().replace(/[.,।?!]/g, "").replace(/\s*(में|मा|मैं|ही|जी|please|में बात करें|में बात करनी है)\s*/g, " ").trim();
+  if (/^(हिंदी|हिन्दी|hindi)$/.test(t)) return "hi";
+  if (/^(english|इंग्लिश|अंग्रेज़ी|अंग्रेजी|इंग्लिश)$/.test(t)) return "en";
+  if (/^(गढ़वाली|गढ़वळि|गढ़वाळी|garhwali)$/.test(t)) return "gbm";
+  if (/^(कुमाऊँनी|कुमाऊंनी|कुमाउनी|kumaoni|kumauni)$/.test(t)) return "kfy";
+  return null;
+}
+
 export class CallAgent {
   private listener: Listener;
   private speaker: Speaker;
   private slots: Slots = emptySlots();
   private lang: Lang = "hi";
-  private garhwali = false;
+  /** Garhwali or Kumaoni: the local speech model leads. */
+  private local: Pahari | null = null;
+  /** The caller has picked a language (by voice or keypad). */
+  private chosen = false;
   private lastAction: Action | null = null;
   private history: Anthropic.MessageParam[] = [];
   private transcript: CallLine[] = [];
@@ -123,6 +137,8 @@ export class CallAgent {
   async start() {
     this.maxTimer = setTimeout(() => void this.say(LINES.timeUp[this.lang], { end: true }), MAX_CALL_MS);
     if (!claudeEnabled()) return this.say(LINES.sorry.hi, { end: true });
+    // A caller who chose Garhwali or Kumaoni before (on WhatsApp or a call) gets the local model from the start.
+    void getLang(this.mobile).then((p) => (p === "gbm" || p === "kfy") && !this.chosen && this.goLocal(p, "saved preference"));
     await this.say(LINES.greeting.hi, { cacheKey: `greet:${this.t.sampleRate}` });
   }
 
@@ -140,11 +156,25 @@ export class CallAgent {
     }
   }
 
-  /** Keypad: 1 Hindi, 2 Garhwali, 3 English. */
+  /** Keypad: 1 Hindi, 2 Garhwali, 3 English, 4 Kumaoni. */
   dtmf(digit: string) {
-    if (digit === "2") this.garhwali = true;
-    if (digit === "1") (this.lang = "hi"), (this.garhwali = false);
-    if (digit === "3") this.lang = "en";
+    const lang = ({ "1": "hi", "2": "gbm", "3": "en", "4": "kfy" } as const)[digit];
+    if (lang) this.choose(lang, "keypad");
+  }
+
+  /** The caller picked a language: switch and invite them to speak. */
+  private choose(lang: "hi" | "en" | Pahari, why: string) {
+    if (lang === "gbm" || lang === "kfy") this.goLocal(lang, why);
+    else (this.lang = lang), (this.local = null), note(`caller chose ${lang === "en" ? "English" : "Hindi"} (${why})`);
+    this.chosen = true;
+    void this.say(LINES.langSet[lang]);
+  }
+
+  private goLocal(lang: Pahari, why: string) {
+    if (this.local === lang) return;
+    this.local = lang;
+    this.lang = "hi";
+    note(`caller speaks ${lang === "gbm" ? "Garhwali" : "Kumaoni"} (${why}); local speech model ${garhwaliEnabled() ? "on" : "not configured, Sarvam only"}`);
   }
 
   /** The transport has played everything up to `name`. */
@@ -222,23 +252,33 @@ export class CallAgent {
     this.t.event?.({ type: "caption", who: "citizen", text, final: true });
     // Several short finals in a row ("हाँ", "पौड़ी में") are answered together.
     this.heard = this.heard ? `${this.heard} ${text}` : text;
-    if (/गढ़वाली|गढ़वळि|garhwali/i.test(text)) this.garhwali = true;
+    // Just a language name ("हिंदी", "English", "गढ़वाली में"): switch at once, no model needed.
+    const named = languageNamed(text);
+    if (named) {
+      this.heard = "";
+      return this.choose(named, "voice");
+    }
+    const spotted = detectPahari(text);
+    if (spotted) this.goLocal(spotted, "words");
 
-    let gbm: Promise<string | null> = Promise.resolve(null);
-    if (this.garhwali && garhwaliEnabled()) {
+    let localText: Promise<string | null> = Promise.resolve(null);
+    if (this.local && garhwaliEnabled()) {
       const from = Math.max(0, this.utteranceAt - this.audioStart);
-      gbm = transcribeGarhwali(Buffer.concat(this.audio).subarray(from), this.t.sampleRate);
+      localText = transcribeGarhwali(Buffer.concat(this.audio).subarray(from), this.t.sampleRate).then((t) => {
+        note(t ? `local model heard: ${t.slice(0, 80)}` : "local model gave nothing in time; using Sarvam's words");
+        return t;
+      });
     }
     this.interrupt();
-    await this.reply(await gbm);
+    await this.reply(await localText);
   }
 
-  private async reply(garhwaliText: string | null) {
+  private async reply(localText: string | null) {
     const heard = this.heard;
     const id = ++this.turn;
     const abort = new AbortController();
     this.abort = abort;
-    const user: Anthropic.MessageParam = { role: "user", content: turnMessage(heard, this.slots, this.lastAction, garhwaliText) };
+    const user: Anthropic.MessageParam = { role: "user", content: turnMessage(heard, this.slots, this.lastAction, this.lang, this.local, localText) };
     const out = await this.speaker.begin(this.lang, (pcm) => this.audioOut(id, pcm)).catch((e: Error) => (note(`text-to-speech failed: ${e.message}`), null));
     if (!out) return this.say(LINES.sorry[this.lang], { end: true });
 
@@ -291,8 +331,8 @@ export class CallAgent {
 
     if (json) {
       this.slots = mergeSlots(this.slots, json);
-      if (json.lang === "gbm") this.garhwali = true;
-      if (json.lang === "en" || json.lang === "hi") this.lang = json.lang;
+      if (json.lang === "gbm" || json.lang === "kfy") this.goLocal(json.lang, "language model");
+      else if (json.lang === "en") (this.lang = "en"), (this.local = null);
     }
     const action = json?.action ?? "ask";
     const extra = await this.act(action);
@@ -369,13 +409,18 @@ export class CallAgent {
           village: s.village ?? undefined,
           triage: { source: "ai", confidence: 0.85, urgency: s.urgent || rules.urgency === "high" ? "high" : "normal" },
           whatsapp: true,
-          lang: this.garhwali ? "gbm" : this.lang,
-          call: { transcript: [...this.transcript], language: this.garhwali ? "gbm" : this.lang, seconds: Math.round((Date.now() - this.startedAt) / 1000), via: this.via },
+          lang: this.local ?? this.lang,
+          call: { transcript: [...this.transcript], language: this.local ?? this.lang, seconds: Math.round((Date.now() - this.startedAt) / 1000), via: this.via },
         },
         "phone",
       );
       this.registeredId = g.id;
       this.t.event?.({ type: "registered", id: g.id });
+      // Updates and later WhatsApp chats follow the language of this call.
+      const callLang = this.local ?? this.lang;
+      void getLang(this.mobile).then((p) => {
+        if (!p || this.chosen) void setLang(this.mobile, callLang);
+      });
       console.log(`[voice] registered ${g.id} from a ${this.via} call`);
       return { line: registeredLine(g, this.lang, true), note: `Registered as ${g.id}. Do not register again in this call.` };
     } catch (err) {
@@ -447,7 +492,7 @@ export class CallAgent {
     if (!this.registeredId || this.joinedExisting) return;
     const g = store.grievances.find(this.registeredId);
     if (!g) return;
-    g.call = { transcript: this.transcript, language: this.garhwali ? "gbm" : this.lang, seconds: Math.round((Date.now() - this.startedAt) / 1000), via: this.via };
+    g.call = { transcript: this.transcript, language: this.local ?? this.lang, seconds: Math.round((Date.now() - this.startedAt) / 1000), via: this.via };
     store.grievances.save(g);
   }
 }

@@ -7,7 +7,10 @@ import { aiEnabled } from "../lib/llm.js";
 import type { CitizenSession, Grievance, TimelineEntry, WhatsAppMessage } from "../types.js";
 import { assistant, draft, translate, type LangCode } from "./ai.service.js";
 import * as grievances from "./grievance.service.js";
+import { getLang, readsHindi, setLang, type ChatLang } from "./prefs.service.js";
 import { triage } from "./triage.service.js";
+import { detectPahari, garhwaliEnabled, transcribeGarhwaliFile } from "../voice/garhwali.js";
+import { transcribeFile } from "../voice/sarvam.js";
 import { duplicateMessage, findDuplicate, joinDuplicate } from "./duplicate.service.js";
 
 /*
@@ -157,7 +160,7 @@ store.onChange(onGrievanceChange);
 /* ------------------------------------------------------------------ */
 
 type Pending = { description: string; formal?: { subject: string; description: string }; departmentId: string; categoryId: string; urgency: "normal" | "high"; districtId?: string; hi: boolean; stage: "district" | "confirm"; photo?: string };
-const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string }>();
+const conversations = new Map<string, { pending?: Pending; history: { from: "me" | "bot"; text: string }[]; photo?: string; askLang?: boolean }>();
 
 const isHindi = (s: string) => /[ऀ-ॿ]/.test(s);
 // \b only knows English letters, so the end of a word is spelled out to work for Hindi too.
@@ -195,8 +198,27 @@ function statusLines(mobile: string, hi: boolean) {
 
 const menu = (hi: boolean) =>
   hi
-    ? "नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन 1905 की ओर से। 🙏\n\n• अपनी समस्या लिखें — मैं उसे दर्ज कराऊँगी\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• आपात स्थिति: 112"
-    : "Namaste! I'm Sahayak from CM Helpline 1905. 🙏\n\n• Describe your problem — I'll register it\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• Emergency: 112";
+    ? "नमस्ते! मैं सहायक हूँ, मुख्यमंत्री हेल्पलाइन 1905 की ओर से। 🙏\n\n• अपनी समस्या लिखें या 🎤 बोलकर भेजें — मैं उसे दर्ज कराऊँगी\n• 📷 फ़ोटो भी भेज सकते हैं\n• *STATUS* — अपनी शिकायतों की स्थिति\n• *REMIND* — अधिकारी को अनुस्मारक\n• *भाषा* — भाषा बदलें (हिंदी / English / गढ़वळि / कुमाऊँनी)\n• आपात स्थिति: 112"
+    : "Namaste! I'm Sahayak from CM Helpline 1905. 🙏\n\n• Type your problem or send a 🎤 voice note — I'll register it\n• 📷 You can send photos too\n• *STATUS* — your complaints\n• *REMIND* — remind the officer\n• *LANGUAGE* — change language (Hindi / English / Garhwali / Kumaoni)\n• Emergency: 112";
+
+const LANG_MENU = "🌐 भाषा चुनें / Choose your language:\n\n1️⃣ हिंदी\n2️⃣ English\n3️⃣ गढ़वळि (Garhwali)\n4️⃣ कुमाऊँनी (Kumaoni)\n\nनंबर लिखकर भेजें / Reply with the number.";
+const LANG_SET: Record<ChatLang, string> = {
+  hi: "✅ ठीक है, अब मैं हिंदी में बात करूँगी। शिकायतों के अपडेट भी हिंदी में आएँगे।\nभाषा बदलने हेतु कभी भी *भाषा* लिखें।",
+  en: "✅ Done. I'll chat in English from now on, and complaint updates will come in English too.\nSend *LANGUAGE* any time to change it.",
+  gbm: "✅ ठीक है, आप गढ़वळि में लिखें या बोलकर भेजें। मैं समझूँगी और गढ़वळि में जवाब देने की कोशिश करूँगी। शिकायत के अपडेट हिंदी में आएँगे।\nभाषा बदलने हेतु *भाषा* लिखें।",
+  kfy: "✅ ठीक है, आप कुमाऊँनी में लिखें या बोलकर भेजें। मैं समझूँगी और कुमाऊँनी में जवाब देने की कोशिश करूँगी। शिकायत के अपडेट हिंदी में आएँगे।\nभाषा बदलने हेतु *भाषा* लिखें।",
+};
+
+/** A message that picks a language: a number from the language menu, or just a language's name. */
+function languageChoice(text: string, menuOpen: boolean): ChatLang | null {
+  const t = text.trim().toLowerCase().replace(/[.,।!?*]/g, "").replace(/[1-4]\ufe0f?\u20e3/, (d) => d[0]).trim();
+  if (menuOpen && /^[1-4]$/.test(t)) return (["hi", "en", "gbm", "kfy"] as const)[Number(t) - 1];
+  if (/^(hindi|हिंदी|हिन्दी)$/.test(t)) return "hi";
+  if (/^(english|इंग्लिश|अंग्रेज़ी|अंग्रेजी)$/.test(t)) return "en";
+  if (/^(garhwali|गढ़वाली|गढ़वळि)$/.test(t)) return "gbm";
+  if (/^(kumaoni|kumauni|कुमाऊँनी|कुमाऊंनी)$/.test(t)) return "kfy";
+  return null;
+}
 
 async function reply(mobile: string, text: string) {
   const conv = conversations.get(mobile)!;
@@ -217,7 +239,8 @@ function errorText(err: unknown, hi: boolean) {
 export async function handleInboundPhoto(mobile: string, bytes: Buffer, mime: string, caption: string, profileName?: string) {
   const conv = conversations.get(mobile) ?? { history: [] };
   conversations.set(mobile, conv);
-  const hi = isHindi(caption) || (conv.pending?.hi ?? true);
+  const pref = await getLang(mobile);
+  const hi = pref ? readsHindi(pref) : isHindi(caption) || (conv.pending?.hi ?? true);
   if (bytes.length > 3_000_000) return reply(mobile, hi ? "फ़ोटो बहुत बड़ी है। कृपया छोटी फ़ोटो भेजें।" : "That photo is too large. Please send a smaller one.");
   const dataUrl = `data:${/^image\/(jpeg|png|webp)$/.test(mime) ? mime : "image/jpeg"};base64,${bytes.toString("base64")}`;
   store.whatsapp.insert({ id: randomUUID(), mobile, dir: "in", text: caption || "📷", image: dataUrl, at: new Date().toISOString(), status: "received" });
@@ -254,6 +277,26 @@ export async function handleInboundPhoto(mobile: string, bytes: Buffer, mime: st
   );
 }
 
+/**
+ * A voice note: Sarvam transcribes it; Garhwali or Kumaoni (chosen, or spotted in Sarvam's words) also goes
+ * through the local model, whose words lead. The citizen sees what was heard, then gets the usual reply.
+ */
+export async function handleVoiceNote(mobile: string, audio: Buffer, mime: string, profileName?: string) {
+  const pref = await getLang(mobile);
+  const heard = await transcribeFile(audio, mime).catch((err: Error) => (console.warn(`[whatsapp] voice note: ${err.message}`), null));
+  const sarvam = heard?.text ?? "";
+  const pahari = pref === "gbm" || pref === "kfy" ? pref : sarvam ? detectPahari(sarvam) : null;
+  const local = pahari && garhwaliEnabled() ? await transcribeGarhwaliFile(audio, mime) : null;
+  const shown = local || sarvam;
+  const hi = pref ? readsHindi(pref) : !sarvam || isHindi(sarvam);
+  if (!shown) {
+    return send(mobile, hi ? "माफ़ कीजिए, आवाज़ समझ नहीं आई। कृपया दोबारा बोलें या लिखकर भेजें।" : "Sorry, I couldn't make out the voice note. Please try again or type it.");
+  }
+  send(mobile, hi ? `🎤 आपने कहा: “${shown}”` : `🎤 You said: “${shown}”`);
+  // Both transcripts go on when they differ, so the assistant can settle names and places.
+  return handleInbound(mobile, local && sarvam && local !== sarvam ? `${local}\n(${sarvam})` : shown, profileName);
+}
+
 export async function handleInbound(mobile: string, raw: string, profileName?: string) {
   const text = raw.trim().slice(0, 1000);
   if (!text) return;
@@ -261,9 +304,25 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
   const conv = conversations.get(mobile) ?? { history: [] };
   conversations.set(mobile, conv);
   conv.history.push({ from: "me", text });
-  const hi = isHindi(text) || (conv.pending?.hi ?? false);
+  // A chosen language wins; otherwise answer in the script the citizen wrote in.
+  const pref = await getLang(mobile);
+  const hi = pref ? readsHindi(pref) : isHindi(text) || (conv.pending?.hi ?? false);
+  const chat: LangCode = pref ?? (hi ? "hi" : "en");
   const session: CitizenSession = { role: "citizen", mobile, name: profileName };
   const word = text.toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
+
+  // Language: the menu, a number from it, or just a language's name.
+  const chosen = languageChoice(text, conv.askLang ?? false);
+  conv.askLang = false;
+  if (chosen) {
+    await setLang(mobile, chosen);
+    if (conv.pending) conv.pending.hi = readsHindi(chosen);
+    return reply(mobile, LANG_SET[chosen]);
+  }
+  if (["LANGUAGE", "LANG", "CHANGE LANGUAGE", "LANGUAGES"].includes(word) || /^(भाषा|भाषा बदलें|भाषा बदलो|भाषा बदलना)$/.test(text.replace(/[.।!?*]/g, "").trim())) {
+    conv.askLang = true;
+    return reply(mobile, LANG_MENU);
+  }
 
   // A complaint in progress
   if (conv.pending) {
@@ -302,7 +361,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
             districtId: p.districtId!,
             triage: { source: aiEnabled() ? "ai" : "rules", confidence: 0.8, urgency: p.urgency },
             whatsapp: true,
-            lang: p.hi ? "hi" : "en",
+            lang: pref ?? (p.hi ? "hi" : "en"),
             photo: p.photo ? { dataUrl: p.photo } : undefined,
           },
           "whatsapp",
@@ -360,7 +419,7 @@ export async function handleInbound(mobile: string, raw: string, profileName?: s
   let emergency = false;
   if (aiEnabled()) {
     try {
-      const out = await assistant(conv.history, hi ? "hi" : "en");
+      const out = await assistant(conv.history, chat);
       kind = out.kind === "complaint" ? "complaint" : "other";
       emergency = out.kind === "emergency";
       answer = emergency ? `🚨 ${out.reply}` : out.reply;

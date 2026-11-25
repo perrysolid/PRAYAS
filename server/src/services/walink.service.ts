@@ -4,8 +4,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { pino } from "pino";
 import { config } from "../config.js";
 import { pgKv, postgresEnabled } from "../lib/postgres.js";
-import { transcribeFile } from "../voice/sarvam.js";
-import { handleInbound, handleInboundPhoto, useLinkedSender } from "./whatsapp.service.js";
+import { handleInbound, handleInboundPhoto, handleVoiceNote, useLinkedSender } from "./whatsapp.service.js";
 
 /*
  * WhatsApp on an ordinary number, without a Meta Business account: the server links to the number
@@ -231,10 +230,7 @@ async function handle(sock: Socket, b: Baileys, m: any) {
     if (text) return await handleInbound(mobile, text, name);
     if (x.audioMessage) {
       const data = (await b.downloadMediaMessage(m, "buffer", {})) as Buffer;
-      const heard = await transcribeFile(data, x.audioMessage.mimetype ?? "audio/ogg").catch(() => null);
-      if (heard) return await handleInbound(mobile, heard.text, name);
-      await sock.sendMessage(jid, { text: "माफ़ कीजिए, आवाज़ समझ नहीं आई। कृपया लिखकर भेजें या दोबारा बोलें।\nSorry, I couldn't make out the voice note. Please type it or try again." });
-      return;
+      return await handleVoiceNote(mobile, data, x.audioMessage.mimetype ?? "audio/ogg", name);
     }
     await sock.sendMessage(jid, { text: "मैं लिखे संदेश, वॉइस नोट और फ़ोटो समझ सकती हूँ। अपनी समस्या लिखें या बोलकर भेजें।\nI can read text, voice notes and photos. Please describe your problem." });
   } finally {

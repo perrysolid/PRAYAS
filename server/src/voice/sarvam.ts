@@ -264,9 +264,10 @@ function stripWavHeader(buf: Buffer) {
 export async function transcribeFile(audio: Buffer, mime: string): Promise<{ text: string; language?: string } | null> {
   if (!sarvamEnabled()) return null;
   const form = new FormData();
-  form.append("file", new Blob([new Uint8Array(audio)], { type: mime || "audio/ogg" }), "voice.ogg");
+  // WhatsApp labels voice notes "audio/ogg; codecs=opus"; Sarvam accepts only the bare type.
+  const type = (mime || "audio/ogg").split(";")[0].trim();
+  form.append("file", new Blob([new Uint8Array(audio)], { type }), `voice.${type.split("/")[1] || "ogg"}`);
   form.append("model", "saaras:v4");
-  form.append("language_code", "unknown");
   const res = await fetch("https://api.sarvam.ai/speech-to-text", { method: "POST", headers: headers(), body: form, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`Voice note transcription failed (${res.status})`);
   const json = (await res.json()) as { transcript?: string; language_code?: string | null };
