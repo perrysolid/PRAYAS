@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { departments, districts, governmentOrders, levels, MAX_OPEN_GRIEVANCES } from "../data/catalog.js";
 import { store } from "../data/store.js";
 import { config } from "../config.js";
+import { search as runSearch } from "../services/search.service.js";
 import { publicStats } from "../services/stats.service.js";
 
 export function meta(_req: Request, res: Response) {
@@ -33,4 +34,22 @@ export function orders(req: Request, res: Response) {
 export function contact(req: Request, res: Response) {
   store.contact.insert({ at: new Date().toISOString(), ...req.body });
   res.status(201).json({ ok: true });
+}
+
+export function siteFeedback(req: Request, res: Response) {
+  const f = req.body as { rating: number; ease?: number; recommend?: number; used: string[]; kind: string; comments: string; name: string; email: string; contactMe: boolean };
+  const message = [
+    `[Feedback: ${f.kind}] Overall ${f.rating}/5`,
+    f.ease ? `Ease ${f.ease}/5` : "",
+    f.recommend !== undefined ? `Recommend ${f.recommend}/10` : "",
+    f.used.length ? `Used: ${f.used.join(", ")}` : "",
+    f.contactMe ? "May be contacted" : "",
+    f.comments,
+  ].filter(Boolean).join(" | ");
+  store.contact.insert({ at: new Date().toISOString(), name: f.name || "Anonymous", email: f.email, message });
+  res.status(201).json({ ok: true });
+}
+
+export function search(req: Request, res: Response) {
+  res.json(runSearch(String(req.query.q ?? "")));
 }

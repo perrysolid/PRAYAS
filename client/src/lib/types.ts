@@ -109,3 +109,22 @@ export type Stats = {
 };
 
 export type GovernmentOrder = { id: string; date: string | null; title: Bilingual; kind: "go" | "minutes"; url: string };
+
+export type SearchResult = {
+  query: string;
+  departments: { id: string; name: Bilingual; categories: string[] }[];
+  cases: {
+    departmentId: string;
+    department?: Bilingual;
+    category?: Bilingual;
+    district?: Bilingual;
+    problem: string;
+    days: number;
+    escalations: number;
+    reopened: boolean;
+    proof: boolean;
+    rating: number | null;
+    steps: { day: number; en: string; hi: string }[];
+  }[];
+  summary: { count: number; fastest: number; slowest: number; median: number; withoutEscalation: number } | null;
+};

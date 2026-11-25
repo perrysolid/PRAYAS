@@ -1,8 +1,10 @@
 import { useState, type CSSProperties, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Building2, MessageCircle, Mic, MicOff, Phone, Play, Sparkles, Star } from "lucide-react";
+import { ArrowRight, Building2, MapPin, MessageCircle, Mic, MicOff, Phone, Play, Sparkles, Star } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { HeroCarousel } from "../components/HeroCarousel";
+import { HomeSearch } from "../components/HomeSearch";
+import { Faq } from "../components/Faq";
 import { Ladder } from "../components/Ladder";
 import { Schemes } from "../components/Schemes";
 import { UkMap } from "../components/UkMap";
@@ -269,7 +271,7 @@ function ImpactBand() {
 const scrubRules: Rule[] = [
   { selector: ".split__left", from: () => ({ x: -150, y: 40, scale: 0.95 }) },
   { selector: ".split__right", from: () => ({ x: 150, y: 40, scale: 0.95 }) },
-  { selector: ".rungs li", from: () => ({ x: -60 }) },
+  { selector: ".pills li", from: (i) => ({ x: i % 2 ? 40 : -40 }) },
   { selector: ".journey__step", from: (i) => ({ x: i % 2 ? 80 : -80, y: i < 2 ? -60 : 60, fade: false }) },
   { selector: ".journey__figure", from: () => ({ y: 90, fade: false }) },
   { selector: ".livemap__map", from: () => ({ x: -150, y: 30 }) },
@@ -312,6 +314,8 @@ export function Home() {
         </div>
       </section>
 
+      <HomeSearch />
+
       <section className="section section--tint section--split" aria-labelledby="quick-title">
         <div className="container split">
           <Reveal className="split__panel split__left">
@@ -320,16 +324,24 @@ export function Home() {
               <h2 id="quick-title" className="split__title">{t("Common problems", "आम समस्याएँ")}</h2>
               <p>{t("Choose one and we'll pre-select the department.", "एक चुनें, विभाग पहले से चुना रहेगा।")}</p>
             </div>
-            <ul className="rungs">
+            <ul className="pills" role="list" aria-label={t("Common problems", "आम समस्याएँ")}>
               {quickStarts.map((q, i) => (
                 <li key={q.dept} style={{ "--i": i } as CSSProperties}>
-                  <Link className="rung" to={`/register?department=${q.dept}`}>
-                    <span className="rung__node"><DeptIcon id={q.dept} /></span>
-                    <span className="rung__label">{pick(q)}</span>
+                  <Link className="pill" to={`/register?department=${q.dept}`}>
+                    <span className="pill__icon"><DeptIcon id={q.dept} size={20} /></span>
+                    <span className="pill__label">{pick(q)}</span>
                   </Link>
                 </li>
               ))}
             </ul>
+            <Link className="offices-bar" to="/offices">
+              <span className="offices-bar__icon" aria-hidden="true"><MapPin size={22} /></span>
+              <span className="offices-bar__text">
+                <strong>{t("Find an office near you", "अपने निकट का कार्यालय खोजें")}</strong>
+                <small>{t("Addresses, phone numbers and emails of departments and key government offices", "विभागों और प्रमुख सरकारी कार्यालयों के पते, फ़ोन नंबर और ईमेल")}</small>
+              </span>
+              <ArrowRight size={18} aria-hidden="true" />
+            </Link>
             <Link className="split__more" to="/departments">{t("All 16 departments", "सभी 16 विभाग")} <ArrowRight size={16} aria-hidden="true" /></Link>
           </Reveal>
           <Reveal className="split__panel split__right" delay={160} role="region" aria-labelledby="journey-title">
@@ -398,6 +410,8 @@ export function Home() {
           </p>
         </div>
       </section>
+
+      <Faq />
     </>
   );
 }

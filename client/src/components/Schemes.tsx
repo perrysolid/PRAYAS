@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Baby, BriefcaseBusiness, ChevronLeft, ChevronRight, ExternalLink, Flame, HeartPulse, Home, MapPin, PenLine, Phone, Sparkles, Users, X } from "lucide-react";
+import { ArrowRight, Baby, BriefcaseBusiness, ChevronLeft, ChevronRight, ExternalLink, Flame, HeartPulse, Home, MapPin, MessageSquareHeart, PenLine, Phone, Sparkles, Users, X } from "lucide-react";
 import { useI18n } from "../context/I18nContext";
 
 type Topic = "all" | "women" | "health" | "work" | "family";
@@ -191,7 +191,16 @@ export function Schemes() {
             </li>
           ))}
         </ul>
-        <p className="small muted schemes__note">{t("Checked against official sources in October 2026. Amounts and eligibility are set by the departments and can change; confirm on the portal before applying.", "अक्टूबर 2026 में आधिकारिक स्रोतों से जाँचा गया। राशि और पात्रता विभाग तय करते हैं और बदल सकती हैं; आवेदन से पहले पोर्टल पर पुष्टि करें।")}</p>
+        <div className="feedback-strip">
+          <span className="feedback-strip__icon" aria-hidden="true"><MessageSquareHeart size={22} /></span>
+          <div className="feedback-strip__text">
+            <strong>{t("How did we do?", "हमारी सेवा कैसी लगी?")}</strong>
+            <span>{t("Two minutes of your time helps us improve this portal for everyone.", "आपके दो मिनट इस पोर्टल को सबके लिए बेहतर बनाने में मदद करते हैं।")}</span>
+          </div>
+          <Link className="btn btn--secondary btn--small" to="/feedback" target="_blank" rel="noopener">
+            {t("Share feedback", "प्रतिपुष्टि दें")} <ExternalLink size={15} aria-hidden="true" /><span className="visually-hidden"> {t("(opens in a new tab)", "(नए टैब में खुलता है)")}</span>
+          </Link>
+        </div>
       </div>
 
       <dialog ref={dialog} className="scheme-dlg" aria-labelledby="scheme-dlg-title" onClose={() => setOpen(null)} onClick={(e) => e.target === e.currentTarget && setOpen(null)}>

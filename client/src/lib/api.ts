@@ -1,4 +1,4 @@
-import type { GovernmentOrder, Grievance, Meta, Photo, PublicGrievance, Session, SimilarGrievance, Stats, Triage } from "./types";
+import type { SearchResult, GovernmentOrder, Grievance, Meta, Photo, PublicGrievance, Session, SimilarGrievance, Stats, Triage } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -66,6 +66,9 @@ export const api = {
     return request<GovernmentOrder[]>(`/orders?${qs}`, { signal });
   },
   contact: (data: { name: string; email: string; message: string }) => post<{ ok: true }>("/contact", data),
+
+  search: (q: string, signal?: AbortSignal) => request<SearchResult>(`/search?q=${encodeURIComponent(q)}`, { signal }),
+  siteFeedback: (data: { rating: number; ease?: number; recommend?: number; used: string[]; kind: string; comments: string; name: string; email: string; contactMe: boolean }) => post<{ ok: true }>("/feedback", data),
 
   me: (signal?: AbortSignal) => request<{ session: Session | null }>("/auth/me", { signal }),
   sendOtp: (mobile: string) => post<{ resendInSeconds: number; devOtp?: string }>("/auth/otp/send", { mobile }),

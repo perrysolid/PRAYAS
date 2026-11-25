@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { PlayCircle, BarChart3, Building2, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
+import { PlayCircle, BarChart3, Building2, Download, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, MapPin, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -37,6 +37,8 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/demo", label: t("Watch it work", "देखें कैसे काम करता है"), Icon: PlayCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
+    { to: "/offices", label: t("Offices and contacts", "कार्यालय और संपर्क"), Icon: MapPin },
+    { to: "/forms", label: t("Download forms", "फ़ॉर्म डाउनलोड करें"), Icon: Download },
     { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
     { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
     { to: "/help", label: t("Help", "सहायता"), Icon: HelpCircle },

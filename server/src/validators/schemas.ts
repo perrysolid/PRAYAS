@@ -57,6 +57,20 @@ export const contactSchema = z.object({
   message: z.string().trim().min(10, "Write at least 10 characters").max(2000),
 });
 
+export const searchQuery = z.object({ q: z.string().trim().min(2, "Type at least 2 letters").max(200) });
+
+export const siteFeedbackSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  ease: z.number().int().min(1).max(5).optional(),
+  recommend: z.number().int().min(0).max(10).optional(),
+  used: z.array(z.string().trim().max(40)).max(10).default([]),
+  kind: z.enum(["suggestion", "problem", "compliment", "other"]),
+  comments: z.string().trim().max(2000).default(""),
+  name: z.string().trim().max(80).default(""),
+  email: z.union([z.literal(""), z.email("Enter a valid email address")]).default(""),
+  contactMe: z.boolean().default(false),
+});
+
 // ---------- AI helpers ----------
 const langCode = z.enum(languageCodes);
 export const draftSchema = z.object({ text: z.string().trim().min(10, "Write at least 10 characters").max(2000), lang: langCode });

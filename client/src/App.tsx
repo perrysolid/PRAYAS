@@ -10,6 +10,10 @@ import { ComplaintDetail } from "./pages/ComplaintDetail";
 import { Dashboard } from "./pages/Dashboard";
 import { Demo } from "./pages/Demo";
 import { Departments } from "./pages/Departments";
+import { Feedback } from "./pages/Feedback";
+import { Search } from "./pages/Search";
+import { Forms } from "./pages/Forms";
+import { Offices } from "./pages/Offices";
 import { Home } from "./pages/Home";
 import { About, Accessibility, Contact, Cpgrams, Credits, Help, NotFound, Privacy, Sitemap, Terms } from "./pages/Info";
 import { Login } from "./pages/Login";
@@ -39,6 +43,10 @@ const router = createBrowserRouter([
       { path: "/departments", element: <Departments /> },
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/orders", element: <Orders /> },
+      { path: "/offices", element: <Offices /> },
+      { path: "/forms", element: <Forms /> },
+      { path: "/search", element: <Search /> },
+      { path: "/feedback", element: <Feedback /> },
       { path: "/help", element: <Help /> },
       { path: "/contact", element: <Contact /> },
       { path: "/about", element: <About /> },
