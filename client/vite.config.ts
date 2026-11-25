@@ -7,6 +7,6 @@ export default defineConfig({
     port: 5173,
     // Allow sharing the dev server through an ngrok tunnel.
     allowedHosts: [".ngrok-free.app", ".ngrok-free.dev", ".ngrok.app", ".ngrok.io"],
-    proxy: { "/api": "http://localhost:4000" },
+    proxy: { "/api": { target: "http://localhost:4000", ws: true } },
   },
 });

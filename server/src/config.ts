@@ -22,6 +22,8 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || "dev-only-secret",
   corsOrigins: (process.env.CORS_ORIGINS ?? "http://localhost:5173").split(",").map((o) => o.trim()),
   anthropicEnabled: Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
+  /** Claude model for all app logic (phone and WhatsApp agents, drafting, triage, briefs, translation). Haiku keeps replies fast. */
+  claudeModel: process.env.CLAUDE_MODEL || "claude-haiku-5-5",
   /** Language model used for formal drafting, the assistant, translation and speech. Keys stay on the server. */
   ai: {
     key: process.env.AI_API_KEY ?? "",
@@ -37,6 +39,37 @@ export const config = {
     verifyToken: process.env.WHATSAPP_VERIFY_TOKEN ?? "",
     appSecret: process.env.WHATSAPP_APP_SECRET ?? "",
   },
+  /** WhatsApp on an ordinary number, linked like WhatsApp Web (no Meta Business account). */
+  waLink: {
+    enabled: process.env.WA_LINK === "on",
+    number: (process.env.WA_LINK_NUMBER ?? "").replace(/\D/g, ""),
+  },
+  /**
+   * Officers who get new complaints and escalation briefs on WhatsApp, as "department:mobile" pairs.
+   * "*" matches every department, e.g. "*:9876500002,water:9876500003".
+   */
+  officerWhatsApp: (process.env.OFFICER_WHATSAPP ?? "")
+    .split(",")
+    .map((p) => p.trim().split(":"))
+    .filter((p) => p.length === 2 && /^\d{10}$/.test(p[1].replace(/\D/g, "").slice(-10)))
+    .map(([dept, mobile]) => ({ dept: dept.trim(), mobile: mobile.replace(/\D/g, "").slice(-10) })),
+  /** Phone agent: Exotel call audio, Sarvam speech in and out, Claude for the conversation. */
+  voice: {
+    sarvamKey: process.env.SARVAM_API_KEY ?? "",
+    model: process.env.VOICE_MODEL || process.env.CLAUDE_MODEL || "claude-haiku-5-5",
+    speakerHi: process.env.SARVAM_SPEAKER_HI || "ritu_hi_customer_warm",
+    speakerEn: process.env.SARVAM_SPEAKER_EN || "ishita_enhi_customer",
+    /** Shared secret in the Exotel Voicebot URL (?secret=…). Required in production. */
+    streamSecret: process.env.PHONE_STREAM_SECRET ?? "",
+    /** Garhwali speech recognition (Meta Omnilingual ASR, see garhwali-asr/). Optional. */
+    garhwaliUrl: (process.env.GARHWALI_ASR_URL ?? "").replace(/\/$/, ""),
+    garhwaliToken: process.env.GARHWALI_ASR_TOKEN ?? "",
+    maxCalls: Number(process.env.VOICE_MAX_CALLS ?? 4),
+  },
+  /** Public https address of this API, for the browser practice call and the keep-awake ping. */
+  publicUrl: (process.env.PUBLIC_API_URL || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, ""),
+  /** Postgres (Neon) as the database. Preferred over Supabase when both are set. */
+  databaseUrl: process.env.DATABASE_URL ?? "",
   /** Supabase as the database. Without it, data is kept in data.json. */
   supabase: {
     url: process.env.SUPABASE_URL ?? "",

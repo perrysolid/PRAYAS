@@ -1,0 +1,3 @@
+omnilingual-asr
+fastapi
+uvicorn[standard]

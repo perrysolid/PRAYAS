@@ -124,7 +124,9 @@ export function WhatsApp() {
               <li>{t("Watch the update and photo arrive here, then reply 5.", "अद्यतन और फ़ोटो यहाँ आते देखें, फिर 5 लिखें।")}</li>
             </ol>
             <p className="small muted">
-              {status?.mode === "cloud"
+              {status?.mode === "linked"
+                ? t("Connected to a real WhatsApp number: message it from your phone, and updates arrive there too.", "असली व्हाट्सऐप नंबर से जुड़ा: अपने फ़ोन से संदेश भेजें, अद्यतन वहीं भी आएँगे।")
+                : status?.mode === "cloud"
                 ? t("Connected to WhatsApp Business: messages also go to the real number.", "व्हाट्सऐप बिज़नेस से जुड़ा: संदेश असली नंबर पर भी जाते हैं।")
                 : t("Demo mode: messages are simulated here. Connecting a WhatsApp Business number sends the same messages for real.", "डेमो मोड: संदेश यहाँ सिम्युलेट होते हैं। व्हाट्सऐप बिज़नेस नंबर जोड़ने पर यही संदेश असली नंबर पर जाते हैं।")}
             </p>
@@ -143,7 +145,7 @@ export function WhatsApp() {
                 <strong>CM Helpline 1905 <BadgeCheck size={15} aria-hidden="true" /></strong>
                 <span>{waiting ? t("typing…", "लिख रही हैं…") : t("Government of Uttarakhand · Sahayak", "उत्तराखंड सरकार · सहायक")}</span>
               </span>
-              <span className="wa-head__badge">{status?.mode === "cloud" ? "Live" : t("Demo", "डेमो")}</span>
+              <span className="wa-head__badge">{status?.mode === "cloud" || status?.mode === "linked" ? "Live" : t("Demo", "डेमो")}</span>
             </header>
             <div className="wa-log" ref={logRef} role="log" aria-live="polite">
               <p className="wa-day">{t("Messages are end-to-end encrypted on real WhatsApp. This is a prototype.", "असली व्हाट्सऐप पर संदेश एंड-टू-एंड एन्क्रिप्टेड होते हैं। यह प्रोटोटाइप है।")}</p>

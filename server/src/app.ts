@@ -10,6 +10,9 @@ import { loadSession } from "./middleware/auth.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
 import { api } from "./routes/index.js";
+import { whatsappStatus } from "./services/whatsapp.service.js";
+import { waLinkStatus } from "./services/walink.service.js";
+import { voiceReady } from "./voice/phone.js";
 
 export function createApp() {
   const app = express();
@@ -17,7 +20,7 @@ export function createApp() {
   // Hops in front of the API: 1 behind a host proxy, 2 when the website host also forwards /api (Vercel → Render).
   app.set("trust proxy", Number(process.env.TRUST_PROXY ?? 1));
   // Spoken replies are played from in-memory blobs.
-  app.use(helmet({ contentSecurityPolicy: { directives: { "media-src": ["'self'", "blob:"] } } }));
+  app.use(helmet({ contentSecurityPolicy: { directives: { "media-src": ["'self'", "blob:"], "script-src": ["'self'", "blob:"], "connect-src": ["'self'", "wss:"] } } }));
   app.use(compression());
   app.use(cors({ origin: config.corsOrigins, credentials: true }));
   // Room for one browser-compressed photo per request.
@@ -25,7 +28,7 @@ export function createApp() {
   app.use(cookieParser());
   app.use(loadSession);
 
-  app.get("/api/health", (_req, res) => res.json({ ok: true }));
+  app.get("/api/health", (_req, res) => res.json({ ok: true, whatsapp: whatsappStatus().mode, waLink: waLinkStatus().state, phone: voiceReady() }));
   app.use("/api", apiLimiter, api);
   app.use("/api", notFoundHandler);
 

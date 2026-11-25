@@ -1,9 +1,13 @@
+import Anthropic from "@anthropic-ai/sdk";
 import { config } from "../config.js";
+import { claude } from "./claude.js";
 
 type Part = { text?: string; inlineData?: { mimeType: string; data: string } };
 type Content = { role: "user" | "model"; parts: Part[] };
 
-export const aiEnabled = () => Boolean(config.ai.key && config.ai.model);
+const geminiEnabled = () => Boolean(config.ai.key && config.ai.model);
+/** True when any model is available: the configured AI_* model, or Claude as a fallback. */
+export const aiEnabled = () => geminiEnabled() || config.anthropicEnabled;
 export const ttsEnabled = () => Boolean(config.ai.key && config.ai.ttsModel);
 
 async function post(model: string, body: unknown, timeoutMs: number) {
@@ -28,6 +32,18 @@ async function post(model: string, body: unknown, timeoutMs: number) {
  * never in `system`, so it is treated as data and cannot rewrite the instructions.
  */
 export async function generateJson<T>(opts: { system: string; contents: Content[]; schema: object; model?: string; temperature?: number; timeoutMs?: number }): Promise<T> {
+  // Claude (Haiku) does all app logic; the AI_* model is only a fallback, kept for speech.
+  if (!config.anthropicEnabled) return geminiJson<T>(opts);
+  try {
+    return await claudeJson<T>(opts);
+  } catch (err) {
+    if (!geminiEnabled() || (err instanceof Error && err.message.startsWith("Blocked"))) throw err;
+    console.warn(`Claude failed (${err instanceof Error ? err.message.slice(0, 80) : "error"}); using the AI_* model`);
+    return geminiJson<T>(opts);
+  }
+}
+
+async function geminiJson<T>(opts: { system: string; contents: Content[]; schema: object; model?: string; temperature?: number; timeoutMs?: number }): Promise<T> {
   const parts = await post(
     opts.model ?? config.ai.model,
     {
@@ -67,4 +83,54 @@ function pcmToWav(pcm: Buffer, rate: number) {
   h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34);
   h.write("data", 36); h.writeUInt32LE(pcm.length, 40);
   return Buffer.concat([h, pcm]);
+}
+
+/** Gemini's schema dialect ("OBJECT", "STRING") as standard JSON Schema for Claude's structured outputs. */
+function toJsonSchema(s: unknown): unknown {
+  if (Array.isArray(s)) return s.map(toJsonSchema);
+  if (!s || typeof s !== "object") return s;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(s)) {
+    if (k === "nullable" || k === "propertyOrdering") continue;
+    out[k] = k === "type" && typeof v === "string" ? v.toLowerCase() : k === "properties" ? Object.fromEntries(Object.entries(v as object).map(([p, x]) => [p, toJsonSchema(x)])) : toJsonSchema(v);
+  }
+  if (out.type === "object") out.additionalProperties = false;
+  return out;
+}
+
+function toMessages(contents: Content[]): Anthropic.MessageParam[] {
+  const msgs: Anthropic.MessageParam[] = [];
+  for (const c of contents) {
+    const role = c.role === "model" ? "assistant" : "user";
+    const blocks: Anthropic.ContentBlockParam[] = c.parts.flatMap((p): Anthropic.ContentBlockParam[] => {
+      if (p.text) return [{ type: "text", text: p.text }];
+      if (p.inlineData && /^image\/(jpeg|png|gif|webp)$/.test(p.inlineData.mimeType))
+        return [{ type: "image", source: { type: "base64", media_type: p.inlineData.mimeType as "image/jpeg", data: p.inlineData.data } }];
+      return [];
+    });
+    if (!blocks.length) continue;
+    const last = msgs[msgs.length - 1];
+    if (last?.role === role) (last.content as Anthropic.ContentBlockParam[]).push(...blocks);
+    else msgs.push({ role, content: blocks });
+  }
+  while (msgs.length && msgs[msgs.length - 1].role === "assistant") msgs.pop();
+  if (msgs[0]?.role === "assistant") msgs.unshift({ role: "user", content: "(conversation continues)" });
+  return msgs;
+}
+
+async function claudeJson<T>(opts: { system: string; contents: Content[]; schema: object; timeoutMs?: number }): Promise<T> {
+  const res = await claude().messages.create(
+    {
+      model: config.claudeModel,
+      max_tokens: 4096,
+      thinking: { type: "disabled" },
+      output_config: { effort: "low", format: { type: "json_schema", schema: toJsonSchema(opts.schema) as Record<string, unknown> } },
+      system: opts.system,
+      messages: toMessages(opts.contents),
+    },
+    { timeout: opts.timeoutMs ?? 20_000 },
+  );
+  if (res.stop_reason === "refusal") throw new Error("Blocked: refusal");
+  const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  return JSON.parse(text) as T;
 }

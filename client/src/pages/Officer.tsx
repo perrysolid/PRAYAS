@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import {
-  AlarmClock, CheckCircle2, CircleDot, Clock3, Inbox, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X,
+  AlarmClock, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X,
 } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { ErrorSummary, Field, TextArea, describedBy } from "../components/Form";
@@ -140,7 +140,29 @@ function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance
         <div><dt><Phone size={14} aria-hidden="true" /> {t("Citizen", "नागरिक")}</dt><dd>{g.citizenName} · {g.citizenMobile}</dd></div>
         <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Call 1905", "कॉल 1905") : t("Website", "वेबसाइट")}</dd></div>
       </dl>
+      {g.escalationBrief && (
+        <section className="ws-brief ws-brief--esc" aria-label={t("Why this reached you", "यह आपके पास क्यों आई")}>
+          <h3><ArrowUpRight size={16} aria-hidden="true" /> {t(`Why this reached you (L${g.escalationBrief.level})`, `यह आपके पास क्यों आई (L${g.escalationBrief.level})`)}</h3>
+          <ul data-no-translate>{g.escalationBrief.points.map((p) => <li key={p}>{p}</li>)}</ul>
+        </section>
+      )}
+      {g.brief && (
+        <section className="ws-brief" aria-label={t("Brief", "सार")}>
+          <h3>{g.brief.source === "ai" ? <Sparkles size={16} aria-hidden="true" /> : <ListChecks size={16} aria-hidden="true" />} {t("In brief", "संक्षेप में")}</h3>
+          <ul data-no-translate>{g.brief.points.map((p) => <li key={p}>{p}</li>)}</ul>
+        </section>
+      )}
       <p className="ws__desc">{g.description}</p>
+      {g.call && g.call.transcript.length > 0 && (
+        <details className="ws-call">
+          <summary><Phone size={15} aria-hidden="true" /> {t(`Call transcript · ${Math.max(1, Math.round(g.call.seconds / 60))} min`, `कॉल का विवरण · ${Math.max(1, Math.round(g.call.seconds / 60))} मिनट`)}</summary>
+          <ol data-no-translate>
+            {g.call.transcript.map((l, i) => (
+              <li key={i} className={`ws-call__${l.who}`}><strong>{l.who === "agent" ? t("Agent", "एजेंट") : t("Citizen", "नागरिक")}</strong> {l.text}</li>
+            ))}
+          </ol>
+        </details>
+      )}
       {g.photos?.before && <img className="ws__photo" src={g.photos.before.dataUrl} alt={t("Citizen's photo of the problem", "समस्या की नागरिक द्वारा फ़ोटो")} />}
       {g.whatsapp !== false && (
         <p className="ws__wa"><MessageCircle size={16} aria-hidden="true" /> {t("The citizen gets your update and photo on WhatsApp automatically.", "नागरिक को आपका अद्यतन और फ़ोटो व्हाट्सऐप पर स्वतः मिलेगा।")}</p>
@@ -351,6 +373,7 @@ function Console() {
                           {g.urgency === "high" && live && <span className="oc-dot oc-dot--urgent" title={t("Urgent", "अत्यावश्यक")} />}
                           {g.supportCount > 0 && <span className="oc-mini"><Users size={13} aria-hidden="true" />{g.supportCount}</span>}
                           {g.channel === "whatsapp" && <span className="oc-mini oc-mini--wa"><MessageCircle size={13} aria-hidden="true" /></span>}
+                          {g.channel === "phone" && <span className="oc-mini" title={t("Registered by phone call", "फ़ोन कॉल से दर्ज")}><Phone size={13} aria-hidden="true" /></span>}
                         </span>
                       </span>
                     </button>

@@ -1,6 +1,7 @@
 import { departments, levels, MAX_OPEN_GRIEVANCES } from "../data/catalog.js";
 import { addDays, store } from "../data/store.js";
 import { badRequest, conflict, forbidden, notFound } from "../lib/httpError.js";
+import { rulesBrief, rulesEscalationBrief } from "../lib/brief.js";
 import { maskMobile, maskName } from "../lib/mask.js";
 import type { CitizenSession, Grievance, Level, OfficerSession, Photo } from "../types.js";
 import type { TriageResult } from "./triage.service.js";
@@ -39,7 +40,16 @@ const supportCount = (g: Grievance) => g.supporters?.length ?? 0;
 /** Full record for the owner or an officer. Supporter numbers are never sent, only the count. */
 export function toDetail(g: Grievance) {
   const { supporters: _s, ...rest } = g;
-  return { ...rest, citizenMobile: maskMobile(g.citizenMobile), currentOfficer: levels[g.level].title, actions: allowedActions(g), supportCount: supportCount(g) };
+  return {
+    ...rest,
+    citizenMobile: maskMobile(g.citizenMobile),
+    currentOfficer: levels[g.level].title,
+    actions: allowedActions(g),
+    supportCount: supportCount(g),
+    // Officers always get a brief: the model-written one when ready, otherwise one from the record.
+    brief: g.brief ?? rulesBrief(g),
+    escalationBrief: g.level > 1 ? (g.escalationBrief?.level === g.level ? g.escalationBrief : rulesEscalationBrief(g)) : undefined,
+  };
 }
 
 /** Public tracking view: status only, personal details masked. */
@@ -77,6 +87,8 @@ export type CreateGrievanceInput = {
   photo?: Omit<Photo, "at">;
   whatsapp?: boolean;
   lang?: string;
+  /** Conversation from the phone agent, kept for the officer. */
+  call?: Grievance["call"];
 };
 
 export function create(session: CitizenSession, input: CreateGrievanceInput, channel: Grievance["channel"] = "web") {
@@ -121,6 +133,7 @@ export function create(session: CitizenSession, input: CreateGrievanceInput, cha
     notifiedUpTo: 0,
     photos: input.photo ? { before: { ...input.photo, at: now } } : undefined,
     supporters: [],
+    call: input.call,
   };
   return toDetail(store.grievances.insert(g));
 }

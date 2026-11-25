@@ -43,7 +43,9 @@ export type Assist = { isGrievance: boolean; clearer: string; questions: { ask: 
 export type WhatsAppMessage = { id: string; mobile: string; dir: "in" | "out"; text: string; at: string; grievanceId?: string; image?: string; status: "simulated" | "sent" | "failed" | "received" };
 
 export const api = {
-  waStatus: (signal?: AbortSignal) => request<{ mode: "cloud" | "simulated"; ai: boolean; demoMobiles: string[] }>("/whatsapp/status", { signal }),
+  phoneStatus: (signal?: AbortSignal) => request<{ available: boolean; garhwali: boolean; number: string | null }>("/phone/status", { signal }),
+  callToken: () => post<{ token: string; wsUrl: string | null; mobile: string }>("/phone/browser-token"),
+  waStatus: (signal?: AbortSignal) => request<{ mode: "cloud" | "linked" | "simulated"; ai: boolean; demoMobiles: string[] }>("/whatsapp/status", { signal }),
   waThread: (mobile: string, signal?: AbortSignal) => request<WhatsAppMessage[]>(`/whatsapp/thread?${new URLSearchParams({ mobile })}`, { signal }),
   waSend: (mobile: string, text: string) => post<{ ok: true }>("/whatsapp/inbound", { mobile, text }),
   officerNote: (text: string, lang: "en" | "hi") => post<{ report: string }>("/officer/ai/note", { text, lang }),

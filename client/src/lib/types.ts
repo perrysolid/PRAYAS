@@ -58,7 +58,15 @@ export type Grievance = {
   supportCount: number;
   whatsapp?: boolean;
   channel?: "web" | "phone" | "app" | "whatsapp";
+  /** Two or three lines for the officer: written by AI when available, otherwise from the record. */
+  brief?: Brief;
+  /** For a senior officer: what happened at the level below and why it reached them. */
+  escalationBrief?: Brief & { level: Level };
+  /** The phone agent's conversation, for complaints registered by call. */
+  call?: { transcript: { who: "citizen" | "agent"; text: string; at: string }[]; language: string; seconds: number; via: "exotel" | "browser" };
 };
+
+export type Brief = { points: string[]; source: "ai" | "rules"; at: string };
 
 export type PublicGrievance = Pick<Grievance, "id" | "citizenName" | "departmentId" | "categoryId" | "districtId" | "status" | "level" | "levelDueAt" | "submittedAt" | "resolvedAt" | "timeline" | "currentOfficer" | "supportCount"> & { hasProof: boolean; photos?: { before?: Photo; after?: Photo } };
 

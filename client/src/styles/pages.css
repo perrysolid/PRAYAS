@@ -1221,3 +1221,33 @@ html.intro-played .carousel { animation: none; filter: none; }
 .office__photo figcaption a:hover { text-decoration: underline; opacity: 1; }
 .office__photo--none { display: grid; place-items: center; aspect-ratio: 16 / 6; color: color-mix(in srgb, var(--navy) 55%, transparent); }
 .search-sample { max-width: 46rem; margin: 0 0 var(--s3); padding: var(--s2) var(--s4); font-size: var(--fs-sm); }
+
+/* Officer briefs and call transcript */
+.ws-brief { margin: 0 0 var(--s4); padding: var(--s3) var(--s4); border-radius: 12px; background: var(--surface); border-left: 4px solid var(--brand); }
+.ws-brief--esc { border-left-color: var(--saffron-deep); background: var(--note-bg); color: var(--note-ink); }
+.ws-brief h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 var(--s2); font-size: var(--fs-sm); }
+.ws-brief ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: var(--fs-sm); max-width: none; }
+.ws-call { margin: 0 0 var(--s4); border: 1px solid var(--line); border-radius: 12px; padding: var(--s2) var(--s3); }
+.ws-call summary { cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: var(--fs-sm); }
+.ws-call ol { list-style: none; margin: var(--s3) 0 0; padding: 0; display: grid; gap: 6px; font-size: var(--fs-sm); max-height: 320px; overflow: auto; max-width: none; }
+.ws-call li strong { display: inline-block; min-width: 4.5em; color: var(--muted); font-weight: 600; }
+.ws-call__agent { color: var(--muted); }
+
+/* Practice call with the voice agent */
+.call-page { display: grid; gap: var(--s5, 24px); grid-template-columns: minmax(0, 1fr); padding-block: var(--s5, 24px); }
+@media (min-width: 900px) { .call-page { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; } }
+.call-card { display: grid; gap: var(--s4); }
+.call-card__agent { display: flex; align-items: center; gap: var(--s4); }
+.call-card__agent > div { display: grid; gap: 2px; }
+.call-card__actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+.call-card__keys { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.call-card__hangup { background: var(--st-overdue); box-shadow: 0 2px 0 #7a160f; }
+.call-card__hangup:hover { background: #8f1c13; }
+.call-card__hint { display: block; margin: 0; }
+.call-card__done { margin: 0; padding: var(--s3); border-radius: 10px; background: var(--st-resolved-bg); color: var(--st-resolved); }
+.call-log__title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); margin: 0 0 var(--s3); }
+.call-log ol { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); max-height: 60vh; overflow: auto; max-width: none; }
+.call-log li { padding: var(--s2) var(--s3); border-radius: 10px; background: var(--surface); overflow-wrap: anywhere; }
+.call-log li strong { display: block; font-size: var(--fs-xs); color: var(--muted); }
+.call-log__citizen { background: var(--brand-tint) !important; }
+.call-log .is-partial { opacity: .7; font-style: italic; }

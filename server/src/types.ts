@@ -65,7 +65,16 @@ export type Grievance = {
   lang?: string;
   /** Timeline entries already sent as WhatsApp updates. */
   notifiedUpTo?: number;
+  /** Two or three points an officer can act on, written when the complaint arrives. */
+  brief?: Brief;
+  /** For the senior officer after an escalation: what was reported, what was done, why it is overdue. */
+  escalationBrief?: Brief & { level: Level };
+  /** Complaints taken by the phone agent keep the conversation for the officer. */
+  call?: { transcript: CallLine[]; language: string; seconds: number; via: "exotel" | "browser" };
 };
+
+export type Brief = { points: string[]; source: "ai" | "rules"; at: string };
+export type CallLine = { who: "citizen" | "agent"; text: string; at: string };
 
 export type WhatsAppMessage = {
   id: string;

@@ -1,7 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import { config } from "../config.js";
 import { cpgramsKeywords, departments } from "../data/catalog.js";
 import { aiEnabled, generateJson } from "../lib/llm.js";
 
@@ -82,8 +79,6 @@ const TriageSchema = z.object({
   suggestedSubject: z.string(),
 });
 
-let client: Anthropic | undefined;
-
 const systemPrompt = `You route citizen grievances for CM Helpline 1905, the Government of Uttarakhand's grievance portal.
 Citizens write in English, Hindi, Garhwali, Kumaoni or Hinglish, often briefly and informally.
 
@@ -95,33 +90,7 @@ centralMatter is true when the issue belongs to Government of India or another s
 suggestedSubject is a neutral one-line summary under 80 characters, in the same language the citizen wrote in.
 confidence is your probability (0 to 1) that the department is right.`;
 
-/** Claude-based triage. Returns null on any failure so the caller can fall back to rules. */
-async function triageWithClaude(text: string): Promise<TriageResult | null> {
-  client ??= new Anthropic();
-  try {
-    const response = await client.beta.messages.parse({
-      model: "claude-opus-5-5",
-      max_tokens: 1024,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
-      output_config: { effort: "low", format: betaZodOutputFormat(TriageSchema) },
-      system: systemPrompt,
-      messages: [{ role: "user", content: `<grievance>\n${text}\n</grievance>` }],
-    });
-    if (response.stop_reason === "refusal" || !response.parsed_output) return null;
-
-    const out = response.parsed_output;
-    const dept = departments.find((d) => d.id === out.departmentId)!;
-    const categoryId = dept.categories.some((c) => c.id === out.categoryId) ? out.categoryId : dept.categories[0].id;
-    return { ...out, categoryId, confidence: Math.max(0, Math.min(1, out.confidence)), source: "ai" };
-  } catch (err) {
-    if (err instanceof Anthropic.APIError) console.warn(`Claude triage unavailable (${err.status}); using rules`);
-    else console.warn("Claude triage failed; using rules", err);
-    return null;
-  }
-}
-
-/** Triage with the configured language model. Returns null on any failure so the caller can fall back. */
+/** Triage with Claude (or the AI_* model as fallback). Returns null on any failure so the caller can fall back to rules. */
 async function triageWithModel(text: string): Promise<TriageResult | null> {
   try {
     const out = await generateJson<z.infer<typeof TriageSchema>>({
@@ -154,7 +123,7 @@ async function triageWithModel(text: string): Promise<TriageResult | null> {
 
 export async function triage(text: string): Promise<TriageResult> {
   const rules = triageWithRules(text);
-  const ai = aiEnabled() ? await triageWithModel(text) : config.anthropicEnabled ? await triageWithClaude(text) : null;
+  const ai = aiEnabled() ? await triageWithModel(text) : null;
   if (!ai) return rules;
   // Keyword hits for central matters are reliable; keep that signal even if the model missed it.
   return { ...ai, centralMatter: ai.centralMatter || rules.centralMatter };

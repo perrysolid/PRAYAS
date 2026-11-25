@@ -305,8 +305,12 @@ export function Home() {
               <p className="hero__call-text">{t("Toll free from any phone. An operator registers it for you.", "किसी भी फ़ोन से निःशुल्क। ऑपरेटर आपके लिए दर्ज करेंगे।")}</p>
               <ul className="hero__channels">
               <li>
+                <Mic size={18} aria-hidden="true" />
+                <Link to="/call">{t("Talk to the AI voice agent now", "AI वॉइस एजेंट से अभी बात करें")}</Link>
+              </li>
+              <li>
                 <MessageCircle size={18} aria-hidden="true" />
-                <a href="https://api.whatsapp.com/send?phone=917302254182" rel="noopener">{t("WhatsApp +91 73022 54182", "व्हाट्सऐप +91 73022 54182")}</a>
+                <a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" rel="noopener">{t("WhatsApp +91 83184 01662", "व्हाट्सऐप +91 83184 01662")}</a>
               </li>
             </ul>
             </aside>

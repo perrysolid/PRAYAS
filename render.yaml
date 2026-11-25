@@ -20,6 +20,9 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: https://cm-helpline-uttarakhand.vercel.app
+      # Neon Postgres (pooled connection string). Takes precedence over Supabase; tables are created on start.
+      - key: DATABASE_URL
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
@@ -32,3 +35,31 @@ services:
         sync: false
       - key: AI_TTS_MODEL
         sync: false
+      # Claude: phone agent conversation, officer briefs, and triage when the AI_* model fails.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Sarvam: speech-to-text and text-to-speech for the phone agent and WhatsApp voice notes.
+      - key: SARVAM_API_KEY
+        sync: false
+      # Put this in the Exotel Voicebot URL: wss://<this-host>/api/phone/exotel?secret=<value>
+      - key: PHONE_STREAM_SECRET
+        generateValue: true
+      # Shown on the website's call page, e.g. your ExoPhone number.
+      - key: HELPLINE_PHONE_NUMBER
+        sync: false
+      # WhatsApp on an ordinary number: "on", and the number with 91. The pairing code appears in the logs.
+      - key: WA_LINK
+        value: "on"
+      - key: WA_LINK_NUMBER
+        value: "918318401662"
+      # Officers who get a WhatsApp brief: department:mobile pairs, "*" for every department.
+      - key: OFFICER_WHATSAPP
+        sync: false
+      # Optional Garhwali speech-to-text (garhwali-asr/ on a Hugging Face Space).
+      - key: GARHWALI_ASR_URL
+        sync: false
+      - key: GARHWALI_ASR_TOKEN
+        sync: false
+      # WhatsApp's servers misbehave over IPv6 from some hosts.
+      - key: NODE_OPTIONS
+        value: --dns-result-order=ipv4first

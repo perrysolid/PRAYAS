@@ -34,6 +34,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/register", label: t("Register complaint", "शिकायत दर्ज करें"), Icon: PenLine },
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
     ...(session?.role === "officer" ? [] : [{ to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User }]),
+    { to: "/call", label: t("Talk to the voice agent", "वॉइस एजेंट से बात करें"), Icon: Phone },
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
     { to: "/demo", label: t("Watch it work", "देखें कैसे काम करता है"), Icon: PlayCircle },
     { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
@@ -194,7 +195,7 @@ function Footer() {
             <ul>
               <li><a href="tel:1905">{t("Call 1905 (toll free)", "1905 पर कॉल करें (निःशुल्क)")}</a></li>
               <li><Link to="/register">{t("Online, in Hindi or English", "ऑनलाइन, हिंदी या अंग्रेज़ी में")}</Link></li>
-              <li><a href="https://api.whatsapp.com/send?phone=917302254182" rel="noopener">{t("WhatsApp +91 73022 54182", "व्हाट्सऐप +91 73022 54182")}</a></li>
+              <li><a href="https://api.whatsapp.com/send?phone=918318401662&text=Hi" rel="noopener">{t("WhatsApp +91 83184 01662", "व्हाट्सऐप +91 83184 01662")}</a></li>
               <li><a href="https://play.google.com/store/apps/details?id=com.itda" rel="noopener">{t("Android app", "एंड्रॉइड ऐप")}</a></li>
             </ul>
           </div>

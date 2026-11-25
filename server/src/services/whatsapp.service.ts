@@ -19,7 +19,17 @@ import { triage } from "./triage.service.js";
  */
 
 const cloudEnabled = () => Boolean(config.whatsapp.token && config.whatsapp.phoneId);
-export const whatsappStatus = () => ({ mode: cloudEnabled() ? "cloud" : "simulated", ai: aiEnabled() });
+
+/** WhatsApp on an ordinary number (services/walink.service.ts) registers itself here once linked. */
+type LinkedSender = { ready: () => boolean; send: (mobile: string, text: string, image?: Buffer) => Promise<void> };
+let linked: LinkedSender | undefined;
+export const useLinkedSender = (s: LinkedSender) => void (linked = s);
+const linkedReady = () => Boolean(linked?.ready());
+
+export const whatsappStatus = () => ({ mode: linkedReady() ? "linked" : cloudEnabled() ? "cloud" : "simulated", ai: aiEnabled() });
+
+/** Photos are kept as data URLs; the linked number sends the bytes. */
+const imageBytes = (dataUrl?: string) => (dataUrl?.startsWith("data:") ? Buffer.from(dataUrl.slice(dataUrl.indexOf(",") + 1), "base64") : undefined);
 
 const deptName = (id: string, hi: boolean) => {
   const d = departments.find((x) => x.id === id);
@@ -33,6 +43,16 @@ const fmtDate = (iso: string, hi: boolean) =>
 /* ------------------------------------------------------------------ */
 
 async function deliver(m: WhatsAppMessage) {
+  if (linkedReady()) {
+    try {
+      await linked!.send(m.mobile, m.text, imageBytes(m.image));
+      m.status = "sent";
+    } catch (err) {
+      m.status = "failed";
+      console.warn("WhatsApp (linked number) send failed", err instanceof Error ? err.message : err);
+    }
+    return;
+  }
   if (!cloudEnabled()) return;
   try {
     const res = await fetch(`https://graph.facebook.com/v21.0/${config.whatsapp.phoneId}/messages`, {
@@ -50,7 +70,7 @@ async function deliver(m: WhatsAppMessage) {
 }
 
 export function send(mobile: string, text: string, extra: { grievanceId?: string; image?: string } = {}) {
-  const m: WhatsAppMessage = { id: randomUUID(), mobile, dir: "out", text, at: new Date().toISOString(), status: cloudEnabled() ? "sent" : "simulated", ...extra };
+  const m: WhatsAppMessage = { id: randomUUID(), mobile, dir: "out", text, at: new Date().toISOString(), status: linkedReady() || cloudEnabled() ? "sent" : "simulated", ...extra };
   store.whatsapp.insert(m);
   void deliver(m);
   return m;

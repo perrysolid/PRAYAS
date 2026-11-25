@@ -1,4 +1,5 @@
 import { WhatsApp } from "./pages/WhatsApp";
+import { Call } from "./pages/Call";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Intro } from "./components/Intro";
 import { Layout } from "./components/Layout";
@@ -40,6 +41,7 @@ const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/officer", element: <Officer /> },
       { path: "/whatsapp", element: <WhatsApp /> },
+      { path: "/call", element: <Call /> },
       { path: "/departments", element: <Departments /> },
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/orders", element: <Orders /> },
