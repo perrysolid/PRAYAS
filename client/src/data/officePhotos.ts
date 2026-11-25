@@ -4,11 +4,21 @@ export type OfficePhoto = { credit: string; licence: string; source: string };
 const commons = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 const p = (credit: string, licence: string, file: string): OfficePhoto => ({ credit: `${credit}, ${licence}`, licence, source: commons(file) });
 
+const gov = (name: string, source: string): OfficePhoto => ({ credit: `${name} website`, licence: "Official government website", source });
+
 /**
- * All from Wikimedia Commons under free licences. Where no photograph of the building itself was available,
+ * Most from Wikimedia Commons under free licences. Where no photograph of the building itself was available,
  * the card shows a photograph of the place or kind of work, and the credit line says whose it is.
  */
 export const officePhotos: Record<string, OfficePhoto> = {
+  secretariat: gov("Uttarakhand Secretariat Administration Dept", "https://sad.uk.gov.in/profile-uttarakhand-secretariat/"),
+  "cm-helpline-1905": gov("Uttarakhand Secretariat Administration Dept", "https://sad.uk.gov.in/"),
+  "cm-office": gov("Uttarakhand Secretariat Administration Dept", "https://sad.uk.gov.in/profile-uttarakhand-secretariat/"),
+  itda: gov("SIIDCUL, IT Park Dehradun", "https://siidcul.com/IIE-IT-Park-Dehradun"),
+  "jal-sansthan": gov("Uttarakhand Jal Sansthan", "https://ujs.uk.gov.in/"),
+  "peyjal-nigam": gov("Uttarakhand Peyjal Nigam", "https://peyjal.uk.gov.in/"),
+  health: p("Harshit Tewari", "CC BY-SA 4.0", "GDMC_Building.jpg"),
+
   "raj-bhawan": p("Ramchandra9", "CC BY 3.0", "Lok_Bhavan_Dehradun_Uttarakhand.jpg"),
   ujvnl: p("Sachinbauriyan", "CC BY-SA 4.0", "Maneri_Bhali_dam.jpg"),
   pwd: p("ArmouredCyborg", "CC BY-SA 4.0", "Gaula_Bridge,_Haldwani_Bypass.jpg"),
