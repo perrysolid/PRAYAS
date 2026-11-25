@@ -25,7 +25,7 @@ export const phoneRoutes = Router()
     note(`plain HTTPS request to /api/phone/exotel (Voicebot in dynamic-URL mode?); secret ${ok ? "ok" : "wrong"}`);
     if (!ok) return res.status(401).json({ error: "unauthorized" });
     const host = req.get("host");
-    res.json({ url: `wss://${host}/api/phone/exotel?secret=${encodeURIComponent(String(req.query.secret))}` });
+    res.json({ url: `wss://${host}/api/phone/exotel/${encodeURIComponent(String(req.query.secret))}` });
   })
   .get("/status", (_req, res) => {
     res.json({ available: voiceReady(), garhwali: garhwaliEnabled(), number: process.env.HELPLINE_PHONE_NUMBER || null });

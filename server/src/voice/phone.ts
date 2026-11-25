@@ -11,7 +11,8 @@ import { sarvamEnabled } from "./sarvam.js";
  * Audio transports for the phone agent, on the same server as the API:
  *
  * /api/phone/exotel   Exotel Voicebot applet (bidirectional stream). Point the applet at
- *                     wss://<api-host>/api/phone/exotel?secret=<PHONE_STREAM_SECRET>
+ *                     wss://<api-host>/api/phone/exotel/<PHONE_STREAM_SECRET>
+ *                     (Exotel drops query strings, so the secret goes in the path.)
  *                     Messages are JSON: connected, start, media (base64 16-bit PCM), dtmf, mark, stop.
  * /api/phone/browser  Practice call from the website: binary 16 kHz PCM both ways plus JSON events.
  */
@@ -37,6 +38,9 @@ export const secretMatches = (given: string) => {
 function exotelAllowed(req: IncomingMessage, url: URL) {
   const want = config.voice.streamSecret;
   if (!want) return !config.isProd; // open only in local development
+  // Exotel drops the query string, so the secret can also be the last part of the path.
+  const fromPath = url.pathname.startsWith("/api/phone/exotel/") ? decodeURIComponent(url.pathname.slice("/api/phone/exotel/".length)) : "";
+  if (fromPath && same(fromPath, want)) return true;
   const given = url.searchParams.get("secret") ?? "";
   if (given && same(given, want)) return true;
   const auth = req.headers.authorization ?? "";
@@ -187,8 +191,8 @@ export function attachPhone(server: Server) {
       socket.write(`HTTP/1.1 ${code} ${why}\r\nConnection: close\r\n\r\n`);
       socket.destroy();
     };
-    const isExotel = url.pathname === "/api/phone/exotel";
-    if (isExotel) note(`WebSocket from ${req.headers["user-agent"]?.slice(0, 40) ?? "?"}; query keys [${[...url.searchParams.keys()].join(",")}]; basic auth ${req.headers.authorization ? "yes" : "no"}`);
+    const isExotel = url.pathname === "/api/phone/exotel" || url.pathname.startsWith("/api/phone/exotel/");
+    if (isExotel) note(`WebSocket from ${req.headers["user-agent"]?.slice(0, 40) ?? "?"}; secret in path ${url.pathname.length > "/api/phone/exotel/".length ? "yes" : "no"}; query keys [${[...url.searchParams.keys()].join(",")}]; basic auth ${req.headers.authorization ? "yes" : "no"}`);
     if (!isExotel && url.pathname !== "/api/phone/browser") return reject(404, "Not Found");
     if (!voiceReady()) {
       if (isExotel) note("rejected: phone agent off (SARVAM_API_KEY or ANTHROPIC_API_KEY missing)");

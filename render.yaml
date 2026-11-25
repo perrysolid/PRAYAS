@@ -41,7 +41,7 @@ services:
       # Sarvam: speech-to-text and text-to-speech for the phone agent and WhatsApp voice notes.
       - key: SARVAM_API_KEY
         sync: false
-      # Put this in the Exotel Voicebot URL: wss://<this-host>/api/phone/exotel?secret=<value>
+      # Put this in the Exotel Voicebot URL: wss://<this-host>/api/phone/exotel/<value>
       - key: PHONE_STREAM_SECRET
         generateValue: true
       # Shown on the website's call page, e.g. your ExoPhone number.
