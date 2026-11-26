@@ -1302,3 +1302,7 @@ html.intro-played .carousel { animation: none; filter: none; }
 .split__right { display: flex; flex-direction: column; }
 .split__right .journey-stage { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .split__right .journey { flex: 1; }
+
+/* Find an office: the icon sits on the card, with no filled circle behind it */
+.split__left .offices-bar__icon { background: none; color: var(--navy); width: auto; height: auto; box-shadow: none; }
+.office__cta { display: inline-block; margin-top: var(--s3); font-weight: 600; }

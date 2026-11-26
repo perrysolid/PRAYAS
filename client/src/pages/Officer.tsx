@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { AlarmClock, ArrowLeft, ArrowRight, ArrowUpRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, Lock, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X } from "lucide-react";
+import { AlarmClock, ArrowLeft, ArrowRight, CheckCircle2, CircleDot, Clock3, Inbox, ListChecks, Lock, MapPin, MessageCircle, Phone, RefreshCw, Search, ShieldCheck, Smile, Sparkles, Undo2, Users, X } from "lucide-react";
 import { DeptIcon } from "../components/DeptIcon";
 import { LocationCard } from "../components/LocationCard";
 import { ErrorSummary, Field, TextArea, describedBy } from "../components/Form";
@@ -160,12 +160,6 @@ function Workspace({ g, onDone, onClose }: { g: Grievance; onDone: (g: Grievance
         <div><dt><Phone size={14} aria-hidden="true" /> {t("Citizen", "नागरिक")}</dt><dd>{g.citizenName} · {g.citizenMobile}</dd></div>
         <div><dt><Inbox size={14} aria-hidden="true" /> {t("Received", "प्राप्त")}</dt><dd>{formatDate(g.submittedAt, lang)} · {g.channel === "whatsapp" ? "WhatsApp" : g.channel === "phone" ? t("Phone", "फ़ोन") : t("Website", "वेबसाइट")}</dd></div>
       </dl>
-      {g.escalationBrief && (
-        <section className="ws-brief ws-brief--esc" aria-label={t("Why it reached you", "आपके पास क्यों आई")}>
-          <h3><ArrowUpRight size={16} aria-hidden="true" /> {t("Why it reached you", "आपके पास क्यों आई")}</h3>
-          <ul data-no-translate>{g.escalationBrief.points.map((p) => <li key={p}>{p}</li>)}</ul>
-        </section>
-      )}
       {g.brief && (
         <section className="ws-brief" aria-label={t("Brief", "सार")}>
           <h3>{g.brief.source === "ai" ? <Sparkles size={16} aria-hidden="true" /> : <ListChecks size={16} aria-hidden="true" />} {t("Brief", "सार")}</h3>

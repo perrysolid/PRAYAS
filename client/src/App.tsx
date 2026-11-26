@@ -1,6 +1,6 @@
 import { Pin } from "./pages/Pin";
 import { WhatsApp } from "./pages/WhatsApp";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import { Intro } from "./components/Intro";
 import { Layout } from "./components/Layout";
 import { A11yProvider } from "./context/A11yContext";
@@ -10,7 +10,6 @@ import { MetaProvider } from "./context/MetaContext";
 import { ComplaintDetail } from "./pages/ComplaintDetail";
 import { Dashboard } from "./pages/Dashboard";
 import { Demo } from "./pages/Demo";
-import { Departments } from "./pages/Departments";
 import { Feedback } from "./pages/Feedback";
 import { Search } from "./pages/Search";
 import { Forms } from "./pages/Forms";
@@ -42,7 +41,7 @@ const router = createBrowserRouter([
       { path: "/login", element: <Login /> },
       { path: "/officer", element: <Officer /> },
       { path: "/whatsapp", element: <WhatsApp /> },
-      { path: "/departments", element: <Departments /> },
+      { path: "/departments", element: <Navigate to="/offices" replace /> },
       { path: "/dashboard", element: <Dashboard /> },
       { path: "/orders", element: <Orders /> },
       { path: "/offices", element: <Offices /> },

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
-import { PlayCircle, BarChart3, Building2, Download, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, MapPin, Menu, MessageCircle, Moon, PenLine, Phone, Search, ShieldCheck, Sun, User, X } from "lucide-react";
+import { BarChart3, Building2, Download, ExternalLink, FileBadge, FileText, Globe, HelpCircle, LogOut, Menu, MessageCircle, Moon, PenLine, Search, ShieldCheck, Sun, User, X } from "lucide-react";
 import { useA11y } from "../context/A11yContext";
 import { useAuth } from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -35,13 +35,10 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
     { to: "/track", label: t("Track status", "स्थिति देखें"), Icon: Search },
     ...(session?.role === "officer" ? [] : [{ to: "/my-complaints", label: t("My profile", "मेरी प्रोफ़ाइल"), Icon: User }]),
     { to: "/whatsapp", label: t("WhatsApp", "व्हाट्सऐप"), Icon: MessageCircle },
-    { to: "/demo", label: t("Watch it work", "देखें कैसे काम करता है"), Icon: PlayCircle },
-    { to: "/departments", label: t("Departments", "विभाग"), Icon: Building2 },
-    { to: "/offices", label: t("Offices and contacts", "कार्यालय और संपर्क"), Icon: MapPin },
+    { to: "/offices", label: t("Departments", "विभाग"), Icon: Building2 },
     { to: "/forms", label: t("Download forms", "फ़ॉर्म डाउनलोड करें"), Icon: Download },
     { to: "/orders", label: t("Resolutions", "शासनादेश"), Icon: FileText },
     { to: "/dashboard", label: t("Live dashboard", "लाइव डैशबोर्ड"), Icon: BarChart3 },
-    { to: "/help", label: t("Help", "सहायता"), Icon: HelpCircle },
   ];
   return (
     <div id="site-menu" className="menu" role="dialog" aria-label={t("Menu", "मेनू")}>
@@ -88,10 +85,7 @@ function SiteMenu({ onClose }: { onClose: () => void }) {
             <ExternalLink size={14} className="menu__ext" aria-hidden="true" /><span className="visually-hidden">{t("(opens Apuni Sarkar in a new tab)", "(अपनी सरकार नए टैब में खुलेगा)")}</span>
           </a>
         </li>
-        {session?.role === "officer" && (
-          <li><NavLink to="/officer" onClick={onClose}><ShieldCheck size={18} aria-hidden="true" />{t("Officer console", "अधिकारी कंसोल")}</NavLink></li>
-        )}
-        <li><a href="tel:08047291964"><Phone size={18} aria-hidden="true" />{t("Call 080 4729 1964", "080 4729 1964 पर कॉल करें")}</a></li>
+        <li><NavLink to="/help" onClick={onClose}><HelpCircle size={18} aria-hidden="true" />{t("Help", "सहायता")}</NavLink></li>
         {session && (
           <li>
             <button type="button" onClick={() => { logout(); onClose(); }}><LogOut size={18} aria-hidden="true" />{t("Sign out", "साइन आउट")}</button>

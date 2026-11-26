@@ -320,11 +320,11 @@ export function Home() {
               ))}
             </ul>
             <Link className="offices-bar" to="/offices">
-              <span className="offices-bar__icon" aria-hidden="true"><MapPin size={40} /></span>
+              <span className="offices-bar__icon" aria-hidden="true"><MapPin size={64} /></span>
               <strong className="offices-bar__title">{t("Find an office near you", "अपने निकट का कार्यालय खोजें")}</strong>
               <ArrowRight className="offices-bar__go" size={28} aria-hidden="true" />
             </Link>
-            <Link className="split__more" to="/departments">{t("All 16 departments", "सभी 16 विभाग")} <ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link className="split__more" to="/offices">{t("All 16 departments", "सभी 16 विभाग")} <ArrowRight size={16} aria-hidden="true" /></Link>
           </Reveal>
           <Reveal className="split__panel split__right" delay={160} role="region" aria-labelledby="journey-title">
             <div className="split__head">
