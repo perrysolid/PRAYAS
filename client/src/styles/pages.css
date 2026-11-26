@@ -1297,3 +1297,8 @@ html.intro-played .carousel { animation: none; filter: none; }
 .ws-pill--next:hover { background: #ffa03a; color: #1b1300; }
 .ws-panel { margin: var(--s3) 0 var(--s2); padding-top: var(--s3); border-top: 1px solid var(--line-soft); }
 .ws-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--s4); padding: 0; border: 0; background: none; color: var(--link); font: inherit; font-weight: 600; cursor: pointer; }
+
+/* the journey fills the height of its panel, so the two columns end together */
+.split__right { display: flex; flex-direction: column; }
+.split__right .journey-stage { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.split__right .journey { flex: 1; }
